@@ -43,6 +43,7 @@ type Button struct {
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
+	validated                bool
 
 	init              *MultiOnce
 	widget            *Widget
@@ -182,6 +183,7 @@ func (b *Button) Validate() {
 	}
 
 	b.initWidget()
+	b.validated = true
 }
 
 func (b *Button) populateComputedParams() {
@@ -588,6 +590,9 @@ func (b *Button) GetWidget() *Widget {
 
 func (b *Button) PreferredSize() (int, int) {
 	b.init.Do()
+	if !b.validated {
+		b.Validate()
+	}
 
 	w, h := 50, 50
 
