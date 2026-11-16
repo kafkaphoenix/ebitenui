@@ -2,23 +2,31 @@ package widget
 
 import (
 	"unicode"
+	"unicode/utf8"
 )
 
-// keyboardRows are an OnScreenKeyboard's character keys, row by row, lower
-// case.
-var keyboardRows = [...]string{
-	"1234567890",
-	"qwertyuiop",
-	"asdfghjkl'",
-	"zxcvbnm,.-",
-}
+// Character rows of common layouts for OnScreenKeyboardOpts.Rows, a key a
+// character, lower case. A row of its own holds what a layout reaches with
+// dead keys or AltGr on a real keyboard.
+var (
+	// KeyboardQWERTY is English's layout, the keyboard's own.
+	KeyboardQWERTY = []string{"1234567890", "qwertyuiop", "asdfghjkl'", "zxcvbnm,.-"}
+	// KeyboardAZERTY is French's layout, with its accented letters.
+	KeyboardAZERTY = []string{"1234567890", "azertyuiop", "qsdfghjklm", "wxcvbn,.'-", "éèêàçù"}
+	// KeyboardQWERTZ is German's layout, with its umlauts and ß.
+	KeyboardQWERTZ = []string{"1234567890", "qwertzuiopü", "asdfghjklöä", "yxcvbnm,.-ß"}
+	// KeyboardSpanish is Spanish's layout, with ñ, its accented vowels and its
+	// opening marks.
+	KeyboardSpanish = []string{"1234567890", "qwertyuiop", "asdfghjklñ", "zxcvbnm,.-", "áéíóúü¿¡'"}
+)
 
 // OnScreenKeyboard is a keyboard of buttons that types into a TextInput, for
 // a gamepad on a platform that shows no keyboard of its own. Its keys take
 // the focus as buttons do, so the D-pad or the stick moves between them and
 // A presses the focused one. Shift switches the letters between lower and
 // upper case, Space types a space, Erase deletes the character before the
-// caret, and Done submits the input and closes the keyboard. A line above
+// caret, and Done submits the input and closes the keyboard. The character
+// keys are KeyboardQWERTY's, or Rows' (another layout's). A line above
 // the keys shows the input's text, as stars for a secure input. The keys
 // take the theme's buttons, and the keyboard, without a background of its
 // own, the theme's panel background.
@@ -42,6 +50,7 @@ type onScreenKeyboardConfig struct {
 	containerOpts []ContainerOpt
 	keyOpts       []ButtonOpt
 	previewOpts   []TextOpt
+	rows          []string
 }
 
 type OnScreenKeyboardOptions struct{}
@@ -61,6 +70,20 @@ func (o OnScreenKeyboardOptions) KeyOpts(opts ...ButtonOpt) OnScreenKeyboardOpt 
 	return func(k *onScreenKeyboardConfig) { k.keyOpts = append(k.keyOpts, opts...) }
 }
 
+// Rows sets the character keys, row by row, a key a character, lower case:
+// another layout, such as KeyboardAZERTY or KeyboardSpanish, or the letters
+// a language needs. Shift switches every letter's case. Rows of different
+// lengths share one grid as wide as the longest, starting on its left, so
+// the keys line up in columns. Without rows, the keyboard keeps
+// KeyboardQWERTY.
+func (o OnScreenKeyboardOptions) Rows(rows ...string) OnScreenKeyboardOpt {
+	return func(k *onScreenKeyboardConfig) {
+		if len(rows) > 0 {
+			k.rows = rows
+		}
+	}
+}
+
 // PreviewOpts configures the line above the keys that shows the input's
 // text: its face and color, without a theme.
 func (o OnScreenKeyboardOptions) PreviewOpts(opts ...TextOpt) OnScreenKeyboardOpt {
@@ -72,7 +95,10 @@ func (o OnScreenKeyboardOptions) PreviewOpts(opts ...TextOpt) OnScreenKeyboardOp
 func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 	// Small keys by default, so ten fit across a narrow screen; the grid
 	// stretches them across the keyboard's width.
-	cfg := onScreenKeyboardConfig{keyOpts: []ButtonOpt{ButtonOpts.TextPadding(&Insets{Left: 8, Right: 8, Top: 6, Bottom: 6})}}
+	cfg := onScreenKeyboardConfig{
+		keyOpts: []ButtonOpt{ButtonOpts.TextPadding(&Insets{Left: 8, Right: 8, Top: 6, Bottom: 6})},
+		rows:    KeyboardQWERTY,
+	}
 	for _, o := range opts {
 		o(&cfg)
 	}
@@ -84,10 +110,13 @@ func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 	k.preview = NewText(append(cfg.previewOpts, TextOpts.WidgetOpts(stretch))...)
 	k.preview.Label = " " // a line's height before it shows a text
 
-	columns := len(keyboardRows[0])
+	columns := 0
+	for _, row := range cfg.rows {
+		columns = max(columns, utf8.RuneCountInString(row))
+	}
 	chars := NewContainer(ContainerOpts.WidgetOpts(stretch), ContainerOpts.Layout(NewGridLayout(
 		GridLayoutOpts.Columns(columns), GridLayoutOpts.Spacing(4, 4), GridLayoutOpts.Stretch(trueSlice(columns), nil))))
-	for _, row := range keyboardRows {
+	for _, row := range cfg.rows {
 		for _, r := range row {
 			b := k.key(string(r), func() { k.typeRune(r) })
 			if unicode.IsLetter(r) {
@@ -97,6 +126,9 @@ func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 				k.first = b
 			}
 			chars.AddChild(b)
+		}
+		for range columns - utf8.RuneCountInString(row) {
+			chars.AddChild(NewContainer()) // an empty cell, so the next row starts on the left
 		}
 	}
 	commands := NewContainer(ContainerOpts.WidgetOpts(stretch), ContainerOpts.Layout(NewGridLayout(
