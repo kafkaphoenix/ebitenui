@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"image"
 	"image/color"
 	"log"
@@ -24,7 +25,15 @@ type game struct {
 	TabBook  *widget.TabBook
 }
 
+// Where the tab buttons run: go run . -tabs left
+var tabs = flag.String("tabs", "top", "where the tab buttons run: top, bottom, left or right")
+
 func main() {
+	flag.Parse()
+	position := map[string]widget.TabPosition{
+		"top": widget.TabPositionTop, "bottom": widget.TabPositionBottom,
+		"left": widget.TabPositionLeft, "right": widget.TabPositionRight,
+	}[*tabs]
 	game := game{}
 
 	// load images for button states: idle, hover, and pressed
@@ -84,10 +93,10 @@ func main() {
 	game.TabBlue = widget.NewTabBookTab(
 		widget.TabBookTabOpts.Label("Blue Tab"),
 		widget.TabBookTabOpts.Image(&widget.GraphicImage{
-			Idle: blueImage,
+			Idle:     blueImage,
 			Disabled: blueImage,
-			Pressed: blueImage,
-			Hover: blueImage,
+			Pressed:  blueImage,
+			Hover:    blueImage,
 		}),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
@@ -126,6 +135,7 @@ func main() {
 		widget.TabBookOpts.ContentPadding(widget.NewInsetsSimple(5)),
 		widget.TabBookOpts.ContentSpacing(10),
 		widget.TabBookOpts.TabButtonMinSize(&image.Point{98, 40}),
+		widget.TabBookOpts.TabPosition(position),
 		widget.TabBookOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				StretchHorizontal:  true,

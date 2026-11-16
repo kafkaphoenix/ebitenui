@@ -1,6 +1,7 @@
 package widget
 
 import (
+	img "image"
 	"image/color"
 	"testing"
 
@@ -136,4 +137,65 @@ func newTabContainerOpts() []ContainerOpt {
 	result := []ContainerOpt{}
 
 	return result
+}
+
+// newPlacedTabBook returns a tab book of two tabs, "A" and "Longer", whose
+// pages ask for 60 by 80 and 100 by 120 px, so that the one not shown is the
+// larger, with opts, laid out in 300 by 200 px.
+func newPlacedTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
+	t.Helper()
+	page := func(label string, w, h int) *TabBookTab {
+		return NewTabBookTab(TabBookTabOpts.Label(label), TabBookTabOpts.ContainerOpts(ContainerOpts.WidgetOpts(WidgetOpts.MinSize(w, h))))
+	}
+	tb := newTabBook(t, append([]TabBookOpt{TabBookOpts.Tabs(page("A", 60, 80), page("Longer", 100, 120)), TabBookOpts.ContentSpacing(5)}, opts...)...)
+	tb.SetLocation(img.Rect(0, 0, 300, 200))
+	render(tb, t)
+	return tb
+}
+
+// The tabs' buttons run where TabPosition puts them: across the top, the
+// default, or the bottom of the pages, or down their left or right side,
+// each button then as wide as the widest. The pages take the rest,
+// ContentSpacing apart.
+func TestTabBook_TabPosition(t *testing.T) {
+	is := is.New(t)
+
+	for _, pos := range []TabPosition{TabPositionTop, TabPositionBottom, TabPositionLeft, TabPositionRight} {
+		tb := newPlacedTabBook(t, TabBookOpts.TabPosition(pos))
+		b := tabBookButtons(tb)
+		b0, b1, page := b[0].GetWidget().Rect, b[1].GetWidget().Rect, tb.flipBook.GetWidget().Rect
+		switch pos {
+		case TabPositionTop:
+			is.True(b0.Min.Y == 0 && b1.Min.Y == 0 && b1.Min.X >= b0.Max.X) // a row at the top
+			is.Equal(page, img.Rect(0, b0.Max.Y+5, 300, 200))
+		case TabPositionBottom:
+			is.True(b0.Max.Y == 200 && b1.Max.Y == 200 && b1.Min.X >= b0.Max.X) // a row at the bottom
+			is.Equal(page, img.Rect(0, 0, 300, b0.Min.Y-5))
+		case TabPositionLeft:
+			is.True(b0.Min.X == 0 && b1.Min.Y >= b0.Max.Y) // a column on the left
+			is.Equal(b0.Dx(), b1.Dx())                     // as wide as the widest
+			is.Equal(page, img.Rect(b0.Max.X+5, 0, 300, 200))
+		case TabPositionRight:
+			is.True(b0.Max.X == 300 && b1.Min.Y >= b0.Max.Y) // a column on the right
+			is.Equal(b0.Dx(), b1.Dx())
+			is.Equal(page, img.Rect(0, 0, b0.Min.X-5, 200))
+		}
+	}
+}
+
+// A tab book asks for room for its largest page and its buttons, beside the
+// pages or above them, ContentSpacing apart.
+func TestTabBook_PreferredSizeByPosition(t *testing.T) {
+	is := is.New(t)
+
+	for _, pos := range []TabPosition{TabPositionTop, TabPositionLeft} {
+		tb := newPlacedTabBook(t, TabBookOpts.TabPosition(pos))
+		bw, bh := tb.btnContainer.PreferredSize()
+		w, h := tb.PreferredSize()
+		if pos == TabPositionTop {
+			is.Equal([]int{w, h}, []int{max(100, bw), bh + 5 + 120})
+		} else {
+			is.Equal([]int{w, h}, []int{bw + 5 + 100, max(120, bh)})
+		}
+	}
 }
