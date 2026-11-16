@@ -673,9 +673,12 @@ func (l *List) FocusPrevious() {
 	}
 }
 
+// SelectFocused selects the focused entry. It scrolls nothing: the list
+// scrolls to an entry as the focus moves to it, so with SelectFocus, which
+// calls this as the list draws, the wheel and the sliders still scroll away
+// from the selected entry.
 func (l *List) SelectFocused() {
 	if l.focusIndex >= 0 && l.focusIndex < len(l.buttons) {
-		l.scrollVisible(l.buttons[l.focusIndex])
 		l.setSelectedEntry(l.entries[l.focusIndex], false)
 	}
 }
@@ -1071,30 +1074,42 @@ func (l *List) setScrollLeft(left float64) {
 	l.scrollContainer.ScrollLeft = left
 }
 
+// scrollVisible scrolls toward showing w, a step a call: along each axis as
+// little as shows it whole, or to its start if it is larger than the view
+// that way. Once there, within a pixel, it stops scrolling for the focused
+// entry, so the wheel and the sliders scroll freely again.
 func (l *List) scrollVisible(w HasWidget) {
-	vrect := l.scrollContainer.ViewRect()
+	vrect, crect := l.scrollContainer.ViewRect(), l.scrollContainer.ContentRect()
 	wrect := w.GetWidget().Rect
-	if !wrect.In(vrect) {
-		crect := l.scrollContainer.ContentRect()
-		scrollTop := l.scrollContainer.ScrollTop
-		scrollHeight := crect.Dy() - vrect.Dy()
-		if wrect.Max.Y > vrect.Max.Y {
-			scrollTop = float64(wrect.Max.Y-vrect.Dy()-crect.Min.Y) / float64(scrollHeight)
-		} else if wrect.Min.Y < vrect.Min.Y {
-			scrollTop = float64(wrect.Min.Y-crect.Min.Y) / float64(scrollHeight)
-		}
-		scrollLeft := l.scrollContainer.ScrollLeft
-		scrollWidth := crect.Dx() - vrect.Dx()
-		if wrect.Max.X > vrect.Max.X {
-			scrollLeft = float64(wrect.Max.X-vrect.Dx()-crect.Min.X) / float64(scrollWidth)
-		} else if wrect.Min.X < vrect.Min.X {
-			scrollLeft = float64(wrect.Min.X-crect.Min.X) / float64(scrollWidth)
-		}
-		l.setScrollTop(scrollClamp(scrollTop, l.scrollContainer.ScrollTop))
-		l.setScrollLeft(scrollClamp(scrollLeft, l.scrollContainer.ScrollLeft))
-	} else if wrect != vrect {
-		l.prevFocusIndex = l.focusIndex
+	top, left := l.scrollContainer.ScrollTop, l.scrollContainer.ScrollLeft
+	spanY, spanX := crect.Dy()-vrect.Dy(), crect.Dx()-vrect.Dx()
+	toTop := scrollTarget(wrect.Min.Y, wrect.Max.Y, vrect.Min.Y, vrect.Max.Y, crect.Min.Y, spanY, top)
+	toLeft := scrollTarget(wrect.Min.X, wrect.Max.X, vrect.Min.X, vrect.Max.X, crect.Min.X, spanX, left)
+	if math.Abs(toTop-top)*float64(spanY) < 1 && math.Abs(toLeft-left)*float64(spanX) < 1 {
+		l.prevFocusIndex = l.focusIndex // there
+		return
 	}
+	l.setScrollTop(scrollClamp(toTop, top))
+	l.setScrollLeft(scrollClamp(toLeft, left))
+}
+
+// scrollTarget returns the scroll along one axis, from 0 to 1, that shows
+// the span lo to hi of the content: as little a move from current as shows
+// it whole within the view's span vlo to vhi, or its start at the view's if
+// it is larger than the view. The content starts at clo and scrolls span
+// pixels.
+func scrollTarget(lo, hi, vlo, vhi, clo, span int, current float64) float64 {
+	if span <= 0 {
+		return 0
+	}
+	target := current
+	switch {
+	case hi-lo > vhi-vlo || lo < vlo: // larger than the view, or before it
+		target = float64(lo-clo) / float64(span)
+	case hi > vhi: // after it
+		target = float64(hi-(vhi-vlo)-clo) / float64(span)
+	}
+	return math.Max(0, math.Min(1, target))
 }
 
 func scrollClamp(targetScroll, currentScroll float64) float64 {
