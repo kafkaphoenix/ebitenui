@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -366,6 +367,102 @@ func TestList_EntryWidgets(t *testing.T) {
 
 	l.UpdateEntry("b")
 	is.Equal(built["b"], 2) // built again
+}
+
+// newEntryImages returns entry images, each its own.
+func newEntryImages(t *testing.T) *ListEntryImage {
+	t.Helper()
+	return &ListEntryImage{
+		Unselected: newNineSliceEmpty(t), DisabledUnselected: newNineSliceEmpty(t),
+		Focused: newNineSliceEmpty(t), Selecting: newNineSliceEmpty(t),
+		Selected: newNineSliceEmpty(t), DisabledSelected: newNineSliceEmpty(t),
+		SelectedFocused: newNineSliceEmpty(t), SelectingFocused: newNineSliceEmpty(t),
+	}
+}
+
+// isEntryImages checks that a list draws its entries with images, each state
+// its own.
+func isEntryImages(is *is.I, l *List, images *ListEntryImage) {
+	is.Helper()
+	unselected, selected := l.computedParams.entryUnselectedColor, l.computedParams.entrySelectedColor
+	is.True(unselected.Idle == images.Unselected)
+	is.True(unselected.Disabled == images.DisabledUnselected)
+	is.True(unselected.Hover == images.Focused)
+	is.True(unselected.Pressed == images.Selecting)
+	is.True(selected.Idle == images.Selected)
+	is.True(selected.Disabled == images.DisabledSelected)
+	is.True(selected.Hover == images.SelectedFocused)
+	is.True(selected.Pressed == images.SelectingFocused)
+}
+
+// Entry images draw the entries' backgrounds, rounded or bordered, in place
+// of their colors, each state its own: the selected entry's button takes the
+// selected ones. A state without an image keeps its color, and an
+// unselected entry without one stays clear.
+func TestList_EntryImages(t *testing.T) {
+	is := is.New(t)
+
+	images := newEntryImages(t)
+	l := newList(t, ListOpts.EntryImage(images), ListOpts.Entries([]any{"a", "b"}),
+		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+	isEntryImages(is, l, images)
+	l.SetSelectedEntry("b")
+	is.True(listEntryButtons(l)[1].computedParams.Image.Idle == images.Selected)   // the selected entry
+	is.True(listEntryButtons(l)[0].computedParams.Image.Idle == images.Unselected) // the others
+
+	focused := color.NRGBA{1, 2, 3, 255}
+	partial := newList(t, ListOpts.EntryImage(&ListEntryImage{Selected: images.Selected}), ListOpts.Entries([]any{"a"}),
+		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+	colors := *partial.definedParams.EntryColor
+	colors.SelectedFocusedBackground = focused
+	partial.definedParams.EntryColor = &colors
+	partial.Validate()
+	is.True(partial.computedParams.entrySelectedColor.Idle == images.Selected)
+	is.True(partial.computedParams.entrySelectedColor.Hover == image.NewNineSliceColor(focused)) // its color
+	is.True(partial.computedParams.entryUnselectedColor.Idle == image.NewNineSliceColor(color.Transparent))
+}
+
+// A theme's entry images reach a list given neither colors nor images, and
+// its combo button entry images such a list combo button's list. Images
+// given show in their place, and so do colors given: not the theme's images
+// over them.
+func TestList_EntryImagesFromTheTheme(t *testing.T) {
+	is := is.New(t)
+
+	label := func(e any) string { return e.(string) } //nolint:forcetypeassert // strings
+	l := newList(t, ListOpts.Entries([]any{"a"}), ListOpts.EntryLabelFunc(label))
+	c := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label))
+	colors := *l.definedParams.EntryColor // the theme's, none given
+	l.definedParams.EntryColor, c.definedParams.List.EntryColor = nil, nil
+
+	themed, comboThemed := newEntryImages(t), newEntryImages(t)
+	theme := &Theme{
+		ListTheme:            &ListParams{EntryColor: &colors, EntryImage: themed},
+		ListComboButtonTheme: &ListComboButtonParams{List: &ListParams{EntryColor: &colors, EntryImage: comboThemed}},
+	}
+	l.GetWidget().SetTheme(theme)
+	l.Validate()
+	isEntryImages(is, l, themed)
+	c.GetWidget().SetTheme(theme)
+	c.Validate()
+	isEntryImages(is, c.list, comboThemed) // a combo's list takes the combo's
+
+	given := newEntryImages(t)
+	l.definedParams.EntryImage, c.definedParams.List.EntryImage = given, given
+	l.Validate()
+	c.Validate()
+	isEntryImages(is, l, given)
+	isEntryImages(is, c.list, given)
+
+	selected := color.NRGBA{1, 2, 3, 255}
+	givenColors := colors
+	givenColors.SelectedBackground = selected
+	l.definedParams.EntryImage, l.definedParams.EntryColor = nil, &givenColors
+	c.definedParams.List.EntryImage, c.definedParams.List.EntryColor = nil, &givenColors
+	l.Validate()
+	c.Validate()
+	is.True(l.computedParams.entrySelectedColor.Idle == image.NewNineSliceColor(selected)) // the colors given
+	is.True(c.list.computedParams.entrySelectedColor.Idle == image.NewNineSliceColor(selected))
 }
 
 // With SlidersWhenNeeded, the vertical slider shows only while the entries
