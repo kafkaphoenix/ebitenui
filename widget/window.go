@@ -35,6 +35,8 @@ type WindowClosedEventArgs struct {
 type WindowClosedHandlerFunc func(args *WindowClosedEventArgs)
 
 type Window struct {
+	layer input.Layer // the window's input layer, kept from frame to frame
+
 	ResizeEvent *event.Event
 	MoveEvent   *event.Event
 	ClosedEvent *event.Event
@@ -345,15 +347,18 @@ func (w *Window) RequestRelayout() {
 
 // Typically used internally.
 func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
-		DebugLabel: "window",
-		EventTypes: input.LayerEventTypeAll,
-		BlockLower: w.blockLower && !w.Ephemeral,
-		FullScreen: w.Modal,
-		RectFunc: func() image.Rectangle {
-			return w.container.GetWidget().Rect
-		},
-	})
+	if w.layer.RectFunc == nil { // made once, kept from frame to frame
+		w.layer = input.Layer{
+			DebugLabel: "window",
+			EventTypes: input.LayerEventTypeAll,
+			RectFunc: func() image.Rectangle {
+				return w.container.GetWidget().Rect
+			},
+		}
+	}
+	w.layer.BlockLower = w.blockLower && !w.Ephemeral
+	w.layer.FullScreen = w.Modal
+	w.container.GetWidget().ElevateToNewInputLayer(&w.layer)
 	w.container.SetupInputLayer(def)
 }
 

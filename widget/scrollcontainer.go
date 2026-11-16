@@ -24,6 +24,7 @@ type ScrollContainer struct {
 	image               *ScrollContainerImage
 	content             PreferredSizeLocateableWidget
 	forwarding          PreferredSizeLocateableWidget // the content whose events it forwards
+	contentLayer        input.Layer                   // the content's input layer, kept from frame to frame
 	padding             *Insets
 	stretchContentWidth bool
 	dragToScroll        bool
@@ -226,13 +227,16 @@ func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 	s.init.Do()
 
 	if s.widget.IsVisible() {
-		s.content.GetWidget().ElevateToNewInputLayer(&input.Layer{
-			DebugLabel: "scroll container content",
-			EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
-			BlockLower: true,
-			FullScreen: false,
-			RectFunc:   s.ViewRect,
-		})
+		if s.contentLayer.RectFunc == nil { // made once, kept from frame to frame
+			s.contentLayer = input.Layer{
+				DebugLabel: "scroll container content",
+				EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
+				BlockLower: true,
+				FullScreen: false,
+				RectFunc:   s.ViewRect,
+			}
+		}
+		s.content.GetWidget().ElevateToNewInputLayer(&s.contentLayer)
 
 		if il, ok := s.content.(input.Layerer); ok {
 			il.SetupInputLayer(def)

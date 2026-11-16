@@ -21,6 +21,8 @@ const (
 )
 
 type DragAndDrop struct {
+	dragLayer input.Layer // the dragged widget's input layer, kept from frame to frame
+
 	ContentsOriginVertical   DragAndDropAnchor
 	ContentsOriginHorizontal DragAndDropAnchor
 	Offset                   image.Point
@@ -149,12 +151,13 @@ func (d *DragAndDrop) StopDrag() {
 
 func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	if d.dragWidget != nil {
-		d.dragWidget.GetWidget().ElevateToNewInputLayer(&input.Layer{
+		d.dragLayer = input.Layer{ // kept, not made each frame
 			DebugLabel: "drag widget",
 			EventTypes: input.LayerEventTypeAll,
 			BlockLower: true,
 			FullScreen: true,
-		})
+		}
+		d.dragWidget.GetWidget().ElevateToNewInputLayer(&d.dragLayer)
 	}
 }
 

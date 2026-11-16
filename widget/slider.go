@@ -50,8 +50,9 @@ type Slider struct {
 	handlePressedOffsetY         int
 	handlePressedInternalCurrent float64
 
-	tabOrder int
-	focusMap map[FocusDirection]Focuser
+	tabOrder    int
+	focusMap    map[FocusDirection]Focuser
+	handleLayer input.Layer // the handle's input layer, kept from frame to frame
 }
 
 type SliderTrackImage struct {
@@ -343,15 +344,18 @@ func (s *Slider) SetLocation(rect img.Rectangle) {
 }
 
 func (s *Slider) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	s.handle.GetWidget().ElevateToNewInputLayer(&input.Layer{
-		DebugLabel: "slider handle",
-		EventTypes: input.LayerEventTypeAll,
-		BlockLower: true,
-		FullScreen: false,
-		RectFunc: func() img.Rectangle {
-			return s.handle.GetWidget().Rect
-		},
-	})
+	if s.handleLayer.RectFunc == nil { // made once, kept from frame to frame
+		s.handleLayer = input.Layer{
+			DebugLabel: "slider handle",
+			EventTypes: input.LayerEventTypeAll,
+			BlockLower: true,
+			FullScreen: false,
+			RectFunc: func() img.Rectangle {
+				return s.handle.GetWidget().Rect
+			},
+		}
+	}
+	s.handle.GetWidget().ElevateToNewInputLayer(&s.handleLayer)
 
 	s.handle.SetupInputLayer(def)
 }

@@ -350,16 +350,19 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 	for idx, ch := range c.children {
 		if v, ok := ch.(Focuser); ok {
-			if ch.GetWidget().ElevateLayer {
-				ch.GetWidget().ElevateToNewInputLayer(&input.Layer{
-					DebugLabel: fmt.Sprintf("Container %p - Widget %d", c, idx),
-					EventTypes: input.LayerEventTypeAll,
-					BlockLower: true,
-					FullScreen: false,
-					RectFunc: func() img.Rectangle {
-						return v.GetWidget().Rect
-					},
-				})
+			if w := v.GetWidget(); w.ElevateLayer {
+				if w.raisedLayer.RectFunc == nil { // made once, kept from frame to frame
+					w.raisedLayer = input.Layer{
+						DebugLabel: fmt.Sprintf("Container %p - Widget %d", c, idx),
+						EventTypes: input.LayerEventTypeAll,
+						BlockLower: true,
+						FullScreen: false,
+						RectFunc: func() img.Rectangle {
+							return w.Rect
+						},
+					}
+				}
+				w.ElevateToNewInputLayer(&w.raisedLayer)
 			}
 		}
 		if il, ok := ch.(input.Layerer); ok {

@@ -17,6 +17,11 @@ type ComboButton struct {
 	init    *MultiOnce
 	button  *Button
 	content HasWidget
+
+	// The open content's input layer, and the function that sets it up,
+	// kept from frame to frame.
+	contentLayer      input.Layer
+	setupContentLayer input.SetupInputLayerFunc
 }
 
 type ComboButtonOpt func(c *ComboButton)
@@ -100,8 +105,8 @@ func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	c.button.SetupInputLayer(def)
 
 	if c.content != nil && c.ContentVisible {
-		def(func(def input.DeferredSetupInputLayerFunc) {
-			c.content.GetWidget().ElevateToNewInputLayer(&input.Layer{
+		if c.setupContentLayer == nil { // made once, kept from frame to frame
+			c.contentLayer = input.Layer{
 				DebugLabel: "combo button content visible",
 				EventTypes: input.LayerEventTypeAll,
 				BlockLower: true,
@@ -109,12 +114,19 @@ func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 				RectFunc: func() image.Rectangle {
 					return c.content.GetWidget().Rect
 				},
-			})
-
-			if il, ok := c.content.(input.Layerer); ok {
-				il.SetupInputLayer(def)
 			}
-		})
+			c.setupContentLayer = c.setupContentInputLayer
+		}
+		def(c.setupContentLayer)
+	}
+}
+
+// setupContentInputLayer raises the open content to its own input layer,
+// above the widgets it covers.
+func (c *ComboButton) setupContentInputLayer(def input.DeferredSetupInputLayerFunc) {
+	c.content.GetWidget().ElevateToNewInputLayer(&c.contentLayer)
+	if il, ok := c.content.(input.Layerer); ok {
+		il.SetupInputLayer(def)
 	}
 }
 

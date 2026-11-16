@@ -83,20 +83,20 @@ var deferredSetupInputLayers []SetupInputLayerFunc
 
 // AddLayer adds l at the top of the layer stack.
 //
-// Layers are only valid for the duration of a frame. Layers are removed automatically for the next frame.
+// Layers are only valid for the duration of a frame. Layers are removed automatically for the next frame. A
+// layer added again in a later frame is valid again, so a widget can keep its layer instead of making one each
+// frame.
 func AddLayer(l *Layer) {
-	if !l.Valid() {
-		panic("invalid layer")
-	}
-
 	if l.EventTypes == LayerEventTypeAny {
 		panic("LayerEventTypeAny is invalid for an input layer, perhaps you meant to use LayerEventTypeAll instead")
 	}
 
+	l.invalid = false
 	layers = append(layers, l)
 }
 
-// Valid returns whether l is still valid, that is, it has not been added to the layer stack in previous frames.
+// Valid returns whether l is on this frame's layer stack, or was never added to one: a layer added in an earlier
+// frame and not since is not.
 func (l *Layer) Valid() bool {
 	return !l.invalid
 }
@@ -146,8 +146,10 @@ func SetupInputLayersWithDeferred(ls []Layerer) {
 	}
 	layers = layers[:0]
 
+	// Called directly rather than queued, which would make a function value
+	// each frame; the layers they defer still run after them all, in order.
 	for _, l := range ls {
-		appendToDeferredSetupInputLayerQueue(l.SetupInputLayer)
+		l.SetupInputLayer(appendToDeferredSetupInputLayerQueue)
 	}
 
 	setupDeferredInputLayers()

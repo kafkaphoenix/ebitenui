@@ -108,6 +108,7 @@ type Widget struct {
 	mouseRightPressedInside     bool
 	pressedAt                   uint64 // pressCancels when the left button went down on it
 	inputLayer                  *input.Layer
+	raisedLayer                 input.Layer // the layer ElevateLayer raises it to, kept from frame to frame
 	focusable                   Focuser
 	theme                       *Theme
 	longPressButton             ebiten.MouseButton
