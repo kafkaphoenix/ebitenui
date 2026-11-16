@@ -10,7 +10,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
@@ -193,7 +193,7 @@ func TestVirtualList_SetCountAndRefresh(t *testing.T) {
 func TestVirtualList_RowsTakeInput(t *testing.T) {
 	is := is.New(t)
 
-	c := useTestCursor(t)
+	d := uitest.Use(t)
 
 	var clicked []int
 	bound := map[*Button]int{}
@@ -219,8 +219,8 @@ func TestVirtualList_RowsTakeInput(t *testing.T) {
 	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) })
 
 	top := l.scroll.ViewRect().Min.Y
-	for _, step := range []struct{ pressed, just bool }{{true, true}, {false, false}} {
-		c.x, c.y, c.pressed, c.just = 20, top+30, step.pressed, step.just // the second row
+	for _, down := range []bool{true, false} {
+		point(d, 20, top+30, down) // the second row
 		l.Update(&UpdateObject{})
 		event.ExecuteDeferred()
 	}
@@ -266,7 +266,7 @@ func TestVirtualList_WheelAndTheme(t *testing.T) {
 func TestVirtualList_DragToScroll(t *testing.T) {
 	is := is.New(t)
 
-	c := useTestCursor(t)
+	d := uitest.Use(t)
 	for _, drag := range []bool{true, false} {
 		rows := &virtualRows{shows: map[*simpleWidget]int{}}
 		var opts []VirtualListOpt
@@ -278,10 +278,10 @@ func TestVirtualList_DragToScroll(t *testing.T) {
 		t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) })
 		top := l.scroll.ViewRect().Min.Y
 
-		pointerAt(t, l, l, c, top+80, true)
-		pointerAt(t, l, l, c, top+20, true) // dragged up 60 px, three rows
-		pointerAt(t, l, l, c, top+20, true) // held still
-		pointerAt(t, l, l, c, top+20, false)
+		pointerAt(t, l, l, d, top+80, true)
+		pointerAt(t, l, l, d, top+20, true) // dragged up 60 px, three rows
+		pointerAt(t, l, l, d, top+20, true) // held still
+		pointerAt(t, l, l, d, top+20, false)
 		drawAgain(l)
 		if !drag {
 			is.Equal(rows.at(top), 0) // not dragged
@@ -325,9 +325,9 @@ func TestVirtualList_FollowsTheTheme(t *testing.T) {
 
 // clickRow presses and releases the pointer over the row y pixels into the
 // view of l, updating l each time.
-func clickRow(l *VirtualList, c *testCursor, y int) {
-	for _, step := range []struct{ pressed, just bool }{{true, true}, {false, false}} {
-		c.x, c.y, c.pressed, c.just = 20, l.scroll.ViewRect().Min.Y+y, step.pressed, step.just
+func clickRow(l *VirtualList, d *uitest.Devices, y int) {
+	for _, down := range []bool{true, false} {
+		point(d, 20, l.scroll.ViewRect().Min.Y+y, down)
 		l.Update(&UpdateObject{})
 		event.ExecuteDeferred()
 	}
@@ -340,7 +340,7 @@ func clickRow(l *VirtualList, c *testCursor, y int) {
 func TestVirtualList_ClickSelects(t *testing.T) {
 	is := is.New(t)
 
-	c := useTestCursor(t)
+	d := uitest.Use(t)
 	var got []VirtualListEntrySelectedEventArgs
 	rows := &virtualRows{shows: map[*simpleWidget]int{}}
 	l := newVirtualList(t, 1_000, rows,
@@ -350,18 +350,18 @@ func TestVirtualList_ClickSelects(t *testing.T) {
 	input.SetupInputLayersWithDeferred([]input.Layerer{l}) // as the UI does, dropping other tests' layers
 	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) })
 
-	c.x, c.y = 20, l.scroll.ViewRect().Min.Y+30
+	point(d, 20, l.scroll.ViewRect().Min.Y+30, false)
 	l.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.Equal(l.hovered(), 701) // the second row in view
 	top := l.content.GetWidget().Rect.Min.Y
 	is.Equal([]int{l.entryAt(top - 1), l.entryAt(top + 1_000*20)}, []int{-1, -1}) // above and below the entries
-	c.pressed, c.just = true, true
+	point(d, 20, l.scroll.ViewRect().Min.Y+30, true)
 	l.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.Equal(l.pressed, 701)
 
-	clickRow(l, c, 30)
+	clickRow(l, d, 30)
 	is.Equal(l.pressed, -1) // released
 	is.Equal(l.Selected(), 701)
 	is.Equal(len(got), 1)
@@ -369,13 +369,13 @@ func TestVirtualList_ClickSelects(t *testing.T) {
 	is.Equal([]int{got[0].Index, got[0].PreviousIndex}, []int{701, -1})
 	is.Equal(l.focusIndex, 701) // the keys go on from there
 
-	clickRow(l, c, 30)
+	clickRow(l, d, 30)
 	is.Equal(len(got), 1) // the selected entry: not again
-	clickRow(l, c, 50)
+	clickRow(l, d, 50)
 	is.Equal([]int{got[1].Index, got[1].PreviousIndex}, []int{702, 701})
 
 	l.GetWidget().Disabled = true
-	clickRow(l, c, 10)
+	clickRow(l, d, 10)
 	is.Equal(l.Selected(), 702) // disabled
 }
 
@@ -510,7 +510,7 @@ func TestVirtualList_TakesActions(t *testing.T) {
 	off.Update(&UpdateObject{Actions: a})
 	is.True(a.Left(ActionDown) && a.Left(ActionActivate)) // default keys off
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	for _, k := range []ebiten.Key{ebiten.KeyEnter, ebiten.KeySpace} {
 		l.SetSelected(-1)
 		d.Keys[k] = true

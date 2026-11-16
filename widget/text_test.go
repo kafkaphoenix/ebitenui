@@ -10,6 +10,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
@@ -58,8 +59,7 @@ func TestText_LinkHover(t *testing.T) {
 	face := *loadFont(t)
 	before, _ := text.Measure("go further ", face, 0)
 	link, _ := text.Measure("there", face, 0)
-	cursor := useTestCursor(t)
-	cursor.x, cursor.y = int(before+link/2), int(tw.measurements.lineHeight/2)
+	point(uitest.Use(t), int(before+link/2), int(tw.measurements.lineHeight/2), false)
 
 	tw.Update(&UpdateObject{})
 	event.ExecuteDeferred()
@@ -253,12 +253,14 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	input.SetupInputLayersWithDeferred([]input.Layerer{scroll})
 	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) }) // the layers are the input package's
 
-	press := func() {
+	d := uitest.Use(t)
+	press := func() { // and let go
 		r := tw.GetWidget().Rect
-		c := useTestCursor(t)
-		c.x, c.y, c.just = r.Min.X+5, r.Min.Y+r.Dy()/2, true
-		tw.Update(&UpdateObject{})
-		event.ExecuteDeferred()
+		for _, down := range []bool{true, false} {
+			point(d, r.Min.X+5, r.Min.Y+r.Dy()/2, down)
+			tw.Update(&UpdateObject{})
+			event.ExecuteDeferred()
+		}
 	}
 
 	press()

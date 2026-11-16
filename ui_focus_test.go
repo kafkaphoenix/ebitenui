@@ -7,7 +7,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -160,8 +160,8 @@ func TestUI_GamepadFocus(t *testing.T) {
 	right := focusButton(image.Rect(100, 0, 140, 20))
 	ui := focusUI(left, middle, right)
 	ui.SetFocusedWidget(left)
-	d := inputtest.Use(t)
-	d.Pads = make([]inputtest.Pad, 2)
+	d := uitest.Use(t)
+	d.Pads = make([]uitest.Pad, 2)
 	// tap holds b on the pads given for two updates, then lets go.
 	tap := func(b ebiten.StandardGamepadButton, pads ...int) {
 		for _, down := range []bool{true, true, false} {

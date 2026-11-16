@@ -1,6 +1,12 @@
-// Package inputtest stands in for the keyboard, the gamepads and the
-// touches in tests.
-package inputtest
+// Package uitest plays a user on an interface in tests: Devices stands in
+// for the mouse, the keyboard, the gamepads and the touch screen, and a
+// Driver runs the interface frame by frame while it clicks, taps and types,
+// so a test presses where a player would instead of firing widget events.
+//
+// The stand-in replaces what the input package reads from Ebitengine; a
+// cursor updater set with input.SetCursorUpdater still takes the pointer's
+// place, as it does in a game.
+package uitest
 
 import (
 	"image"
@@ -10,8 +16,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Devices is a keyboard, gamepads and a screen a test presses.
+// Devices is a mouse, a keyboard, gamepads and a screen a test sets. The
+// input reads them in each update as it would Ebitengine.
 type Devices struct {
+	// Cursor is where the mouse pointer is; Mouse is each button held.
+	Cursor image.Point
+	Mouse  [ebiten.MouseButtonMax + 1]bool
+	// WheelX and WheelY are how far the wheel turns, and Chars the text
+	// typed, both by the next update only, which takes them.
+	WheelX, WheelY float64
+	Chars          []rune
+
 	Keys [ebiten.KeyMax + 1]bool
 	// Pads are the gamepads connected, all with the standard layout; pad i
 	// has the ID i.
@@ -30,8 +45,8 @@ type Pad struct {
 	Axes    [ebiten.StandardGamepadAxisMax + 1]float64
 }
 
-// Use makes the input handler read the returned devices until the test
-// ends, and then updates it once with nothing pressed.
+// Use makes the input read the returned devices until the test ends, and
+// then updates it once with nothing pressed.
 func Use(t testing.TB) *Devices {
 	t.Helper()
 	d := &Devices{}
@@ -45,6 +60,22 @@ func Use(t testing.TB) *Devices {
 		h.Devices = old
 	})
 	return d
+}
+
+func (d *Devices) IsMouseButtonPressed(b ebiten.MouseButton) bool { return d.Mouse[b] }
+
+func (d *Devices) CursorPosition() (int, int) { return d.Cursor.X, d.Cursor.Y }
+
+func (d *Devices) Wheel() (float64, float64) {
+	x, y := d.WheelX, d.WheelY
+	d.WheelX, d.WheelY = 0, 0
+	return x, y
+}
+
+func (d *Devices) AppendInputChars(chars []rune) []rune {
+	chars = append(chars, d.Chars...)
+	d.Chars = d.Chars[:0]
+	return chars
 }
 
 func (d *Devices) IsKeyPressed(k ebiten.Key) bool { return d.Keys[k] }

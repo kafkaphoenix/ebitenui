@@ -8,7 +8,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
@@ -145,7 +145,7 @@ func TestTextInput_DoInsert(t *testing.T) {
 func TestTextInput_TypingWithControlHeld(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	ti := newTextInput(t)
 	ti.Focus(true)
 	for i, s := range []struct {

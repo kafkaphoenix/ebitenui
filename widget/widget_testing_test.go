@@ -11,6 +11,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/uitest"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -137,33 +138,11 @@ func render(r ValidatedRenderer, t *testing.T) {
 	event.ExecuteDeferred()
 }
 
-// testCursor stands in for the pointer: where it is, whether the left
-// button is down, and whether it went down this update.
-type testCursor struct {
-	x, y          int
-	pressed, just bool
-}
-
-func (c *testCursor) Update()                 {}
-func (c *testCursor) AfterUpdate()            {}
-func (c *testCursor) Draw(*ebiten.Image)      {}
-func (c *testCursor) AfterDraw(*ebiten.Image) {}
-func (c *testCursor) MouseButtonPressed(b ebiten.MouseButton) bool {
-	return c.pressed && b == ebiten.MouseButtonLeft
-}
-func (c *testCursor) MouseButtonJustPressed(b ebiten.MouseButton) bool {
-	return c.just && b == ebiten.MouseButtonLeft
-}
-func (c *testCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return false }
-func (c *testCursor) CursorPosition() (int, int)                      { return c.x, c.y }
-func (c *testCursor) GetCursorImage(string) *ebiten.Image             { return nil }
-func (c *testCursor) GetCursorOffset(string) img.Point                { return img.Point{} }
-
-// useTestCursor installs a stand-in pointer for the test, removed at its end.
-func useTestCursor(t *testing.T) *testCursor {
-	t.Helper()
-	c := &testCursor{}
-	input.SetCursorUpdater(c)
-	t.Cleanup(func() { input.SetCursorUpdater(nil) })
-	return c
+// point moves the stand-in pointer to x, y with the left button down or
+// not, and updates the input with it, as a frame does before its widgets
+// update: a button goes down or comes up in the first update after.
+func point(d *uitest.Devices, x, y int, down bool) {
+	d.Cursor = img.Pt(x, y)
+	d.Mouse[ebiten.MouseButtonLeft] = down
+	input.Update()
 }

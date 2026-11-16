@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -14,7 +14,7 @@ import (
 func TestKeyJustPressed(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	for i, s := range []struct{ down, pressed, just bool }{
 		{false, false, false},
 		{true, true, true},  // goes down
@@ -38,8 +38,8 @@ func TestKeyJustPressed(t *testing.T) {
 func TestGamepadButtons(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
-	d.Pads = make([]inputtest.Pad, 2)
+	d := uitest.Use(t)
+	d.Pads = make([]uitest.Pad, 2)
 	b := ebiten.StandardGamepadButtonRightBottom
 	for i, s := range []struct{ first, second, pressed, just bool }{
 		{false, false, false, false},
@@ -68,8 +68,8 @@ func TestGamepadButtons(t *testing.T) {
 func TestGamepadAxes(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
-	d.Pads = make([]inputtest.Pad, 2)
+	d := uitest.Use(t)
+	d.Pads = make([]uitest.Pad, 2)
 	a := ebiten.StandardGamepadAxisLeftStickHorizontal
 	for _, v := range [][2]float64{{0.2, -0.9}, {-0.9, 0.2}} {
 		d.Pads[0].Axes[a], d.Pads[1].Axes[a] = v[0], v[1]
@@ -92,8 +92,8 @@ func TestGamepadAxes(t *testing.T) {
 func TestUpdate_DoesNotAllocate(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
-	d.Pads = make([]inputtest.Pad, 2)
+	d := uitest.Use(t)
+	d.Pads = make([]uitest.Pad, 2)
 	d.Keys[ebiten.KeyA] = true
 	is.Equal(testing.AllocsPerRun(1, func() {
 		for range 10_000 {
@@ -110,7 +110,7 @@ func TestUpdate_DoesNotAllocate(t *testing.T) {
 func TestTouchPinchAndPan(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	for i, s := range []struct {
 		first   ebiten.TouchID
 		fingers []image.Point

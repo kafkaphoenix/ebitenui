@@ -7,6 +7,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
 )
@@ -47,7 +48,7 @@ func TestTextToolTip_ThemeFallback(t *testing.T) {
 func TestListComboButton_ToolTip(t *testing.T) {
 	is := is.New(t)
 
-	c := useTestCursor(t)
+	d := uitest.Use(t)
 	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	tip := NewToolTip(ToolTipOpts.Content(NewContainer()))
 	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
@@ -60,7 +61,7 @@ func TestListComboButton_ToolTip(t *testing.T) {
 		}
 	})
 
-	c.x, c.y = 50, 15
+	point(d, 50, 15, false)
 	for range 2 {
 		l.Update(&UpdateObject{})
 		event.ExecuteDeferred()

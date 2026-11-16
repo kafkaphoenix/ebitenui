@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -75,14 +76,14 @@ func TestColorPicker_Drag(t *testing.T) {
 	p, changes := newColorPicker(t)
 	pressWheel(p, 50, 50)
 
-	cursor := useTestCursor(t)
-	cursor.x, cursor.y, cursor.pressed = 99, 50, true
+	d := uitest.Use(t)
+	point(d, 99, 50, true)
 	p.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{255, 0, 0, 255})) // followed to the rim
 	is.True((*changes)[len(*changes)-1].Dragging)         // still held
 
-	cursor.pressed = false
+	point(d, 99, 50, false)
 	p.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	last := (*changes)[len(*changes)-1]
@@ -227,10 +228,11 @@ func TestColorPicker_SquarePick(t *testing.T) {
 		is.True((*changes)[len(*changes)-1].Dragging)          // while the button is down
 	}
 
-	cursor := useTestCursor(t)
-	cursor.x, cursor.y, cursor.pressed = 99, 0, true // dragged to the top right
+	d := uitest.Use(t)
+	point(d, 99, 0, true) // dragged to the top right
 	p.Update(&UpdateObject{})
-	cursor.pressed = false
+	event.ExecuteDeferred()
+	point(d, 99, 0, false)
 	p.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{0, 0, 255, 255}))

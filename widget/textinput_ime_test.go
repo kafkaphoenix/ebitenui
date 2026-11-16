@@ -7,6 +7,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/input"
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
 	"github.com/matryer/is"
@@ -169,14 +170,14 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 	ime := stubIME(t)
 	r := ti.GetWidget().Rect
 	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
-	c := useTestCursor(t)
-	c.x, c.y, c.just = r.Min.X+1, r.Min.Y+r.Dy()/2, true // a press in the input
+	d := uitest.Use(t)
+	point(d, r.Min.X+1, r.Min.Y+r.Dy()/2, true) // a press in the input
 
 	ti.Update(&UpdateObject{})
 	is.Equal(ime.ends, []bool{true}) // before the caret moved
 	is.Equal(ti.cursorPosition, 0)
 
-	c.x, c.y, c.just = 0, 0, false
+	point(d, 0, 0, false)
 	ti.GetWidget().Disabled = true
 	ti.Update(&UpdateObject{})
 	is.Equal(ime.updates, 1)                // not asked while disabled
