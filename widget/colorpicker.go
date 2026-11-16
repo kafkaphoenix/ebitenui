@@ -15,13 +15,17 @@ import (
 // ColorPicker picks an opaque color: a wheel of every hue around, red to the
 // right, and every saturation outward, white at the middle, and under it a
 // slider of the color's brightness, from black to full, and optionally a row
-// of preset swatches. The color can be picked by pressing the wheel or
-// dragging across it, or by pressing a swatch.
+// of preset swatches. With Square, a square of every saturation across and
+// every brightness down, of one hue, and under it a slider of hues, take
+// the wheel's and the brightness slider's place. The color can be picked by
+// pressing the wheel or the square or dragging across it, or by pressing a
+// swatch.
 type ColorPicker struct {
 	ChangedEvent *event.Event
 
 	widgetOpts  []WidgetOpt
 	wheelSize   int
+	squared     bool
 	spacing     int
 	handleImage *ButtonImage
 	handleSize  int
@@ -36,8 +40,11 @@ type ColorPicker struct {
 	init      *MultiOnce
 	container *Container
 	wheel     *colorWheel
-	slider    *Slider
-	track     *ebiten.Image // the slider's track, black to the hue at full brightness
+	square    *colorSquare  // in the wheel's place, with Square
+	slider    *Slider       // of brightness, or of hue with Square
+	track     *ebiten.Image // the slider's track: black to the hue at full brightness, or every hue
+	ring      *ebiten.Image // the ring that marks the color, drawn once
+	ringOp    ebiten.DrawImageOptions
 
 	h, s, v        float64 // the color: hue from 0 to 1 around from red, saturation and value
 	sliderDragging bool
@@ -63,6 +70,9 @@ var ColorPickerOpts ColorPickerOptions
 // trackSteps is how many shades the brightness slider's track holds.
 const trackSteps = 64
 
+// hueSteps is how many hues the hue slider of Square holds, a degree each.
+const hueSteps = 360
+
 func NewColorPicker(opts ...ColorPickerOpt) *ColorPicker {
 	p := &ColorPicker{
 		ChangedEvent: &event.Event{},
@@ -84,10 +94,20 @@ func (o ColorPickerOptions) WidgetOpts(opts ...WidgetOpt) ColorPickerOpt {
 	}
 }
 
-// WheelSize sets the wheel's diameter, in pixels; 160 by default.
+// WheelSize sets the wheel's diameter, or the square's side, in pixels; 160
+// by default.
 func (o ColorPickerOptions) WheelSize(size int) ColorPickerOpt {
 	return func(p *ColorPicker) {
 		p.wheelSize = size
+	}
+}
+
+// Square makes the picker a square of saturations, left to right, and
+// brightnesses, top to bottom, of one hue, with a slider of hues under it,
+// in place of the wheel and the brightness slider.
+func (o ColorPickerOptions) Square() ColorPickerOpt {
+	return func(p *ColorPicker) {
+		p.squared = true
 	}
 }
 
@@ -155,9 +175,19 @@ func (p *ColorPicker) Color() color.NRGBA {
 // ignored.
 func (p *ColorPicker) SetColor(c color.Color) {
 	p.init.Do()
-	p.h, p.s, p.v = rgbToHSV(color.NRGBAModel.Convert(c).(color.NRGBA)) //nolint:forcetypeassert // NRGBAModel returns color.NRGBA
+	p.take(color.NRGBAModel.Convert(c).(color.NRGBA)) //nolint:forcetypeassert // NRGBAModel returns color.NRGBA
 	p.updateTrack()
 	p.slider.Current = p.sliderValue()
+}
+
+// take makes c the color picked. A gray, which has no hue, keeps the hue
+// picked, so a square stays on it.
+func (p *ColorPicker) take(c color.NRGBA) {
+	h, s, v := rgbToHSV(c)
+	if s == 0 {
+		h = p.h
+	}
+	p.h, p.s, p.v = h, s, v
 }
 
 func (p *ColorPicker) GetWidget() *Widget {
@@ -207,15 +237,24 @@ func (p *ColorPicker) createWidget() {
 	)
 	p.widgetOpts = nil
 
-	p.wheel = newColorWheel(p)
-	p.container.AddChild(p.wheel)
-
-	p.track = ebiten.NewImage(trackSteps, 1)
-	p.updateTrack()
-	track := eimage.NewNineSlice(p.track, [3]int{0, trackSteps, 0}, [3]int{0, 1, 0})
+	p.ring = ringImage(max(4, float64(p.wheelSize)/24))
+	steps, sliderMax := trackSteps, 255
+	if p.squared {
+		p.square = newColorSquare(p)
+		p.container.AddChild(p.square)
+		steps, sliderMax = hueSteps, hueSteps-1 // drawn once, so a shade a degree
+		p.track = ebiten.NewImage(steps, 1)
+		p.track.WritePixels(hueTrack())
+	} else {
+		p.wheel = newColorWheel(p)
+		p.container.AddChild(p.wheel)
+		p.track = ebiten.NewImage(steps, 1)
+		p.updateTrack()
+	}
+	track := eimage.NewNineSlice(p.track, [3]int{0, steps, 0}, [3]int{0, 1, 0})
 	sliderOpts := []SliderOpt{
 		SliderOpts.Orientation(DirectionHorizontal),
-		SliderOpts.MinMax(0, 255),
+		SliderOpts.MinMax(0, sliderMax),
 		SliderOpts.InitialCurrent(p.sliderValue()),
 		SliderOpts.TrackImage(&SliderTrackImage{Idle: track, Hover: track}),
 		SliderOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{Stretch: true})),
@@ -245,21 +284,29 @@ func (p *ColorPicker) createWidget() {
 	}
 }
 
-// sliderValue is the slider's place for the color's brightness.
+// sliderValue is the slider's place for the color's brightness, or for its
+// hue with Square.
 func (p *ColorPicker) sliderValue() int {
+	if p.squared {
+		return int(math.Round(p.h*hueSteps)) % hueSteps
+	}
 	return int(math.Round(p.v * 255))
 }
 
-// sliderChanged takes a brightness from the slider. The slider also reports
-// values set by SetColor, which change nothing.
+// sliderChanged takes a brightness, or a hue with Square, from the slider.
+// The slider also reports values set by SetColor, which change nothing.
 func (p *ColorPicker) sliderChanged(args *SliderChangedEventArgs) {
-	v := float64(args.Current) / 255
+	value := &p.v
+	x := float64(args.Current) / 255
+	if p.squared {
+		value, x = &p.h, float64(args.Current)/hueSteps
+	}
 	ended := p.sliderDragging && !args.Dragging
 	p.sliderDragging = args.Dragging
-	if v == p.v && !ended {
+	if x == *value && !ended {
 		return
 	}
-	p.v = v
+	*value = x
 	p.fireChanged(args.Dragging)
 }
 
@@ -275,9 +322,16 @@ func (p *ColorPicker) pick(h, s float64, dragging bool) {
 	p.fireChanged(dragging)
 }
 
+// pickSV takes a saturation and a brightness from the square, keeping the
+// hue.
+func (p *ColorPicker) pickSV(s, v float64, dragging bool) {
+	p.s, p.v = s, v
+	p.fireChanged(dragging)
+}
+
 // choose picks a swatch's color.
 func (p *ColorPicker) choose(c color.NRGBA) {
-	p.h, p.s, p.v = rgbToHSV(c)
+	p.take(c)
 	p.updateTrack()
 	p.slider.Current = p.sliderValue()
 	p.fireChanged(false)
@@ -287,10 +341,11 @@ func (p *ColorPicker) fireChanged(dragging bool) {
 	p.ChangedEvent.Fire(&ColorPickerChangedEventArgs{ColorPicker: p, Color: p.Color(), Dragging: dragging})
 }
 
-// updateTrack shades the slider's track from black to the color's hue and
-// saturation at full brightness.
+// updateTrack shades the brightness slider's track from black to the
+// color's hue and saturation at full brightness. The hue slider's track of
+// Square never changes.
 func (p *ColorPicker) updateTrack() {
-	if p.track == nil {
+	if p.track == nil || p.squared {
 		return
 	}
 	pix := make([]byte, 4*trackSteps)
@@ -301,50 +356,67 @@ func (p *ColorPicker) updateTrack() {
 	p.track.WritePixels(pix)
 }
 
-// colorWheel is the picker's disc of hues and saturations, drawn once, with
-// a ring where the color lies.
-type colorWheel struct {
+// colorField is the part of a picker picked by pressing it or dragging
+// across it, its wheel or its square, as wide and tall as WheelSize. pickAt
+// picks the color under a point, from the field's top left corner.
+type colorField struct {
 	widget   *Widget
 	picker   *ColorPicker
-	disc     *ebiten.Image
+	pickAt   func(x, y int, dragging bool)
 	dragging bool
 	op       ebiten.DrawImageOptions
 }
 
-func newColorWheel(p *ColorPicker) *colorWheel {
-	w := &colorWheel{widget: NewWidget(), picker: p, disc: wheelDisc(p.wheelSize)}
-	w.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
+// newColorField returns a field of p that picks with pickAt.
+func newColorField(p *ColorPicker, pickAt func(x, y int, dragging bool)) *colorField {
+	f := &colorField{widget: NewWidget(), picker: p, pickAt: pickAt}
+	f.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
 		a, ok := args.(*WidgetMouseButtonPressedEventArgs)
-		if !ok || a.Button != ebiten.MouseButtonLeft || w.widget.Disabled {
+		if !ok || a.Button != ebiten.MouseButtonLeft || f.widget.Disabled {
 			return
 		}
-		w.dragging = true
-		w.pickAt(a.OffsetX, a.OffsetY, true)
+		f.dragging = true
+		f.pickAt(a.OffsetX, a.OffsetY, true)
 	})
-	return w
+	return f
 }
 
-func (w *colorWheel) GetWidget() *Widget { return w.widget }
+func (f *colorField) GetWidget() *Widget { return f.widget }
 
-func (w *colorWheel) PreferredSize() (int, int) { return w.picker.wheelSize, w.picker.wheelSize }
+func (f *colorField) PreferredSize() (int, int) { return f.picker.wheelSize, f.picker.wheelSize }
 
-func (w *colorWheel) SetLocation(rect image.Rectangle) { w.widget.Rect = rect }
+func (f *colorField) SetLocation(rect image.Rectangle) { f.widget.Rect = rect }
 
-func (w *colorWheel) Validate() {}
+func (f *colorField) Validate() {}
 
-func (w *colorWheel) Update(updObj *UpdateObject) {
-	w.widget.Update(updObj)
-	if !w.dragging {
+// Update follows a drag that began on the field, picking under the pointer
+// until the button is released.
+func (f *colorField) Update(updObj *UpdateObject) {
+	f.widget.Update(updObj)
+	if !f.dragging {
 		return
 	}
 	x, y := input.CursorPosition()
-	at := image.Pt(x, y).Sub(w.widget.Rect.Min)
+	at := image.Pt(x, y).Sub(f.widget.Rect.Min)
 	if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
-		w.dragging = false
-		w.pickAt(at.X, at.Y, false)
+		f.dragging = false
+		f.pickAt(at.X, at.Y, false)
 		return
 	}
-	w.pickAt(at.X, at.Y, true)
+	f.pickAt(at.X, at.Y, true)
+}
+
+// colorWheel is the picker's disc of hues and saturations, drawn once, with
+// a ring where the color lies.
+type colorWheel struct {
+	*colorField
+	disc *ebiten.Image
+}
+
+func newColorWheel(p *ColorPicker) *colorWheel {
+	w := &colorWheel{disc: wheelDisc(p.wheelSize)}
+	w.colorField = newColorField(p, w.pickAt)
+	return w
 }
 
 func (w *colorWheel) Render(screen *ebiten.Image) {
@@ -362,9 +434,47 @@ func (w *colorWheel) Render(screen *ebiten.Image) {
 	h, s := w.picker.h, w.picker.s
 	x := float64(r.Min.X) + radius + s*radius*math.Cos(2*math.Pi*h)
 	y := float64(r.Min.Y) + radius - s*radius*math.Sin(2*math.Pi*h)
-	ring := float32(max(4, radius/12))
-	vector.StrokeCircle(screen, float32(x), float32(y), ring, 3, color.NRGBA{A: 0xff}, true)
-	vector.StrokeCircle(screen, float32(x), float32(y), ring, 1.5, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, true)
+	w.picker.drawRing(screen, x, y)
+}
+
+// ringImage returns the ring that marks the color, of radius r (ringPixels).
+// Its pixels are worked out once: stroked with vector each frame, its two
+// circles cost a frame about 0.1 ms on Ebitengine 2.10.6, and before 2.10.5
+// far more, with a gap where they close.
+func ringImage(r float64) *ebiten.Image {
+	pix, size := ringPixels(r)
+	img := ebiten.NewImage(size, size)
+	img.WritePixels(pix)
+	return img
+}
+
+// ringPixels returns the premultiplied pixels of a ring of radius r, centred
+// in a square size pixels wide: a white line 1.5 pixels wide on a black one
+// 3 wide, smoothed over a pixel.
+func ringPixels(r float64) (pix []byte, size int) {
+	size = int(math.Ceil(2*r + 5)) // the black line's half width and a pixel of smoothing on each side
+	pix = make([]byte, 4*size*size)
+	c := float64(size) / 2
+	cover := func(halfWidth, d float64) float64 { return min(1, max(0, halfWidth+0.5-d)) }
+	for y := range size {
+		for x := range size {
+			d := math.Abs(math.Hypot(float64(x)+0.5-c, float64(y)+0.5-c) - r)
+			white, black := cover(0.75, d), cover(1.5, d)
+			a := white + black*(1-white) // white over black
+			i := 4 * (y*size + x)
+			w := uint8(math.Round(255 * white))
+			pix[i], pix[i+1], pix[i+2], pix[i+3] = w, w, w, uint8(math.Round(255*a))
+		}
+	}
+	return pix, size
+}
+
+// drawRing draws the ring centred on x, y.
+func (p *ColorPicker) drawRing(screen *ebiten.Image, x, y float64) {
+	half := float64(p.ring.Bounds().Dx()) / 2
+	p.ringOp.GeoM.Reset()
+	p.ringOp.GeoM.Translate(x-half, y-half)
+	screen.DrawImage(p.ring, &p.ringOp)
 }
 
 // pickAt picks the hue and saturation under a point, from the wheel's top
@@ -374,6 +484,80 @@ func (w *colorWheel) pickAt(x, y int, dragging bool) {
 	dx, dy := float64(x)+0.5-r, r-(float64(y)+0.5)
 	h := math.Atan2(dy, dx) / (2 * math.Pi)
 	w.picker.pick(h-math.Floor(h), min(1, math.Hypot(dx, dy)/r), dragging)
+}
+
+// colorSquare is the picker's square of saturations, left to right, and
+// brightnesses, top to bottom, of the color's hue, with a ring where the
+// color lies. It is drawn as the hue, under white fading out across it and
+// black fading in down it, which is the hue at each saturation and
+// brightness: a change of hue draws nothing new.
+type colorSquare struct {
+	*colorField
+	across, down *ebiten.Image // the white and the black, a pixel thick
+	fill         *ebiten.Image // a white pixel, tinted the hue
+}
+
+func newColorSquare(p *ColorPicker) *colorSquare {
+	n := p.wheelSize
+	across, down := make([]byte, 4*n), make([]byte, 4*n)
+	for i := range n {
+		white := uint8(math.Round(255 * (1 - float64(i)/float64(max(1, n-1)))))
+		black := uint8(math.Round(255 * float64(i) / float64(max(1, n-1))))
+		across[4*i], across[4*i+1], across[4*i+2], across[4*i+3] = white, white, white, white // premultiplied
+		down[4*i+3] = black
+	}
+	s := &colorSquare{across: ebiten.NewImage(n, 1), down: ebiten.NewImage(1, n), fill: eimage.NewImageColor(color.White)}
+	s.across.WritePixels(across)
+	s.down.WritePixels(down)
+	s.colorField = newColorField(p, s.pickAt)
+	return s
+}
+
+func (s *colorSquare) Render(screen *ebiten.Image) {
+	s.widget.Render(screen)
+	r := s.widget.Rect
+	w, h := float64(r.Dx()), float64(r.Dy())
+	alpha := float32(1)
+	if s.widget.Disabled {
+		alpha = 0.35
+	}
+	hue := hsvToRGB(s.picker.h, 1, 1)
+	s.draw(screen, s.fill, float32(hue.R)/0xff, float32(hue.G)/0xff, float32(hue.B)/0xff, alpha)
+	s.draw(screen, s.across, 1, 1, 1, alpha)
+	s.draw(screen, s.down, 1, 1, 1, alpha)
+
+	s.picker.drawRing(screen, float64(r.Min.X)+s.picker.s*w, float64(r.Min.Y)+(1-s.picker.v)*h)
+}
+
+// draw draws img stretched over the square, tinted r, g, b, at alpha.
+func (s *colorSquare) draw(screen, img *ebiten.Image, r, g, b, alpha float32) {
+	rect, size := s.widget.Rect, img.Bounds()
+	s.op.GeoM.Reset()
+	s.op.GeoM.Scale(float64(rect.Dx())/float64(size.Dx()), float64(rect.Dy())/float64(size.Dy()))
+	s.op.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
+	s.op.ColorScale.Reset()
+	s.op.ColorScale.Scale(r, g, b, 1)
+	s.op.ColorScale.ScaleAlpha(alpha)
+	screen.DrawImage(img, &s.op)
+}
+
+// pickAt picks the saturation and the brightness under a point, from the
+// square's top left corner; points past its edges take the edges'.
+func (s *colorSquare) pickAt(x, y int, dragging bool) {
+	r := s.widget.Rect
+	clamp := func(f float64) float64 { return min(1, max(0, f)) }
+	s.picker.pickSV(clamp((float64(x)+0.5)/float64(r.Dx())), clamp(1-(float64(y)+0.5)/float64(r.Dy())), dragging)
+}
+
+// hueTrack returns the pixels of the hue slider's track, hueSteps wide:
+// every hue, a degree a pixel, from red, the slider's 0.
+func hueTrack() []byte {
+	pix := make([]byte, 4*hueSteps)
+	for x := range hueSteps {
+		c := hsvToRGB(float64(x)/hueSteps, 1, 1)
+		pix[4*x], pix[4*x+1], pix[4*x+2], pix[4*x+3] = c.R, c.G, c.B, 0xff
+	}
+	return pix
 }
 
 // colorSwatch is a square of a preset color, framed in white over black

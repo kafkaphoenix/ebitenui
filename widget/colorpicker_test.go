@@ -174,3 +174,123 @@ func swatchesOf(p *ColorPicker) []*colorSwatch {
 	}
 	return out
 }
+
+// The ring that marks the color is white on its radius, edged in black
+// that shows 0.75 px past the white on each side, so the pixels either side
+// are opaque and mostly black; it is clear at its middle and beyond.
+func TestColorPicker_RingPixels(t *testing.T) {
+	is := is.New(t)
+
+	pix, size := ringPixels(6)
+	is.Equal(size, 17)          // the ring, 1.5 px of black and a pixel of smoothing each side
+	at := func(x int) [4]byte { // along the middle row; the centre lies at 8.5, the radius at 14.5
+		i := 4 * (8*size + x)
+		return [4]byte{pix[i], pix[i+1], pix[i+2], pix[i+3]}
+	}
+	is.Equal(at(14), [4]byte{255, 255, 255, 255}) // white on the radius
+	is.Equal(at(15), [4]byte{64, 64, 64, 255})    // edged in black outside it
+	is.Equal(at(13), [4]byte{64, 64, 64, 255})    // and inside it
+	is.Equal(at(16), [4]byte{})                   // clear beyond
+	is.Equal(at(12), [4]byte{})                   // and towards the middle
+	is.Equal(at(8), [4]byte{})
+}
+
+// pressSquare presses the left button on the square, x and y from its top
+// left.
+func pressSquare(p *ColorPicker, x, y int) {
+	p.square.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+		Widget: p.square.widget, Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
+	})
+	event.ExecuteDeferred()
+}
+
+// With Square, pressing the square picks the saturation, left to right, and
+// the brightness, top to bottom, of the hue on the slider: the hue itself at
+// the top right, white at the top left, black along the bottom.
+func TestColorPicker_SquarePick(t *testing.T) {
+	is := is.New(t)
+
+	p, changes := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.NRGBA{0, 0, 255, 255}))
+	is.True(p.wheel == nil) // a square in its place
+	for _, c := range []struct {
+		x, y int
+		want color.NRGBA
+	}{
+		{99, 0, color.NRGBA{0, 0, 255, 255}},
+		{0, 0, color.NRGBA{255, 255, 255, 255}},
+		{50, 99, color.NRGBA{0, 0, 0, 255}},
+		{50, 50, color.NRGBA{64, 64, 128, 255}},
+	} {
+		pressSquare(p, c.x, c.y)
+		is.True(near(p.Color(), c.want))                       // picked
+		is.Equal((*changes)[len(*changes)-1].Color, p.Color()) // reported
+		is.True((*changes)[len(*changes)-1].Dragging)          // while the button is down
+	}
+
+	cursor := useTestCursor(t)
+	cursor.x, cursor.y, cursor.pressed = 99, 0, true // dragged to the top right
+	p.Update(&UpdateObject{})
+	cursor.pressed = false
+	p.Update(&UpdateObject{})
+	event.ExecuteDeferred()
+	is.True(near(p.Color(), color.NRGBA{0, 0, 255, 255}))
+	is.True(!(*changes)[len(*changes)-1].Dragging) // released
+}
+
+// With Square, the slider under the square sets the hue, keeping the
+// saturation and the brightness. SetColor and the swatches move it to their
+// color's hue, but a gray, which has none, keeps the hue picked, so the
+// square stays on it.
+func TestColorPicker_SquareHue(t *testing.T) {
+	is := is.New(t)
+
+	p, changes := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.NRGBA{255, 0, 0, 255}))
+	is.Equal(p.slider.Current, 0) // red
+	p.slider.Current = 120
+	render(p, t)
+	is.Equal(p.Color(), color.NRGBA{0, 255, 0, 255}) // green, as saturated and bright
+	is.Equal(len(*changes), 1)
+
+	p.SetColor(color.NRGBA{0, 0, 255, 255})
+	is.Equal(p.slider.Current, 240) // blue's hue
+	p.SetColor(color.NRGBA{128, 128, 128, 255})
+	is.Equal(p.slider.Current, 240) // a gray keeps it
+	pressSquare(p, 99, 0)
+	is.True(near(p.Color(), color.NRGBA{0, 0, 255, 255})) // the square still blue's
+	pressSquare(p, 150, -20)
+	is.Equal(p.Color(), color.NRGBA{0, 0, 255, 255}) // past the corner: the corner's
+
+	magenta := color.NRGBA{255, 0, 255, 255}
+	p.SetColor(magenta)
+	render(p, t)
+	is.Equal(p.slider.Current, 300) // every degree on the slider
+	is.Equal(p.Color(), magenta)
+}
+
+// The hue slider's track runs through every hue, a degree a pixel, from
+// red at the slider's 0.
+func TestColorPicker_HueTrack(t *testing.T) {
+	is := is.New(t)
+
+	pix := hueTrack()
+	is.Equal(len(pix), 4*360)
+	at := func(x int) color.NRGBA { return color.NRGBA{pix[4*x], pix[4*x+1], pix[4*x+2], pix[4*x+3]} }
+	is.Equal(at(0), color.NRGBA{255, 0, 0, 255})
+	is.Equal(at(120), color.NRGBA{0, 255, 0, 255})
+	is.Equal(at(240), color.NRGBA{0, 0, 255, 255})
+}
+
+// A disabled wheel or square picks nothing when pressed.
+func TestColorPicker_DisabledFieldIgnoresPresses(t *testing.T) {
+	is := is.New(t)
+
+	wheel, _ := newColorPicker(t, ColorPickerOpts.InitialColor(color.Black))
+	wheel.wheel.widget.Disabled = true
+	pressWheel(wheel, 99, 50)
+	is.Equal(wheel.Color(), color.NRGBA{0, 0, 0, 255})
+
+	square, _ := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.Black))
+	square.square.widget.Disabled = true
+	pressSquare(square, 99, 0)
+	is.Equal(square.Color(), color.NRGBA{0, 0, 0, 255})
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image/color"
 	"log"
@@ -16,7 +17,12 @@ type game struct {
 	ui *ebitenui.UI
 }
 
+// A square of saturation and brightness with a hue slider, in place of the
+// wheel: go run . -square
+var square = flag.Bool("square", false, "pick from a square and a hue slider instead of a wheel")
+
 func main() {
+	flag.Parse()
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
@@ -39,8 +45,8 @@ func main() {
 	)
 
 	// construct a color picker
-	picker := widget.NewColorPicker(
-		// Set the wheel's diameter
+	opts := []widget.ColorPickerOpt{
+		// Set the wheel's diameter, or the square's side
 		widget.ColorPickerOpts.WheelSize(200),
 		// Set the color the picker starts with
 		widget.ColorPickerOpts.InitialColor(color.NRGBA{0x40, 0xa0, 0xff, 0xff}),
@@ -48,7 +54,7 @@ func main() {
 		widget.ColorPickerOpts.Swatches(24,
 			color.NRGBA{0x40, 0xa0, 0xff, 0xff}, color.NRGBA{0xff, 0x9f, 0x43, 0xff}, color.NRGBA{0x5f, 0xd3, 0x8d, 0xff},
 			color.NRGBA{0xff, 0x6a, 0xd5, 0xff}, color.NRGBA{0xff, 0xd7, 0x5e, 0xff}, color.White),
-		// Set the brightness slider's handle image and size
+		// Set the slider's handle image and size
 		widget.ColorPickerOpts.SliderHandle(&widget.ButtonImage{
 			Idle:    image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
 			Hover:   image.NewNineSliceColor(color.NRGBA{230, 230, 230, 255}),
@@ -66,7 +72,11 @@ func main() {
 			swatch.SetBackgroundImage(image.NewNineSliceColor(args.Color))
 			fmt.Println(args.Color, "dragging", args.Dragging)
 		}),
-	)
+	}
+	if *square {
+		opts = append(opts, widget.ColorPickerOpts.Square())
+	}
+	picker := widget.NewColorPicker(opts...)
 	rootContainer.AddChild(picker, swatch)
 
 	// construct the UI
