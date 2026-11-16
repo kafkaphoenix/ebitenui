@@ -174,3 +174,23 @@ func swatchesOf(p *ColorPicker) []*colorSwatch {
 	}
 	return out
 }
+
+// The ring that marks the color is white on its radius, edged in black
+// that shows 0.75 px past the white on each side, so the pixels either side
+// are opaque and mostly black; it is clear at its middle and beyond.
+func TestColorPicker_RingPixels(t *testing.T) {
+	is := is.New(t)
+
+	pix, size := ringPixels(6)
+	is.Equal(size, 17)          // the ring, 1.5 px of black and a pixel of smoothing each side
+	at := func(x int) [4]byte { // along the middle row; the centre lies at 8.5, the radius at 14.5
+		i := 4 * (8*size + x)
+		return [4]byte{pix[i], pix[i+1], pix[i+2], pix[i+3]}
+	}
+	is.Equal(at(14), [4]byte{255, 255, 255, 255}) // white on the radius
+	is.Equal(at(15), [4]byte{64, 64, 64, 255})    // edged in black outside it
+	is.Equal(at(13), [4]byte{64, 64, 64, 255})    // and inside it
+	is.Equal(at(16), [4]byte{})                   // clear beyond
+	is.Equal(at(12), [4]byte{})                   // and towards the middle
+	is.Equal(at(8), [4]byte{})
+}

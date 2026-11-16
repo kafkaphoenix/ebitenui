@@ -38,6 +38,8 @@ type ColorPicker struct {
 	wheel     *colorWheel
 	slider    *Slider
 	track     *ebiten.Image // the slider's track, black to the hue at full brightness
+	ring      *ebiten.Image // the ring that marks the color, drawn once
+	ringOp    ebiten.DrawImageOptions
 
 	h, s, v        float64 // the color: hue from 0 to 1 around from red, saturation and value
 	sliderDragging bool
@@ -207,6 +209,7 @@ func (p *ColorPicker) createWidget() {
 	)
 	p.widgetOpts = nil
 
+	p.ring = ringImage(max(4, float64(p.wheelSize)/24))
 	p.wheel = newColorWheel(p)
 	p.container.AddChild(p.wheel)
 
@@ -362,9 +365,47 @@ func (w *colorWheel) Render(screen *ebiten.Image) {
 	h, s := w.picker.h, w.picker.s
 	x := float64(r.Min.X) + radius + s*radius*math.Cos(2*math.Pi*h)
 	y := float64(r.Min.Y) + radius - s*radius*math.Sin(2*math.Pi*h)
-	ring := float32(max(4, radius/12))
-	vector.StrokeCircle(screen, float32(x), float32(y), ring, 3, color.NRGBA{A: 0xff}, true)
-	vector.StrokeCircle(screen, float32(x), float32(y), ring, 1.5, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, true)
+	w.picker.drawRing(screen, x, y)
+}
+
+// ringImage returns the ring that marks the color, of radius r (ringPixels).
+// Its pixels are worked out once: stroked with vector each frame, its two
+// circles cost a frame about 0.1 ms on Ebitengine 2.10.6, and before 2.10.5
+// far more, with a gap where they close.
+func ringImage(r float64) *ebiten.Image {
+	pix, size := ringPixels(r)
+	img := ebiten.NewImage(size, size)
+	img.WritePixels(pix)
+	return img
+}
+
+// ringPixels returns the premultiplied pixels of a ring of radius r, centred
+// in a square size pixels wide: a white line 1.5 pixels wide on a black one
+// 3 wide, smoothed over a pixel.
+func ringPixels(r float64) (pix []byte, size int) {
+	size = int(math.Ceil(2*r + 5)) // the black line's half width and a pixel of smoothing on each side
+	pix = make([]byte, 4*size*size)
+	c := float64(size) / 2
+	cover := func(halfWidth, d float64) float64 { return min(1, max(0, halfWidth+0.5-d)) }
+	for y := range size {
+		for x := range size {
+			d := math.Abs(math.Hypot(float64(x)+0.5-c, float64(y)+0.5-c) - r)
+			white, black := cover(0.75, d), cover(1.5, d)
+			a := white + black*(1-white) // white over black
+			i := 4 * (y*size + x)
+			w := uint8(math.Round(255 * white))
+			pix[i], pix[i+1], pix[i+2], pix[i+3] = w, w, w, uint8(math.Round(255*a))
+		}
+	}
+	return pix, size
+}
+
+// drawRing draws the ring centred on x, y.
+func (p *ColorPicker) drawRing(screen *ebiten.Image, x, y float64) {
+	half := float64(p.ring.Bounds().Dx()) / 2
+	p.ringOp.GeoM.Reset()
+	p.ringOp.GeoM.Translate(x-half, y-half)
+	screen.DrawImage(p.ring, &p.ringOp)
 }
 
 // pickAt picks the hue and saturation under a point, from the wheel's top
