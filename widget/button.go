@@ -43,6 +43,7 @@ type Button struct {
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
+	validated                bool
 
 	init              *MultiOnce
 	widget            *Widget
@@ -158,30 +159,35 @@ func NewButton(opts ...ButtonOpt) *Button {
 func (b *Button) Validate() {
 	b.init.Do()
 	b.populateComputedParams()
-
-	if b.computedParams.Image == nil {
-		panic("Button: Image is required.")
-	}
-	if b.computedParams.Image.Idle == nil {
-		panic("Button: Image.Idle is required.")
-	}
-	if b.computedParams.Image.Pressed == nil {
-		panic("Button: Image.Pressed is required.")
-	}
-
-	if len(b.textLabel) > 0 {
-		if b.computedParams.TextFace == nil {
-			panic("Button: TextFace is required if TextLabel is set.")
-		}
-		if b.computedParams.TextColor == nil {
-			panic("Button: TextColor is required if TextLabel is set.")
-		}
-		if b.computedParams.TextColor.Idle == nil {
-			panic("Button: TextColor.Idle is required if TextLabel is set.")
-		}
+	if m := b.missing(); m != "" {
+		panic("Button: " + m)
 	}
 
 	b.initWidget()
+	b.validated = true
+}
+
+// missing returns what the button lacks to be drawn, from its options and
+// its theme, or "" for nothing.
+func (b *Button) missing() string {
+	p := b.computedParams
+	switch {
+	case p.Image == nil:
+		return "Image is required."
+	case p.Image.Idle == nil:
+		return "Image.Idle is required."
+	case p.Image.Pressed == nil:
+		return "Image.Pressed is required."
+	case len(b.textLabel) == 0:
+		return ""
+	case p.TextFace == nil:
+		return "TextFace is required if TextLabel is set."
+	case p.TextColor == nil:
+		return "TextColor is required if TextLabel is set."
+	case p.TextColor.Idle == nil:
+		return "TextColor.Idle is required if TextLabel is set."
+	}
+	return ""
 }
 
 func (b *Button) populateComputedParams() {
@@ -588,6 +594,16 @@ func (b *Button) GetWidget() *Widget {
 
 func (b *Button) PreferredSize() (int, int) {
 	b.init.Do()
+	if !b.validated {
+		// Sized before it is validated, as before it joins a UI: validated now
+		// if its options and its theme give all it needs, or else sized
+		// without its look until they do.
+		b.populateComputedParams()
+		if b.missing() == "" {
+			b.initWidget()
+			b.validated = true
+		}
+	}
 
 	w, h := 50, 50
 
@@ -602,12 +618,9 @@ func (b *Button) PreferredSize() (int, int) {
 		w = b.widget.MinWidth
 	}
 
-	iw, ih := b.computedParams.Image.Idle.MinSize()
-	if w < iw {
-		w = iw
-	}
-	if h < ih {
-		h = ih
+	if i := b.computedParams.Image; i != nil && i.Idle != nil {
+		iw, ih := i.Idle.MinSize()
+		w, h = max(w, iw), max(h, ih)
 	}
 
 	return w, h

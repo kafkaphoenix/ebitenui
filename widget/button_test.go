@@ -2,9 +2,11 @@ package widget
 
 import (
 	img "image"
+	"image/color"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -70,6 +72,68 @@ func TestButton_ManualClick(t *testing.T) {
 	event.ExecuteDeferred()
 
 	is.True(eventArgs != nil)
+}
+
+func TestButton_PreferredSizeBeforeValidation(t *testing.T) {
+	is := is.New(t)
+
+	buttonImage := &ButtonImage{
+		Idle:    newNineSliceEmpty(t),
+		Pressed: newNineSliceEmpty(t),
+	}
+	b := NewButton(
+		ButtonOpts.Image(buttonImage),
+		ButtonOpts.WidgetOpts(WidgetOpts.MinSize(60, 70)),
+	)
+	c := NewContainer()
+	c.AddChild(b)
+
+	w, h := b.PreferredSize()
+	is.Equal(w, 60)
+	is.Equal(h, 70)
+}
+
+// A button that takes its look from a theme, sized before it joins a
+// themed container, as a layout made ahead does, is sized without its image
+// instead of panicking; in the container, its size takes the theme's image.
+// Validated without an image anywhere, it still panics, saying what it
+// lacks.
+func TestButton_PreferredSizeBeforeItsTheme(t *testing.T) {
+	is := is.New(t)
+
+	b := NewButton(ButtonOpts.WidgetOpts(WidgetOpts.MinSize(20, 10)))
+	w, h := b.PreferredSize()
+	is.Equal([]int{w, h}, []int{50, 50}) // no image yet: the size of a button with no content
+
+	big := image.NewBorderedNineSliceColor(color.White, color.Black, 40)
+	c := NewContainer()
+	c.GetWidget().SetTheme(&Theme{ButtonTheme: &ButtonParams{Image: &ButtonImage{Idle: big, Pressed: big}}})
+	c.AddChild(b)
+	w, h = b.PreferredSize()
+	is.Equal([]int{w, h}, []int{80, 80}) // the theme's image's corners
+
+	labelled := NewButton(ButtonOpts.Image(&ButtonImage{Idle: big, Pressed: big}),
+		ButtonOpts.Text("A label much wider than eighty pixels", loadFont(t), &ButtonTextColor{Idle: color.White}))
+	w, _ = labelled.PreferredSize()
+	is.True(w > 200) // all it needs given: validated, so sized by its label
+
+	ns := newNineSliceEmpty(t)
+	for _, c := range []struct {
+		opts []ButtonOpt
+		want string
+	}{
+		{nil, "Image is required."},
+		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Pressed: ns})}, "Image.Idle is required."},
+		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns})}, "Image.Pressed is required."},
+		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x")}, "TextFace is required if TextLabel is set."},
+		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x"), ButtonOpts.TextFace(loadFont(t))}, "TextColor is required if TextLabel is set."},
+		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x"), ButtonOpts.TextFace(loadFont(t)), ButtonOpts.TextColor(&ButtonTextColor{})}, "TextColor.Idle is required if TextLabel is set."},
+	} {
+		func() {
+			defer func() { is.Equal(recover(), "Button: "+c.want) }()
+			NewButton(c.opts...).Validate()
+		}()
+	}
 }
 
 func newButton(t *testing.T, opts ...ButtonOpt) *Button {
