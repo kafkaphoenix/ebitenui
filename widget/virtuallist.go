@@ -2,12 +2,14 @@ package widget
 
 import (
 	img "image"
+	"image/color"
 	"math"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 // VirtualList shows a list of entries in rows of one height, keeping
@@ -24,11 +26,16 @@ import (
 // as a List's focused entry does. Each row is drawn
 // on the background of its state, from EntryImage or EntryColor, or else
 // from the theme's lists.
+//
+// With Labels, a plain list of text needs neither RowFunc, BindFunc nor
+// RowHeight: each row is a line of its entry's label, drawn as a List draws
+// its entries.
 type VirtualList struct {
 	EntrySelectedEvent *event.Event
 
 	count              int
-	rowHeight          int
+	rowHeight          int // the given one, or with Labels a line's
+	givenRowHeight     int
 	rowFunc            func() PreferredSizeLocateableWidget
 	bindFunc           func(row PreferredSizeLocateableWidget, index int)
 	sliderParams       *SliderParams
@@ -39,6 +46,13 @@ type VirtualList struct {
 	dragToScroll       bool
 	disableDefaultKeys bool
 	tabOrder           int
+
+	// With Labels: the labels, the face and padding given, and what the
+	// rows are drawn with, set as the list validates.
+	labelFunc   func(index int) string
+	labelFace   *text.Face
+	labelInsets *Insets
+	labelLook   labelLook
 
 	init      *MultiOnce
 	container *Container
@@ -57,6 +71,14 @@ type VirtualList struct {
 	pressed    int // the entry the pointer went down on, -1 for none
 	hovering   bool
 	hoverY     int // where the pointer is, while hovering
+}
+
+// labelLook is how a labelled list draws its rows' text.
+type labelLook struct {
+	face    *text.Face
+	padding *Insets
+	h, v    TextPosition
+	colors  *ListEntryColor
 }
 
 // VirtualListEntrySelectedEventArgs tell which entry was selected, and which
@@ -97,9 +119,32 @@ func (o VirtualListOptions) Count(n int) VirtualListOpt {
 	return func(l *VirtualList) { l.count = n }
 }
 
-// RowHeight sets every row's height, in pixels.
+// RowHeight sets every row's height, in pixels. With Labels, a line of
+// the entry face and its padding by default.
 func (o VirtualListOptions) RowHeight(h int) VirtualListOpt {
-	return func(l *VirtualList) { l.rowHeight = h }
+	return func(l *VirtualList) { l.rowHeight, l.givenRowHeight = h, h }
+}
+
+// Labels makes each row a line of text, the label f returns for its entry,
+// in place of RowFunc and BindFunc: a plain list of text. The text takes
+// the face EntryFontFace gives, the padding EntryTextPadding gives and the
+// entry colors' text colors, or else the theme's lists'; a row is a line of
+// that face and its padding tall unless RowHeight says otherwise.
+func (o VirtualListOptions) Labels(f func(index int) string) VirtualListOpt {
+	return func(l *VirtualList) {
+		l.labelFunc = f
+		l.rowFunc, l.bindFunc = l.labelRow, l.bindLabel
+	}
+}
+
+// EntryFontFace sets the face of the labels Labels draws.
+func (o VirtualListOptions) EntryFontFace(f *text.Face) VirtualListOpt {
+	return func(l *VirtualList) { l.labelFace = f }
+}
+
+// EntryTextPadding sets the padding around the labels Labels draws.
+func (o VirtualListOptions) EntryTextPadding(i *Insets) VirtualListOpt {
+	return func(l *VirtualList) { l.labelInsets = i }
 }
 
 // RowFunc sets what makes a row's widget; the list calls it as rows are
@@ -346,6 +391,9 @@ func (l *VirtualList) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 func (l *VirtualList) Validate() {
 	l.init.Do()
+	if l.labelFunc != nil {
+		l.lookUpLabels()
+	}
 	if l.rowHeight <= 0 || l.rowFunc == nil || l.bindFunc == nil {
 		panic("VirtualList: RowHeight, RowFunc and BindFunc are required.")
 	}
@@ -371,6 +419,104 @@ func (l *VirtualList) Validate() {
 	}
 	l.unselectedImage, l.selectedImage = entryBackgrounds(colors, images)
 	l.container.Validate()
+}
+
+// lookUpLabels takes a labelled list's face, padding, positions and text
+// colors from its options, or else from its theme's lists, gives them to the
+// rows it has, and makes a row a line tall unless RowHeight was given.
+func (l *VirtualList) lookUpLabels() {
+	look := labelLook{face: l.labelFace, padding: l.labelInsets, h: TextPositionStart, v: TextPositionCenter, colors: l.entryColor}
+	var textColor color.Color
+	theme := l.container.GetWidget().GetTheme()
+	if theme != nil {
+		textColor = theme.DefaultTextColor
+		if lt := theme.ListTheme; lt != nil {
+			if look.face == nil {
+				look.face = lt.EntryFace
+			}
+			if look.padding == nil {
+				look.padding = lt.EntryTextPadding
+			}
+			if lt.EntryTextHorizontalPosition != nil {
+				look.h = *lt.EntryTextHorizontalPosition
+			}
+			if lt.EntryTextVerticalPosition != nil {
+				look.v = *lt.EntryTextVerticalPosition
+			}
+			if look.colors == nil {
+				look.colors = lt.EntryColor
+			}
+		}
+		if look.face == nil {
+			look.face = theme.DefaultFace
+		}
+	}
+	if look.face == nil {
+		panic("VirtualList: EntryFontFace is required for Labels.")
+	}
+	if look.padding == nil {
+		look.padding = &Insets{}
+	}
+	if look.colors == nil {
+		look.colors = &ListEntryColor{}
+	}
+	if look.colors.Unselected == nil {
+		if textColor == nil {
+			panic("VirtualList: EntryColor's Unselected is required for Labels.")
+		}
+		colors := *look.colors
+		colors.Unselected = textColor // the theme's text color
+		look.colors = &colors
+	}
+	l.labelLook = look
+	for _, r := range l.content.rows {
+		l.styleLabel(r.widget)
+	}
+	l.rowHeight = l.givenRowHeight
+	if l.rowHeight <= 0 {
+		_, line := text.Measure(" ", *look.face, 0)
+		l.rowHeight = int(math.Ceil(line)) + look.padding.Top + look.padding.Bottom
+	}
+}
+
+// labelRow makes a labelled list's row: a text in its look.
+func (l *VirtualList) labelRow() PreferredSizeLocateableWidget {
+	t := NewText()
+	l.styleLabel(t)
+	return t
+}
+
+// styleLabel gives a labelled list's row its face, padding and position.
+func (l *VirtualList) styleLabel(row PreferredSizeLocateableWidget) {
+	t := row.(*Text) //nolint:forcetypeassert // made by labelRow
+	t.SetFace(l.labelLook.face)
+	t.SetColor(l.labelLook.colors.Unselected)
+	t.SetPadding(l.labelLook.padding)
+	t.SetPosition(&TextPositioning{HTextPosition: l.labelLook.h, VTextPosition: l.labelLook.v})
+}
+
+// bindLabel shows entry index's label in a labelled list's row.
+func (l *VirtualList) bindLabel(row PreferredSizeLocateableWidget, index int) {
+	row.(*Text).Label = l.labelFunc(index) //nolint:forcetypeassert // made by labelRow
+}
+
+// labelColor returns the text color of entry i's label: selected or not,
+// enabled or not, or the unselected one where that state has none.
+func (l *VirtualList) labelColor(i int) color.Color {
+	c := l.labelLook.colors
+	var picked color.Color
+	switch selected, disabled := i == l.selected, l.container.GetWidget().Disabled; {
+	case selected && disabled:
+		picked = c.DisabledSelected
+	case selected:
+		picked = c.Selected
+	case disabled:
+		picked = c.DisabledUnselected
+	}
+	if picked == nil {
+		return c.Unselected
+	}
+	return picked
 }
 
 func (l *VirtualList) Render(screen *ebiten.Image) {
@@ -532,6 +678,9 @@ func (c *virtualContent) Render(screen *ebiten.Image) {
 		row := c.rows[i%len(c.rows)].widget
 		rect := row.GetWidget().Rect
 		c.list.background(i, hover).Draw(screen, rect.Dx(), rect.Dy(), row.GetWidget().drawImageOptions)
+		if c.list.labelFunc != nil {
+			row.(*Text).SetColor(c.list.labelColor(i)) //nolint:forcetypeassert // made by labelRow
+		}
 		if r, ok := row.(Renderer); ok {
 			r.Render(screen)
 		}

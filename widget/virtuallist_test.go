@@ -4,6 +4,7 @@ import (
 	img "image"
 	"image/color"
 	"math"
+	"strconv"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -11,6 +12,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/internal/input/inputtest"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
 )
 
@@ -575,4 +577,114 @@ func TestVirtualList_Focuser(t *testing.T) {
 	l.Focus(false)
 	event.ExecuteDeferred()
 	is.Equal(events, []bool{true, false}) // the UI follows it
+}
+
+// The text colors of labelled lists' entries, each its own.
+var labelColors = &ListEntryColor{
+	Unselected: color.NRGBA{1, 1, 1, 255}, Selected: color.NRGBA{2, 2, 2, 255},
+	DisabledUnselected: color.NRGBA{3, 3, 3, 255}, DisabledSelected: color.NRGBA{4, 4, 4, 255},
+}
+
+// newLabelsList returns a virtual list of count entries labelled "Entry i",
+// with theme, if any, and opts, 200 by 100 px, drawn once.
+func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt) *VirtualList {
+	t.Helper()
+	ns := newNineSliceEmpty(t)
+	l := NewVirtualList(append([]VirtualListOpt{
+		VirtualListOpts.Count(count),
+		VirtualListOpts.Labels(func(i int) string { return "Entry " + strconv.Itoa(i) }),
+		VirtualListOpts.ScrollContainerImage(&ScrollContainerImage{Idle: ns, Mask: ns}),
+		VirtualListOpts.SliderParams(&SliderParams{TrackImage: &SliderTrackImage{}, HandleImage: &ButtonImage{Idle: ns, Pressed: ns}}),
+	}, opts...)...)
+	if theme != nil {
+		l.GetWidget().SetTheme(theme)
+	}
+	l.SetLocation(img.Rect(0, 0, 200, 100))
+	render(l, t)
+	return l
+}
+
+// labelAt returns the text of the row that shows entry i.
+func labelAt(l *VirtualList, i int) *Text {
+	for _, r := range l.content.rows {
+		if r.index == i {
+			return r.widget.(*Text) //nolint:forcetypeassert // a labelled list's rows
+		}
+	}
+	return nil
+}
+
+// Labels makes a plain list of text without RowFunc, BindFunc or RowHeight:
+// each row a line of its entry's label, in the entry face and padding given,
+// as tall as a line of that face and the padding. The selected entry's text
+// takes the selected color, the others the unselected one, and a disabled
+// list's the disabled ones.
+func TestVirtualList_Labels(t *testing.T) {
+	is := is.New(t)
+
+	pad := &Insets{Top: 3, Bottom: 5, Left: 4}
+	l := newLabelsList(t, nil, 1_000, VirtualListOpts.EntryFontFace(loadFont(t)), VirtualListOpts.EntryTextPadding(pad),
+		VirtualListOpts.EntryColor(labelColors))
+	_, line := text.Measure(" ", *loadFont(t), 0)
+	is.Equal(l.rowHeight, int(math.Ceil(line))+8) // a line and the padding
+	is.Equal(labelAt(l, 2).Label, "Entry 2")
+	is.Equal(*labelAt(l, 2).computedParams.Position, TextPositioning{HTextPosition: TextPositionStart, VTextPosition: TextPositionCenter})
+	is.True(labelAt(l, 2).computedParams.Padding == pad)
+
+	l.ScrollToIndex(500)
+	drawAgain(l)
+	is.Equal(labelAt(l, 500).Label, "Entry 500") // bound as it scrolls
+
+	l.SetSelected(501)
+	drawAgain(l)
+	is.Equal(labelAt(l, 501).computedParams.Color, labelColors.Selected)
+	is.Equal(labelAt(l, 500).computedParams.Color, labelColors.Unselected)
+	l.GetWidget().Disabled = true
+	drawAgain(l)
+	is.Equal(labelAt(l, 501).computedParams.Color, labelColors.DisabledSelected)
+	is.Equal(labelAt(l, 500).computedParams.Color, labelColors.DisabledUnselected)
+
+	given := newLabelsList(t, nil, 10, VirtualListOpts.EntryFontFace(loadFont(t)), VirtualListOpts.EntryColor(labelColors), VirtualListOpts.RowHeight(40))
+	is.Equal(given.rowHeight, 40) // a row height given wins
+}
+
+// A labelled list takes what it isn't given from its theme's lists: the
+// entry face, or else the theme's default one, the padding and the colors,
+// or else the theme's text color, again as the theme changes. A state
+// without a color takes the unselected one. Without a face or a text color
+// anywhere it panics, saying which.
+func TestVirtualList_LabelsFromTheTheme(t *testing.T) {
+	is := is.New(t)
+
+	small := text.Face(&text.GoTextFace{Source: (*loadFont(t)).(*text.GoTextFace).Source, Size: 10}) //nolint:forcetypeassert // a GoTextFace
+	pad := &Insets{Top: 2, Bottom: 2}
+	end := TextPositionEnd
+	l := newLabelsList(t, &Theme{ListTheme: &ListParams{EntryFace: &small, EntryTextPadding: pad, EntryColor: labelColors,
+		EntryTextHorizontalPosition: &end, EntryTextVerticalPosition: &end}}, 10)
+	is.Equal(*labelAt(l, 0).computedParams.Position, TextPositioning{HTextPosition: TextPositionEnd, VTextPosition: TextPositionEnd})
+	_, line := text.Measure(" ", small, 0)
+	is.Equal(l.rowHeight, int(math.Ceil(line))+4)
+	is.True(labelAt(l, 0).computedParams.Face == &small)
+	is.Equal(labelAt(l, 0).computedParams.Color, labelColors.Unselected)
+
+	white := color.NRGBA{255, 255, 255, 255}
+	l.GetWidget().SetTheme(&Theme{DefaultFace: loadFont(t), DefaultTextColor: white, ListTheme: &ListParams{}})
+	l.Validate()
+	l.SetSelected(0)
+	drawAgain(l)
+	is.True(labelAt(l, 0).computedParams.Face == loadFont(t))        // the theme's default face
+	is.Equal(labelAt(l, 0).computedParams.Color, color.Color(white)) // its text color, selected too
+
+	for _, c := range []struct {
+		opts []VirtualListOpt
+		want string
+	}{
+		{nil, "VirtualList: EntryFontFace is required for Labels."},
+		{[]VirtualListOpt{VirtualListOpts.EntryFontFace(loadFont(t))}, "VirtualList: EntryColor's Unselected is required for Labels."},
+	} {
+		func() {
+			defer func() { is.Equal(recover(), c.want) }()
+			newLabelsList(t, nil, 10, c.opts...)
+		}()
+	}
 }

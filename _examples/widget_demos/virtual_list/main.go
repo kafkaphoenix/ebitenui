@@ -22,15 +22,9 @@ func main() {
 		widget.VirtualListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{StretchHorizontal: true, StretchVertical: true}))),
 		widget.VirtualListOpts.Count(100_000),
-		widget.VirtualListOpts.RowHeight(24),
-		// A row's widget, made only for as many rows as the view shows.
-		widget.VirtualListOpts.RowFunc(func() widget.PreferredSizeLocateableWidget {
-			return widget.NewText(widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter))
-		}),
-		// Fills a row with the entry it now shows.
-		widget.VirtualListOpts.BindFunc(func(row widget.PreferredSizeLocateableWidget, index int) {
-			row.(*widget.Text).Label = fmt.Sprintf("Entry %d", index) //nolint:forcetypeassert // made by RowFunc
-		}),
+		// Each row a line of its entry's label, in the theme's list look. For
+		// rows of any widget, RowFunc makes a row and BindFunc fills it.
+		widget.VirtualListOpts.Labels(func(index int) string { return fmt.Sprintf("Entry %d", index) }),
 		// Dragging the rows, with a mouse or a finger, scrolls them too.
 		widget.VirtualListOpts.DragToScroll(),
 		widget.VirtualListOpts.EntrySelectedHandler(func(args *widget.VirtualListEntrySelectedEventArgs) {
