@@ -485,3 +485,83 @@ func TestList_SlidersWhenNeeded(t *testing.T) {
 	l.Render(screen)
 	is.Equal(l.vSlider.GetWidget().GetVisibility(), Visibility_Show) // twenty-one do not
 }
+
+// Entries wider than the list (upstream #325): a move of the focus scrolls
+// to the focused entry, showing its start, and stops once there, so the view
+// settles instead of shaking sideways, and the wheel and the sliders scroll
+// the list freely afterwards instead of being pulled back to the entry.
+func TestList_WideEntriesScroll(t *testing.T) {
+	is := is.New(t)
+
+	entries := make([]any, 20)
+	for i := range entries {
+		entries[i] = "A very long entry, much wider than the list, number " + strconv.Itoa(i)
+	}
+	l := newList(t, ListOpts.Entries(entries), ListOpts.EntryLabelFunc(label))
+	l.SetLocation(img.Rect(0, 0, 200, 100))
+	l.RequestRelayout()
+	screen := ebiten.NewImage(200, 100)
+	frames := func(n int) {
+		for range n {
+			l.Render(screen)
+			event.ExecuteDeferred()
+		}
+	}
+	frames(3)
+	sc := l.scrollContainer
+	is.True(sc.ContentRect().Dx() > 2*sc.ViewRect().Dx()) // the entries are wider than the view
+
+	l.Focus(true)
+	for range 6 {
+		l.Update(&UpdateObject{Actions: given(ActionDown)}) // to an entry below the view
+	}
+	frames(30)
+	view, focused := sc.ViewRect(), listEntryButtons(l)[6].GetWidget().Rect
+	is.True(view.Max.Y-focused.Max.Y <= 1 && focused.Max.Y <= view.Max.Y) // as little as shows it: its end at the view's
+	is.Equal(focused.Min.X, view.Min.X)                                   // its start
+	top, left := sc.ScrollTop, sc.ScrollLeft
+	frames(5)
+	is.Equal([]float64{sc.ScrollTop, sc.ScrollLeft}, []float64{top, left}) // settled
+
+	sc.GetWidget().ScrolledEvent.Fire(&WidgetScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
+	l.hSlider.Current = 500                                                                    // the slider, sideways
+	event.ExecuteDeferred()
+	frames(5)
+	is.True(sc.ScrollTop > top)  // still down
+	is.Equal(sc.ScrollLeft, 0.5) // still sideways
+
+	for range 6 {
+		l.Update(&UpdateObject{Actions: given(ActionUp)}) // to the first entry, above the view
+	}
+	frames(30)
+	view, first := sc.ViewRect(), listEntryButtons(l)[0].GetWidget().Rect
+	is.Equal([]int{first.Min.Y, first.Min.X}, []int{view.Min.Y, view.Min.X}) // its start, at the view's
+}
+
+// With SelectFocus, which selects the focused entry as the list draws, the
+// wheel still scrolls the list away from that entry.
+func TestList_SelectFocusLetsTheWheelScroll(t *testing.T) {
+	is := is.New(t)
+
+	entries := make([]any, 20)
+	for i := range entries {
+		entries[i] = strconv.Itoa(i)
+	}
+	l := newList(t, ListOpts.Entries(entries), ListOpts.EntryLabelFunc(label), ListOpts.SelectFocus())
+	l.SetLocation(img.Rect(0, 0, 200, 100))
+	l.RequestRelayout()
+	screen := ebiten.NewImage(200, 100)
+	frames := func(n int) {
+		for range n {
+			l.Render(screen)
+			event.ExecuteDeferred()
+		}
+	}
+	frames(3)
+	sc := l.scrollContainer
+	sc.GetWidget().ScrolledEvent.Fire(&WidgetScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
+	event.ExecuteDeferred()
+	frames(5)
+	is.True(sc.ScrollTop > 0)        // still down
+	is.Equal(l.SelectedEntry(), "0") // the focused entry, selected
+}
