@@ -9,9 +9,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Devices is where the handler reads the keyboard, the gamepads and the
-// touches: Ebitengine, or a stand-in in tests (package inputtest).
+// Devices is where the handler reads the mouse, the keyboard, the gamepads
+// and the touches: Ebitengine, or a stand-in in tests (package uitest).
 type Devices interface {
+	IsMouseButtonPressed(b ebiten.MouseButton) bool
+	CursorPosition() (int, int)
+	// Wheel and AppendInputChars report what happened since the last update.
+	Wheel() (float64, float64)
+	AppendInputChars(chars []rune) []rune
 	IsKeyPressed(k ebiten.Key) bool
 	AppendGamepadIDs(ids []ebiten.GamepadID) []ebiten.GamepadID
 	// IsStandardGamepadButtonPressed and StandardGamepadAxisValue report
@@ -39,6 +44,16 @@ func (Ebitengine) AppendTouchIDs(ids []ebiten.TouchID) []ebiten.TouchID {
 func (Ebitengine) TouchPosition(id ebiten.TouchID) (int, int) { return ebiten.TouchPosition(id) }
 
 func (Ebitengine) IsTouchscreen() bool { return touchscreen }
+
+func (Ebitengine) IsMouseButtonPressed(b ebiten.MouseButton) bool {
+	return ebiten.IsMouseButtonPressed(b)
+}
+
+func (Ebitengine) CursorPosition() (int, int) { return ebiten.CursorPosition() }
+
+func (Ebitengine) Wheel() (float64, float64) { return ebiten.Wheel() }
+
+func (Ebitengine) AppendInputChars(chars []rune) []rune { return ebiten.AppendInputChars(chars) }
 
 func (Ebitengine) IsKeyPressed(k ebiten.Key) bool { return ebiten.IsKeyPressed(k) }
 

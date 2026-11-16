@@ -43,6 +43,19 @@ The examples can also be tested as WASM by running the following commands and op
 * Ebiten UI complete demo: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/demo`
 * Ebiten UI widget: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/widget_demos/<folder_name>`
 
+Testing
+------
+Package `uitest` plays a user on an interface in tests: it stands in for the mouse, the keyboard, the gamepads and the touch screen, and runs the interface frame by frame, so a test presses where a player would.
+
+```go
+ui := &ebitenui.UI{Container: root}
+drv := uitest.New(t, 640, 480, ui.Update, ui.Draw)
+drv.Frames(1)                        // laid out
+drv.ClickIn(button.GetWidget().Rect) // pressed and released over two frames
+drv.Type("hello")
+drv.Key(ebiten.KeyEnter)
+```
+
 Used By
 ------
 * [Roboden by quasilyte](https://quasilyte.itch.io/roboden)

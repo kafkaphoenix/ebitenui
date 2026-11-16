@@ -93,17 +93,17 @@ func (handler *DefaultInternalHandler) Update() {
 		// TODO: maybe get rid of this special condition when fireEvents are
 		// moved to the Update() tree.
 		// See issue #100.
-		handler.LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
-		handler.MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
-		handler.RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
-		handler.CursorX, handler.CursorY = ebiten.CursorPosition()
+		handler.LeftMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonLeft)
+		handler.MiddleMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
+		handler.RightMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonRight)
+		handler.CursorX, handler.CursorY = handler.Devices.CursorPosition()
 	}
 
-	wx, wy := ebiten.Wheel()
+	wx, wy := handler.Devices.Wheel()
 	handler.WheelX += wx
 	handler.WheelY += wy
 
-	handler.InputChars = ebiten.AppendInputChars(handler.InputChars)
+	handler.InputChars = handler.Devices.AppendInputChars(handler.InputChars)
 	handler.updateKeys()
 	handler.updateGamepads()
 	handler.LeftMouseButtonJustPressed = handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed

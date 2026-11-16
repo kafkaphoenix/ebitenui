@@ -7,7 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -148,7 +148,7 @@ func TestCheckbox_State_Cycle_TriState(t *testing.T) {
 func TestCheckbox_KeysToggleOncePerPress(t *testing.T) {
 	is := is.New(t)
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	c := newCheckbox(t)
 	c.Focus(true)
 	for i, s := range []struct {
@@ -278,8 +278,7 @@ func checkboxImagesFor(i *CheckboxImage, state WidgetState) (normal, disabled, h
 // cursor enter or leave.
 func moveCursor(w Updater, x, y int, t *testing.T) {
 	t.Helper()
-	c := useTestCursor(t)
-	c.x, c.y = x, y
+	point(uitest.Use(t), x, y, false)
 	w.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 }

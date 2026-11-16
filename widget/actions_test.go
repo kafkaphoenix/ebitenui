@@ -5,7 +5,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -156,7 +156,7 @@ func TestListComboButton_TakesActions(t *testing.T) {
 	is.True(!a.Left(ActionBack) && !l.ContentVisible()) // open: Back closes it
 	is.Equal(l.SelectedEntry(), "c")                    // choosing nothing
 
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	d.Keys[ebiten.KeyArrowDown] = true
 	for _, open := range []bool{true, false} {
 		input.Update()

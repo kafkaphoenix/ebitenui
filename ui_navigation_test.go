@@ -8,8 +8,8 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
 	"github.com/ebitenui/ebitenui/themes"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -29,7 +29,7 @@ func focusSlider(rect image.Rectangle) *widget.Slider {
 
 // navigationUI returns a UI with GamepadFocus on over widgets, drawn once so
 // they are laid out, with its devices (useDevices).
-func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget) (ui *UI, d *inputtest.Devices, press func(any)) {
+func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget) (ui *UI, d *uitest.Devices, press func(any)) {
 	t.Helper()
 	ui = focusUI(widgets...)
 	ui.GamepadFocus = true
@@ -40,11 +40,11 @@ func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget)
 // useDevices draws ui once, so its widgets are laid out, and returns
 // devices with one gamepad. press holds a key or a gamepad button for two
 // updates of ui, then lets go for one.
-func useDevices(t *testing.T, ui *UI) (d *inputtest.Devices, press func(any)) {
+func useDevices(t *testing.T, ui *UI) (d *uitest.Devices, press func(any)) {
 	t.Helper()
 	ui.Draw(ebiten.NewImage(200, 200))
-	d = inputtest.Use(t)
-	d.Pads = make([]inputtest.Pad, 1)
+	d = uitest.Use(t)
+	d.Pads = make([]uitest.Pad, 1)
 	press = func(k any) {
 		for _, down := range []bool{true, true, false} {
 			switch k := k.(type) {

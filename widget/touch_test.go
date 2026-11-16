@@ -6,7 +6,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/matryer/is"
 )
 
@@ -16,7 +16,7 @@ import (
 // the fingers given down.
 func touchButton(t *testing.T, touchscreen bool) (b *Button, clicks, menus *int, step func(fingers ...img.Point)) {
 	t.Helper()
-	d := inputtest.Use(t)
+	d := uitest.Use(t)
 	d.Touchscreen = touchscreen
 	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	clicks, menus = new(int), new(int)
@@ -109,20 +109,19 @@ func TestTouch_SecondFingerCancels(t *testing.T) {
 func TestTouch_MouseLongPressUnchanged(t *testing.T) {
 	is := is.New(t)
 
-	c := useTestCursor(t)
+	d := uitest.Use(t)
 	input.SetupInputLayersWithDeferred(nil)
 	clicks, menus := 0, 0
 	b := newButton(t, ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { clicks++ }),
 		ButtonOpts.WidgetOpts(WidgetOpts.ContextMenu(NewContainer())))
 	b.SetLocation(img.Rect(0, 0, 100, 40))
 	b.GetWidget().ContextMenuEvent.AddHandler(func(any) { menus++ })
-	c.x, c.y = 50, 20
-	for i := range b.GetWidget().longPressDuration + 2 {
-		c.pressed, c.just = true, i == 0
+	for range b.GetWidget().longPressDuration + 2 {
+		point(d, 50, 20, true)
 		b.Update(&UpdateObject{})
 		event.ExecuteDeferred()
 	}
-	c.pressed, c.just = false, false
+	point(d, 50, 20, false)
 	b.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.Equal(menus, 0)
