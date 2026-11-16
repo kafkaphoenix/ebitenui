@@ -24,6 +24,7 @@ type TabBook struct {
 
 	tabs          []*TabBookTab
 	containerOpts []ContainerOpt
+	tabPosition   TabPosition
 
 	init         *MultiOnce
 	container    *Container
@@ -36,6 +37,29 @@ type TabBook struct {
 }
 
 type TabBookOpt func(t *TabBook)
+
+// TabPosition is where a TabBook's tab buttons run beside its pages.
+type TabPosition int
+
+const (
+	// TabPositionTop runs the buttons in a row above the pages, the default.
+	TabPositionTop TabPosition = iota
+	// TabPositionBottom runs them in a row below the pages.
+	TabPositionBottom
+	// TabPositionLeft runs them in a column left of the pages, each as wide as
+	// the widest.
+	TabPositionLeft
+	// TabPositionRight runs them in a column right of the pages, each as wide
+	// as the widest.
+	TabPositionRight
+)
+
+// vertical reports whether the buttons run in a column.
+func (p TabPosition) vertical() bool { return p == TabPositionLeft || p == TabPositionRight }
+
+// first reports whether the buttons come before the pages: above or left
+// of them.
+func (p TabPosition) first() bool { return p == TabPositionTop || p == TabPositionLeft }
 
 type TabBookOptions struct {
 }
@@ -265,6 +289,14 @@ func (o TabBookOptions) ContentSpacing(s int) TabBookOpt {
 	}
 }
 
+// TabPosition sets where the tab buttons run: in a row above or below the
+// pages, or in a column left or right of them. Above, by default.
+func (o TabBookOptions) TabPosition(p TabPosition) TabBookOpt {
+	return func(t *TabBook) {
+		t.tabPosition = p
+	}
+}
+
 func (o TabBookOptions) Tabs(tabs ...*TabBookTab) TabBookOpt {
 	return func(t *TabBook) {
 		t.tabs = append(t.tabs, tabs...)
@@ -292,19 +324,21 @@ func (t *TabBook) GetWidget() *Widget {
 	return t.container.GetWidget()
 }
 
+// PreferredSize is room for the largest page and the buttons, beside the
+// pages or above or below them, ContentSpacing apart.
 func (t *TabBook) PreferredSize() (int, int) {
 	t.init.Do()
 	x, y := t.container.PreferredSize()
-	_, bcY := t.btnContainer.PreferredSize()
+	bcX, bcY := t.btnContainer.PreferredSize()
+	spacing := *t.computedParams.ContentSpacing
 	for tab := range t.tabs {
 		tx, ty := t.tabs[tab].PreferredSize()
-		ty += bcY
-		if tx > x {
-			x = tx
+		if t.tabPosition.vertical() {
+			tx += bcX + spacing
+		} else {
+			ty += bcY + spacing
 		}
-		if ty > y {
-			y = ty
-		}
+		x, y = max(x, tx), max(y, ty)
 	}
 	return x, y
 }
@@ -345,10 +379,19 @@ func (t *TabBook) Update(updObj *UpdateObject) {
 	t.container.Update(updObj)
 }
 
+// createWidget lays the buttons and the pages out in a grid: one column
+// with the buttons above or below the pages, or one row with them beside
+// the pages, which take the room left.
 func (t *TabBook) createWidget() {
-	t.gridLayout = NewGridLayout(
-		GridLayoutOpts.Columns(1),
-		GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}))
+	stretch := []bool{false, true} // the buttons, then the pages
+	if !t.tabPosition.first() {
+		stretch = []bool{true, false}
+	}
+	if t.tabPosition.vertical() {
+		t.gridLayout = NewGridLayout(GridLayoutOpts.Columns(2), GridLayoutOpts.Stretch(stretch, []bool{true}))
+	} else {
+		t.gridLayout = NewGridLayout(GridLayoutOpts.Columns(1), GridLayoutOpts.Stretch([]bool{true}, stretch))
+	}
 
 	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{ContainerOpts.Layout(t.gridLayout)}...)...)
 	t.containerOpts = nil
@@ -358,11 +401,17 @@ func (t *TabBook) initTabBook() {
 	t.init.Do()
 	t.container.RemoveChildren()
 
-	t.gridLayout.rowSpacing = *t.computedParams.ContentSpacing
+	direction, buttonLayout := DirectionHorizontal, RowLayoutData{}
+	if t.tabPosition.vertical() {
+		t.gridLayout.columnSpacing = *t.computedParams.ContentSpacing
+		direction, buttonLayout = DirectionVertical, RowLayoutData{Stretch: true} // as wide as the widest
+	} else {
+		t.gridLayout.rowSpacing = *t.computedParams.ContentSpacing
+	}
 	t.btnContainer = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
+			RowLayoutOpts.Direction(direction),
 			RowLayoutOpts.Spacing(*t.computedParams.TabSpacing))))
-	t.container.AddChild(t.btnContainer)
 
 	btnElements := []RadioGroupElement{}
 	var currentTab *TabBookTab = t.tab
@@ -373,6 +422,7 @@ func (t *TabBook) initTabBook() {
 		t.tabs[i].Validate()
 		btnOpts := []ButtonOpt{
 			ButtonOpts.Image(t.computedParams.TabButton.Image),
+			ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(buttonLayout)),
 		}
 		if t.tabs[i].image != nil {
 			btnOpts = append(btnOpts, ButtonOpts.TextAndImage(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.tabs[i].image, t.computedParams.TabButton.TextColor))
@@ -417,7 +467,11 @@ func (t *TabBook) initTabBook() {
 		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()),
 		FlipBookOpts.Padding(t.computedParams.ContentPadding),
 	)
-	t.container.AddChild(t.flipBook)
+	if t.tabPosition.first() {
+		t.container.AddChild(t.btnContainer, t.flipBook)
+	} else {
+		t.container.AddChild(t.flipBook, t.btnContainer)
+	}
 
 	t.tab = nil
 	t.SetTab(currentTab)
