@@ -1,6 +1,7 @@
 package widget
 
 import (
+	img "image"
 	"image/color"
 	"testing"
 
@@ -151,4 +152,62 @@ func TestOnScreenKeyboard_ThemeBackground(t *testing.T) {
 
 	k = newKeyboard(t)
 	is.True(background(k) == (*image.NineSlice)(nil))
+}
+
+// Rows sets the character keys, row by row: another layout's, or letters a
+// language needs, such as ñ or accented vowels. Shift switches every
+// letter's case, those included, and leaves the rest. Rows of different
+// lengths share one grid as wide as the longest, so the keys line up in
+// columns; the first key takes the focus as the keyboard opens. Without
+// rows, the keyboard keeps its own.
+func TestOnScreenKeyboard_Rows(t *testing.T) {
+	is := is.New(t)
+
+	k := newKeyboard(t, OnScreenKeyboardOpts.Rows("¿b", "ñáß")) // the shorter row first
+	ti := newTextInput(t)
+	k.Open(ti, func() {})
+	press(t, k, "ñ", "Shift", "Á", "Ñ", "ß", "¿", "B")
+	is.Equal(ti.GetText(), "ñÁÑß¿B")
+	is.True(k.FirstKey() == Focuser(key(t, k, "¿")))
+
+	c := k.GetContainer()
+	c.SetLocation(img.Rect(0, 0, 300, 200))
+	c.RequestRelayout()
+	render(c, t)
+	rect := func(label string) img.Rectangle { return key(t, k, label).GetWidget().Rect }
+	is.Equal([]int{rect("Ñ").Min.X, rect("Ñ").Dx()}, []int{rect("¿").Min.X, rect("¿").Dx()}) // in the first column
+	is.Equal(rect("Á").Min.X, rect("B").Min.X)                                               // in the second
+	is.True(rect("Ñ").Min.Y > rect("¿").Min.Y)                                               // a row down
+	is.True(300-8-rect("ß").Max.X < 3)                                                       // the longest row spans the keyboard, inside its padding
+
+	is.Equal(key(t, newKeyboard(t, OnScreenKeyboardOpts.Rows()), "q").textLabel, "q")
+}
+
+// Each layout's rows hold every letter of the Latin alphabet and every
+// digit, and no key twice, and the letters of its language.
+func TestOnScreenKeyboard_Layouts(t *testing.T) {
+	is := is.New(t)
+
+	for name, l := range map[string]struct {
+		rows  []string
+		extra string
+	}{
+		"QWERTY":  {KeyboardQWERTY, ""},
+		"AZERTY":  {KeyboardAZERTY, "éèêàçù"},
+		"QWERTZ":  {KeyboardQWERTZ, "üöäß"},
+		"Spanish": {KeyboardSpanish, "ñáéíóúü¿¡"},
+	} {
+		seen := map[rune]bool{}
+		for _, row := range l.rows {
+			for _, r := range row {
+				is.True(!seen[r]) // no key twice
+				seen[r] = true
+			}
+		}
+		for _, r := range "abcdefghijklmnopqrstuvwxyz0123456789" + l.extra {
+			is.Equal([]any{name, string(r), seen[r]}, []any{name, string(r), true})
+		}
+	}
+	is.Equal(key(t, newKeyboard(t), "q").textLabel, "q") // QWERTY by default
+	is.Equal(len(NewOnScreenKeyboard().letters), 26)
 }
