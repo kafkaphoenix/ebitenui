@@ -18,9 +18,9 @@ type Graphic struct {
 	images         *GraphicImage
 	gif            *gif.GIF
 
-	gifImages         []*ebiten.Image
-	gifCurrentImage   int
-	gifCurrentImageAt time.Time
+	gifImages       []*ebiten.Image
+	gifCurrentImage int
+	gifUpdates      int // the updates the current frame has shown
 
 	widgetOpts []WidgetOpt
 
@@ -178,17 +178,13 @@ func (g *Graphic) Render(screen *ebiten.Image) {
 func (g *Graphic) Update(updObj *UpdateObject) {
 	g.init.Do()
 
+	// A GIF's frame shows for its delay, in hundredths of a second, counted
+	// in updates.
 	if g.gif != nil {
-		if g.gifCurrentImageAt.IsZero() {
-			g.gifCurrentImageAt = time.Now()
-		}
-
-		if time.Since(g.gifCurrentImageAt) > time.Duration(g.gif.Delay[g.gifCurrentImage]*10)*time.Millisecond {
-			g.gifCurrentImageAt = time.Now()
-			g.gifCurrentImage++
-			if g.gifCurrentImage >= len(g.gifImages) {
-				g.gifCurrentImage = 0
-			}
+		g.gifUpdates++
+		if g.gifUpdates >= updatesIn(time.Duration(g.gif.Delay[g.gifCurrentImage])*10*time.Millisecond) {
+			g.gifUpdates = 0
+			g.gifCurrentImage = (g.gifCurrentImage + 1) % len(g.gifImages)
 		}
 	}
 
