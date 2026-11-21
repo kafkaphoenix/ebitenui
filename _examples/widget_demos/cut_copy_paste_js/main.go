@@ -1,7 +1,7 @@
 //go:build js
 // +build js
 
-// TO RUN: go run github.com/hajimehoshi/wasmserve@latest -http :9090 ./_examples/widget_demos/cut_copy_paste_js
+// TO RUN, in the _examples folder: go run github.com/hajimehoshi/wasmserve@latest -http :9090 ./widget_demos/cut_copy_paste_js
 package main
 
 import (

@@ -16,9 +16,10 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Touch on a phone, served from a computer on the same network:
+// Touch on a phone, served from the _examples folder of a computer on the
+// same network:
 //
-//	go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/widget_demos/touch
+//	go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./widget_demos/touch
 //
 // then open http://<the computer's address>:6262 on the phone. A tap
 // clicks and leaves nothing hovered; a long press on a button opens its
