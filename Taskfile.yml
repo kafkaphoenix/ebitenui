@@ -17,13 +17,9 @@ tasks:
       - "{{.TASK_EXE}} --list"
 
   lint:
-    desc: Lint the library; cognitive complexity and duplication only in what changed since master
+    desc: Lint the library
     cmds:
-      # The library has older functions over gocognit's limit and some
-      # duplicated code; until they are reworked, those two linters judge
-      # only code new since the branch left master.
-      - "{{.TOOL}} golangci-lint run --disable gocognit,dupl ./..."
-      - "{{.TOOL}} golangci-lint run --enable-only gocognit,dupl --new-from-merge-base origin/master ./..."
+      - "{{.TOOL}} golangci-lint run ./..."
 
   fmt:
     desc: Format the code (gofmt, goimports)
