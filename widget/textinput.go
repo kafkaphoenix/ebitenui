@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"math"
 	"runtime"
-	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
@@ -47,16 +46,21 @@ type TextInput struct {
 	placeholderText string
 	mobileInputMode mobile.InputMode
 
-	widgetOpts            []WidgetOpt
-	init                  *MultiOnce
-	commandToFunc         map[textInputControlCommand]textInputCommandFunc
-	widget                *Widget
-	caret                 *Caret
-	text                  *Text
-	renderBuf             *image.MaskedRenderBuffer
-	mask                  *image.NineSlice
-	cursorPosition        int
-	state                 textInputState
+	widgetOpts     []WidgetOpt
+	init           *MultiOnce
+	commandToFunc  map[textInputControlCommand]textInputCommandFunc
+	widget         *Widget
+	caret          *Caret
+	text           *Text
+	renderBuf      *image.MaskedRenderBuffer
+	mask           *image.NineSlice
+	cursorPosition int
+	// The command key held, its command, and the updates since the command
+	// last ran; repeating once the repeat delay is over.
+	heldKey               ebiten.Key
+	heldCommand           textInputControlCommand
+	heldUpdates           int
+	repeating             bool
 	scrollOffset          int
 	lastInputText         string
 	previousSubmittedText *string
@@ -103,8 +107,6 @@ type TextInputColor struct {
 
 type TextInputValidationFunc func(newInputText string) (bool, *string)
 
-type textInputState func() (textInputState, bool)
-
 type textInputControlCommand int
 
 type textInputCommandFunc func()
@@ -122,16 +124,21 @@ const (
 	textInputEscape
 )
 
-var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
-	ebiten.KeyLeft:        textInputGoLeft,
-	ebiten.KeyRight:       textInputGoRight,
-	ebiten.KeyHome:        textInputGoStart,
-	ebiten.KeyEnd:         textInputGoEnd,
-	ebiten.KeyBackspace:   textInputBackspace,
-	ebiten.KeyDelete:      textInputDelete,
-	ebiten.KeyEnter:       textInputEnter,
-	ebiten.KeyNumpadEnter: textInputEnter,
-	ebiten.KeyEscape:      textInputEscape,
+// textInputKeys are the keys that run commands, in the order they are
+// looked for when several are held.
+var textInputKeys = [...]struct {
+	key ebiten.Key
+	cmd textInputControlCommand
+}{
+	{ebiten.KeyLeft, textInputGoLeft},
+	{ebiten.KeyRight, textInputGoRight},
+	{ebiten.KeyHome, textInputGoStart},
+	{ebiten.KeyEnd, textInputGoEnd},
+	{ebiten.KeyBackspace, textInputBackspace},
+	{ebiten.KeyDelete, textInputDelete},
+	{ebiten.KeyEnter, textInputEnter},
+	{ebiten.KeyNumpadEnter, textInputEnter},
+	{ebiten.KeyEscape, textInputEscape},
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -147,7 +154,6 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		focusMap:        make(map[FocusDirection]Focuser),
 		dragStartIndex:  -1,
 	}
-	t.state = t.idleState(true)
 
 	t.commandToFunc[textInputGoLeft] = t.CursorMoveLeft
 	t.commandToFunc[textInputGoRight] = t.CursorMoveRight
@@ -257,7 +263,7 @@ func (t *TextInput) populateComputedParams() {
 		params.RepeatDelay = t.definedParams.RepeatDelay
 	}
 	if t.definedParams.RepeatInterval != nil {
-		params.RepeatDelay = t.definedParams.RepeatDelay
+		params.RepeatInterval = t.definedParams.RepeatInterval
 	}
 	if t.definedParams.ScrollSensitivity != nil {
 		params.ScrollSensitivity = t.definedParams.ScrollSensitivity
@@ -502,15 +508,7 @@ func (t *TextInput) Update(updObj *UpdateObject) {
 		}
 	}
 
-	for {
-		newState, rerun := t.state()
-		if newState != nil {
-			t.state = newState
-		}
-		if !rerun {
-			break
-		}
-	}
+	t.handleInput()
 
 	defer func() {
 		t.lastInputText = t.inputText
@@ -532,69 +530,93 @@ func (t *TextInput) Update(updObj *UpdateObject) {
 	}
 }
 
-func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
-	return func() (textInputState, bool) {
-		if !t.focused {
-			t.dragStartIndex = -1
-			return t.idleState(true), false
+// handleInput does what the keys and the pointer ask this update: a held
+// command key's command, as the key goes down and then repeating; the
+// text typed; a command key going down; the pointer placing the caret or
+// selecting text.
+func (t *TextInput) handleInput() {
+	if !t.focused {
+		t.dragStartIndex = -1
+		t.heldCommand = 0
+		return
+	}
+	if t.heldCommand != 0 {
+		if input.KeyPressed(t.heldKey) {
+			t.repeatHeldCommand()
+			return
 		}
+		t.heldCommand = 0
+	}
 
-		if t.ime {
-			if t.updateIME() {
-				return t.idleState(true), false
+	if t.ime {
+		if t.updateIME() {
+			return
+		}
+	} else if chars := input.InputChars(); len(chars) > 0 {
+		if !input.KeyPressed(ebiten.KeyControl) { // either Control key
+			t.DeleteSelectedText()
+			if !t.widget.Disabled {
+				t.Insert(string(chars))
 			}
-		} else if chars := input.InputChars(); len(chars) > 0 {
-			if !input.KeyPressed(ebiten.KeyControl) { // either Control key
-				t.DeleteSelectedText()
-				return t.charsInputState(string(chars)), true
-			}
-			t.DeselectText()
-			return t.idleState(true), false
+			t.caret.ResetBlinking()
+			return
 		}
+		t.DeselectText()
+		return
+	}
 
-		st := textInputCheckForCommand(t, newKeyOrCommand)
-		if st != nil {
-			return st, true
+	for _, k := range textInputKeys {
+		if input.KeyPressed(k.key) {
+			t.heldKey, t.heldCommand, t.heldUpdates, t.repeating = k.key, k.cmd, 0, false
+			t.runCommand(k.cmd)
+			return
 		}
+	}
 
-		x, y := input.CursorPosition()
-		p := img.Point{x, y}
-		curIdx := 0
-		tr := t.computedParams.Padding.Apply(t.widget.Rect)
-		if x < tr.Min.X {
-			x = tr.Min.X
-		}
-		if x > tr.Max.X {
-			x = tr.Max.X
-		}
-		if p.In(t.widget.Rect) {
-			curIdx = fontStringIndex([]rune(t.inputText), t.computedParams.Face, x-t.scrollOffset-tr.Min.X)
-		} else {
-			if y < tr.Min.Y {
-				curIdx = 0
-			} else {
-				curIdx = len([]rune(t.inputText))
-			}
-		}
-		textSize := tr.Dx() - fontAdvanceAt(t.inputText, utf8.RuneCountInString(t.inputText), t.computedParams.Face)
+	t.handlePointer()
+}
 
-		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+// repeatHeldCommand runs the held key's command again once the key has
+// been held the repeat delay, and then every repeat interval, counted in
+// updates.
+func (t *TextInput) repeatHeldCommand() {
+	t.heldUpdates++
+	wait := *t.computedParams.RepeatDelay
+	if t.repeating {
+		wait = *t.computedParams.RepeatInterval
+	}
+	if t.heldUpdates >= updatesIn(wait) {
+		t.heldUpdates, t.repeating = 0, true
+		t.runCommand(t.heldCommand)
+	}
+}
+
+// runCommand ends a composition in progress and runs a command.
+func (t *TextInput) runCommand(cmd textInputControlCommand) {
+	t.endIME(true)
+	t.commandToFunc[cmd]()
+}
+
+// handlePointer places the caret where the left button goes down and
+// selects text as it drags, scrolling the text at the input's edges. It
+// works out where the pointer points only while the button acts.
+func (t *TextInput) handlePointer() {
+	layer := t.widget.EffectiveInputLayer()
+	justPressed := input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer)
+	pressed := input.MouseButtonPressed(ebiten.MouseButtonLeft)
+	released := input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, layer)
+
+	if justPressed || pressed || released {
+		x, curIdx := t.pointerIndex()
+		if justPressed {
 			t.endIME(true)
 			t.dragStartIndex = curIdx
 			t.cursorPosition = curIdx
-		} else if input.MouseButtonPressed(ebiten.MouseButtonLeft) {
-			if t.dragStartIndex == -1 {
-				t.dragStartIndex = curIdx
-			}
-			t.cursorPosition = curIdx
-			if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+*t.computedParams.ScrollSensitivity {
-				t.scrollOffset = min(0, t.scrollOffset+1)
-			} else if t.scrollOffset > textSize && x > t.widget.Rect.Max.X-*t.computedParams.ScrollSensitivity {
-				t.scrollOffset = max(t.scrollOffset-1, textSize)
-			}
+		} else if pressed {
+			t.dragTo(x, curIdx)
 		}
 
-		if input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+		if released {
 			t.cursorPosition = curIdx
 			t.caret.ResetBlinking()
 
@@ -602,75 +624,49 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				t.dragStartIndex = -1
 			}
 		}
-		if runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
-			dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
-			dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
-			jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
-		}
+	}
 
-		return t.idleState(true), false
+	if runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
+		dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
+		dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
+		jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
 	}
 }
 
-func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState {
-	for key, cmd := range textInputKeyToCommand {
-		if !input.KeyPressed(key) {
-			continue
-		}
-
-		var delay time.Duration
-		if newKeyOrCommand {
-			delay = *t.computedParams.RepeatDelay
-		} else {
-			delay = *t.computedParams.RepeatInterval
-		}
-
-		return t.commandState(cmd, key, delay, nil, nil)
+// dragTo moves the caret to idx as the button drags, selecting from where
+// the drag began, and scrolls the text a pixel when x, the pointer, nears
+// an edge the text runs past.
+func (t *TextInput) dragTo(x, idx int) {
+	if t.dragStartIndex == -1 {
+		t.dragStartIndex = idx
 	}
-
-	return nil
-}
-
-func (t *TextInput) charsInputState(c string) textInputState {
-	return func() (textInputState, bool) {
-		if !t.widget.Disabled {
-			t.Insert(c)
-		}
-
-		t.caret.ResetBlinking()
-
-		return t.idleState(true), false
+	t.cursorPosition = idx
+	tr := t.computedParams.Padding.Apply(t.widget.Rect)
+	textSize := tr.Dx() - fontAdvanceAt(t.inputText, utf8.RuneCountInString(t.inputText), t.computedParams.Face)
+	if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+*t.computedParams.ScrollSensitivity {
+		t.scrollOffset = min(0, t.scrollOffset+1)
+	} else if t.scrollOffset > textSize && x > t.widget.Rect.Max.X-*t.computedParams.ScrollSensitivity {
+		t.scrollOffset = max(t.scrollOffset-1, textSize)
 	}
 }
 
-func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, delay time.Duration, timer *time.Timer, expired *atomic.Value) textInputState {
-	return func() (textInputState, bool) {
-		if !input.KeyPressed(key) {
-			return t.idleState(true), true
-		}
-
-		if timer != nil {
-			if isExpired, _ := expired.Load().(bool); isExpired {
-				return t.idleState(false), true
-			}
-		}
-
-		if timer == nil {
-			t.endIME(true)
-			t.commandToFunc[cmd]()
-
-			expired = &atomic.Value{}
-			expired.Store(false)
-
-			timer = time.AfterFunc(delay, func() {
-				expired.Store(true)
-			})
-
-			return t.commandState(cmd, key, delay, timer, expired), false
-		}
-
-		return nil, false
+// pointerIndex returns the pointer's x, held within the text's area, and
+// where in the text it points: in the input, the nearest place between
+// two letters; outside, the start above it and the end below it.
+func (t *TextInput) pointerIndex() (x, idx int) {
+	x, y := input.CursorPosition()
+	p := img.Point{x, y}
+	tr := t.computedParams.Padding.Apply(t.widget.Rect)
+	x = min(max(x, tr.Min.X), tr.Max.X)
+	switch {
+	case p.In(t.widget.Rect):
+		idx = fontStringIndex([]rune(t.inputText), t.computedParams.Face, x-t.scrollOffset-tr.Min.X)
+	case y < tr.Min.Y:
+		idx = 0
+	default:
+		idx = utf8.RuneCountInString(t.inputText)
 	}
+	return x, idx
 }
 
 func (t *TextInput) Insert(c string) {
