@@ -30,7 +30,7 @@ func (v *virtualRows) row() PreferredSizeLocateableWidget {
 
 func (v *virtualRows) bind(row PreferredSizeLocateableWidget, index int) {
 	v.binds++
-	v.shows[row.(*simpleWidget)] = index //nolint:forcetypeassert // made by row
+	v.shows[row.(*simpleWidget)] = index
 }
 
 // at returns the entry the row laid out at y shows, or -1.
@@ -207,7 +207,7 @@ func TestVirtualList_RowsTakeInput(t *testing.T) {
 				ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { clicked = append(clicked, bound[b]) }))
 			return b
 		}),
-		VirtualListOpts.BindFunc(func(row PreferredSizeLocateableWidget, i int) { bound[row.(*Button)] = i }), //nolint:forcetypeassert // made above
+		VirtualListOpts.BindFunc(func(row PreferredSizeLocateableWidget, i int) { bound[row.(*Button)] = i }),
 		VirtualListOpts.ScrollContainerImage(&ScrollContainerImage{Idle: ns, Mask: ns}),
 		VirtualListOpts.SliderParams(&SliderParams{TrackImage: &SliderTrackImage{}, HandleImage: &ButtonImage{Idle: ns, Pressed: ns}}),
 	)
@@ -494,9 +494,9 @@ func TestVirtualList_TakesActions(t *testing.T) {
 		{ActionDown, false, 2}, // the last: left
 		{ActionUp, true, 1},
 	} {
-		a := given(s.act)
-		l.Update(&UpdateObject{Actions: a})
-		is.Equal([]any{i, !a.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
+		step := given(s.act)
+		l.Update(&UpdateObject{Actions: step})
+		is.Equal([]any{i, !step.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
 	}
 
 	a = given(ActionActivate)
@@ -608,7 +608,7 @@ func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt
 func labelAt(l *VirtualList, i int) *Text {
 	for _, r := range l.content.rows {
 		if r.index == i {
-			return r.widget.(*Text) //nolint:forcetypeassert // a labeled list's rows
+			return r.widget.(*Text)
 		}
 	}
 	return nil
@@ -656,7 +656,7 @@ func TestVirtualList_Labels(t *testing.T) {
 func TestVirtualList_LabelsFromTheTheme(t *testing.T) {
 	is := is.New(t)
 
-	small := text.Face(&text.GoTextFace{Source: (*loadFont(t)).(*text.GoTextFace).Source, Size: 10}) //nolint:forcetypeassert // a GoTextFace
+	small := text.Face(&text.GoTextFace{Source: (*loadFont(t)).(*text.GoTextFace).Source, Size: 10})
 	pad := &Insets{Top: 2, Bottom: 2}
 	end := TextPositionEnd
 	l := newLabelsList(t, &Theme{ListTheme: &ListParams{EntryFace: &small, EntryTextPadding: pad, EntryColor: labelColors,

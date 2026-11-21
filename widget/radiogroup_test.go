@@ -83,7 +83,7 @@ func TestRadioGroup_SetActive(t *testing.T) {
 func newRadioGroup(t *testing.T, cbs []*Checkbox, opts ...RadioGroupOpt) *RadioGroup {
 	t.Helper()
 
-	elements := []RadioGroupElement{}
+	elements := make([]RadioGroupElement, 0, len(cbs))
 
 	for _, cb := range cbs {
 		elements = append(elements, cb)

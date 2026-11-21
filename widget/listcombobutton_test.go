@@ -217,7 +217,7 @@ func TestListComboButton_EntryWidgets(t *testing.T) {
 	var built []any
 	l := newListComboButton(t,
 		ListComboButtonOpts.Entries([]any{"a", "b"}),
-		ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, nil), //nolint:forcetypeassert // strings
+		ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, nil),
 		ListComboButtonOpts.EntryWidgetFunc(func(e any) PreferredSizeLocateableWidget {
 			built = append(built, e)
 			return newSimpleWidget(30, 15, nil)

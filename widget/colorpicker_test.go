@@ -98,8 +98,8 @@ func TestColorPicker_Swatches(t *testing.T) {
 
 	red, green := color.NRGBA{255, 0, 0, 255}, color.NRGBA{0, 255, 0, 255}
 	p, changes := newColorPicker(t, ColorPickerOpts.InitialColor(red), ColorPickerOpts.Swatches(20, red, green))
-	swatches := p.container.children[2].(*Container).children                        //nolint:forcetypeassert // the swatch row
-	redSwatch, greenSwatch := swatches[0].(*colorSwatch), swatches[1].(*colorSwatch) //nolint:forcetypeassert // swatches
+	swatches := p.container.children[2].(*Container).children
+	redSwatch, greenSwatch := swatches[0].(*colorSwatch), swatches[1].(*colorSwatch)
 	is.True(redSwatch.chosen())
 
 	greenSwatch.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{Widget: greenSwatch.widget, Button: ebiten.MouseButtonLeft})

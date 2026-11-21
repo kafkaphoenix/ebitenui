@@ -404,7 +404,7 @@ func TestList_EntryImages(t *testing.T) {
 
 	images := newEntryImages(t)
 	l := newList(t, ListOpts.EntryImage(images), ListOpts.Entries([]any{"a", "b"}),
-		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
 	isEntryImages(is, l, images)
 	l.SetSelectedEntry("b")
 	is.True(listEntryButtons(l)[1].computedParams.Image.Idle == images.Selected)   // the selected entry
@@ -412,7 +412,7 @@ func TestList_EntryImages(t *testing.T) {
 
 	focused := color.NRGBA{1, 2, 3, 255}
 	partial := newList(t, ListOpts.EntryImage(&ListEntryImage{Selected: images.Selected}), ListOpts.Entries([]any{"a"}),
-		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
 	colors := *partial.definedParams.EntryColor
 	colors.SelectedFocusedBackground = focused
 	partial.definedParams.EntryColor = &colors
@@ -429,7 +429,6 @@ func TestList_EntryImages(t *testing.T) {
 func TestList_EntryImagesFromTheTheme(t *testing.T) {
 	is := is.New(t)
 
-	label := func(e any) string { return e.(string) } //nolint:forcetypeassert // strings
 	l := newList(t, ListOpts.Entries([]any{"a"}), ListOpts.EntryLabelFunc(label))
 	c := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label))
 	colors := *l.definedParams.EntryColor // the theme's, none given
@@ -471,7 +470,7 @@ func TestList_SlidersWhenNeeded(t *testing.T) {
 	is := is.New(t)
 
 	l := newList(t, ListOpts.SlidersWhenNeeded(), ListOpts.HideHorizontalSlider(),
-		ListOpts.Entries([]any{"first"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+		ListOpts.Entries([]any{"first"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
 	l.SetLocation(img.Rect(0, 0, 200, 120))
 	l.RequestRelayout() // as a parent laying it out does
 	screen := ebiten.NewImage(200, 120)

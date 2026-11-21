@@ -15,7 +15,7 @@ import (
 func TestInputLayers_SetUpWithoutAllocating(t *testing.T) {
 	is := is.New(t)
 
-	list := newList(t, ListOpts.Entries([]any{"a", "b"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+	list := newList(t, ListOpts.Entries([]any{"a", "b"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
 	raised := NewContainer()
 	raised.AddChild(newButton(t, ButtonOpts.WidgetOpts(WidgetOpts.ElevateLayer(true))))
 	window := NewWindow(WindowOpts.Contents(NewContainer()))

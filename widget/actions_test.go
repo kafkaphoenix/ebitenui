@@ -19,7 +19,7 @@ func given(acts ...Action) *Actions {
 	return a
 }
 
-func label(e any) string { return e.(string) } //nolint:forcetypeassert // the tests' entries are strings
+func label(e any) string { return e.(string) }
 
 // A focused list moves through its entries with Up and Down and leaves
 // those at its ends, so a gamepad moves the focus on from there; Activate
@@ -45,9 +45,9 @@ func TestList_TakesActions(t *testing.T) {
 		{ActionDown, false, 2}, // the last: left
 		{ActionUp, true, 1},
 	} {
-		a := given(s.act)
-		l.Update(&UpdateObject{Actions: a})
-		is.Equal([]any{i, !a.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
+		step := given(s.act)
+		l.Update(&UpdateObject{Actions: step})
+		is.Equal([]any{i, !step.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
 	}
 
 	a = given(ActionActivate)

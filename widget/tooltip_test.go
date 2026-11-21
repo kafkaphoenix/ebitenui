@@ -26,7 +26,7 @@ func TestTextToolTip_ThemeFallback(t *testing.T) {
 		if p, ok := tip.content.(*themedPanel); ok {
 			background = p.computedParams.BackgroundImage
 		}
-		return tip.content.Children()[0].(*Text), background //nolint:forcetypeassert // as built
+		return tip.content.Children()[0].(*Text), background
 	}
 
 	txt, background := looks(NewTextToolTip("tip", nil, nil, nil))
@@ -35,7 +35,7 @@ func TestTextToolTip_ThemeFallback(t *testing.T) {
 	is.True(background == ns)
 
 	shared := *loadFont(t)
-	var face text.Face = &text.GoTextFace{Source: shared.(*text.GoTextFace).Source, Size: 30} //nolint:forcetypeassert // the test font
+	var face text.Face = &text.GoTextFace{Source: shared.(*text.GoTextFace).Source, Size: 30}
 	own := newNineSliceEmpty(t)
 	txt, background = looks(NewTextToolTip("tip", &face, color.Black, own))
 	is.True(txt.computedParams.Face == &face)
@@ -56,7 +56,7 @@ func TestListComboButton_ToolTip(t *testing.T) {
 	l.SetLocation(img.Rect(0, 0, 100, 30))
 	shown := 0
 	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
-		if a.(*WidgetToolTipEventArgs).Show { //nolint:forcetypeassert // the event's own args
+		if a.(*WidgetToolTipEventArgs).Show {
 			shown++
 		}
 	})
