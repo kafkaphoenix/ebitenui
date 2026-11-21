@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"image/color"
+	"sync"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -11,15 +12,22 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// loadFont returns Go Regular, which the library bundles, at a size; it
-// panics if the font doesn't parse, as a bundled font always does.
-func loadFont(size float64) text.Face {
+// goRegular is Go Regular, which the library bundles, parsed once for
+// every theme: a parsed font is most of what a theme keeps alive, and its
+// glyph caches serve them all. It panics if the font doesn't parse, as a
+// bundled font always does.
+var goRegular = sync.OnceValue(func() *text.GoTextFaceSource {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		panic(fmt.Sprintf("themes: the bundled Go Regular doesn't parse: %v", err))
 	}
+	return s
+})
+
+// loadFont returns Go Regular at a size.
+func loadFont(size float64) text.Face {
 	return &text.GoTextFace{
-		Source: s,
+		Source: goRegular(),
 		Size:   size,
 	}
 }
