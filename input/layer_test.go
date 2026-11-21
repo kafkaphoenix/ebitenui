@@ -5,25 +5,22 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
-	"github.com/stretchr/testify/mock"
 )
 
-type layererMock struct {
-	mock.Mock
-	setupInputLayerCall *mock.Call
-}
-
 func TestSetupInputLayersWithDeferred(t *testing.T) {
-	l := newLayererMock(nil)
+	calls := 0
+	l := funcLayerer(func(DeferredSetupInputLayerFunc) { calls++ })
 	SetupInputLayersWithDeferred([]Layerer{l})
-	l.AssertExpectations(t)
+	if calls != 1 {
+		t.Errorf("the layerer set its layers up %d times, want once", calls)
+	}
 }
 
 func TestSetupInputLayersWithDeferred_Deferred(t *testing.T) {
 	is := is.New(t)
 
 	called := false
-	l := newLayererMock(func(def DeferredSetupInputLayerFunc) {
+	l := funcLayerer(func(def DeferredSetupInputLayerFunc) {
 		def(func(_ DeferredSetupInputLayerFunc) {
 			called = true
 		})
@@ -129,22 +126,6 @@ func TestLayer_ActiveFor_EventType(t *testing.T) {
 
 	is.True(l1.ActiveFor(100, 100, LayerEventTypeWheel))
 	is.True(!l2.ActiveFor(100, 100, LayerEventTypeWheel))
-}
-
-func newLayererMock(f SetupInputLayerFunc) *layererMock {
-	l := layererMock{}
-	l.setupInputLayerCall = l.On("SetupInputLayer", mock.Anything)
-	if f != nil {
-		l.setupInputLayerCall.Run(func(args mock.Arguments) {
-			def := args[0].(DeferredSetupInputLayerFunc)
-			f(def)
-		})
-	}
-	return &l
-}
-
-func (l *layererMock) SetupInputLayer(def DeferredSetupInputLayerFunc) {
-	l.Called(def)
 }
 
 // funcLayerer sets its layers up with a function.

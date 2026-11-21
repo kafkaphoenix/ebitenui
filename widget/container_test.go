@@ -8,52 +8,59 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
-	"github.com/stretchr/testify/mock"
 )
 
-type controlMock struct {
-	mock.Mock
+// control is a widget 50 pixels square that counts how often it is drawn
+// and sets its input layers up, and runs onRender as it is drawn.
+type control struct {
+	widget   *Widget
+	renders  int
+	setups   int
+	onRender func()
 }
 
-func (c *controlMock) Validate() {
+func newControl() *control { return &control{widget: NewWidget()} }
+
+func (c *control) GetWidget() *Widget            { return c.widget }
+func (c *control) PreferredSize() (int, int)     { return 50, 50 }
+func (c *control) SetLocation(_ image.Rectangle) {}
+func (c *control) Validate()                     {}
+
+func (c *control) Render(_ *ebiten.Image) {
+	c.renders++
+	if c.onRender != nil {
+		c.onRender()
+	}
 }
+
+func (c *control) SetupInputLayer(_ input.DeferredSetupInputLayerFunc) { c.setups++ }
 
 func TestContainer_Render(t *testing.T) {
-	w := NewWidget()
-	m := controlMock{}
-	m.On("GetWidget").Maybe().Return(w)
-	m.On("PreferredSize").Maybe().Return(50, 50)
-	m.On("SetLocation", mock.Anything).Maybe()
-	m.On("Render", mock.Anything, mock.Anything)
-
+	m := newControl()
 	c := newContainer(t,
 		ContainerOpts.Layout(newRowLayout(t)))
-	c.AddChild(&m)
+	c.AddChild(m)
 
 	render(c, t)
 
-	m.AssertExpectations(t)
+	if m.renders != 1 {
+		t.Errorf("the child was drawn %d times, want once", m.renders)
+	}
 }
 
 func TestContainer_Render_AutoDisableChildren(t *testing.T) {
 	is := is.New(t)
 
-	w := NewWidget()
-	m := controlMock{}
-	m.On("GetWidget").Maybe().Return(w)
-	m.On("PreferredSize").Maybe().Return(50, 50)
-	m.On("SetLocation", mock.Anything).Maybe()
-	m.On("Render", mock.Anything, mock.Anything).Maybe()
-
+	m := newControl()
 	c := newContainer(t,
 		ContainerOpts.AutoDisableChildren(),
 		ContainerOpts.Layout(newRowLayout(t)))
-	c.AddChild(&m)
+	c.AddChild(m)
 
 	c.widget.Disabled = true
 	render(c, t)
 
-	is.True(w.Disabled)
+	is.True(m.widget.Disabled)
 }
 
 func TestContainer_SetupInputLayer(t *testing.T) {
@@ -61,81 +68,47 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 		// nothing to do
 	}
 
-	w := NewWidget()
-	m := controlMock{}
-	m.On("GetWidget").Maybe().Return(w)
-	m.On("SetupInputLayer", mock.AnythingOfType("input.DeferredSetupInputLayerFunc"))
-
+	m := newControl()
 	c := newContainer(t,
 		ContainerOpts.Layout(newRowLayout(t)))
-	c.AddChild(&m)
+	c.AddChild(m)
 
 	c.SetupInputLayer(def)
 
-	m.AssertExpectations(t)
+	if m.setups != 1 {
+		t.Errorf("the child set its input layers up %d times, want once", m.setups)
+	}
 }
 
 func TestContainer_Replace(t *testing.T) {
 	c := newContainer(t)
-	m1 := controlMock{}
-	m2 := controlMock{}
-	m3 := controlMock{}
+	m1, m2, m3 := newControl(), newControl(), newControl()
 
-	m1.On("GetWidget").Maybe().Return(NewWidget())
-	m2.On("GetWidget").Maybe().Return(NewWidget())
-	m3.On("GetWidget").Maybe().Return(NewWidget())
-
-	c.AddChild(&m1, &m2, &m3)
+	c.AddChild(m1, m2, m3)
 
 	if len(c.children) != 3 {
 		t.Fatalf("expected 3 children, got %d", len(c.children))
 	}
 
-	replaced := controlMock{}
-	replaced.On("GetWidget").Maybe().Return(NewWidget())
+	replaced := newControl()
 
-	c.ReplaceChild(&m2, &replaced)
+	c.ReplaceChild(m2, replaced)
 
 	if len(c.children) != 3 {
 		t.Fatalf("expected 3 children, got %d", len(c.children))
 	}
 
-	if c.children[0] != &m1 {
+	if c.children[0] != m1 {
 		t.Fatalf("expected original child at index 0")
 	}
 
-	if c.children[1] != &replaced {
+	if c.children[1] != replaced {
 		t.Fatalf("expected replaced child at index 1")
 	}
 
-	if c.children[2] != &m3 {
+	if c.children[2] != m3 {
 		t.Fatalf("expected original child at index 2")
 	}
-}
-
-func (c *controlMock) GetWidget() *Widget {
-	args := c.Called()
-	if arg, ok := args.Get(0).(*Widget); ok {
-		return arg
-	}
-	return nil
-}
-
-func (c *controlMock) PreferredSize() (int, int) {
-	c.Called()
-	return -1, -1
-}
-
-func (c *controlMock) SetLocation(rect image.Rectangle) {
-	c.Called(rect)
-}
-
-func (c *controlMock) Render(screen *ebiten.Image) {
-	c.Called(screen)
-}
-
-func (c *controlMock) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	c.Called(def)
 }
 
 func newContainer(t *testing.T, opts ...ContainerOpt) *Container {

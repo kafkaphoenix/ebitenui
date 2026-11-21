@@ -1,31 +1,29 @@
 package event
 
 import (
+	"slices"
 	"testing"
-
-	"github.com/stretchr/testify/mock"
 )
 
-type deferredActionMock struct {
-	mock.Mock
-}
+// action is a deferred action that runs a function.
+type action func()
 
+func (a action) Do() { a() }
+
+// An action deferred while deferred actions run runs in the same
+// ExecuteDeferred, after the one that deferred it.
 func TestAddDeferred(t *testing.T) {
-	a1 := &deferredActionMock{}
-	a2 := &deferredActionMock{}
-
-	a1.On("Do").Run(func(_ mock.Arguments) {
-		AddDeferred(a2)
+	var ran []string
+	second := action(func() { ran = append(ran, "second") })
+	first := action(func() {
+		ran = append(ran, "first")
+		AddDeferred(second)
 	})
-	a2.On("Do")
 
-	AddDeferred(a1)
+	AddDeferred(first)
 	ExecuteDeferred()
 
-	a1.AssertExpectations(t)
-	a2.AssertExpectations(t)
-}
-
-func (d *deferredActionMock) Do() {
-	d.Called()
+	if want := []string{"first", "second"}; !slices.Equal(ran, want) {
+		t.Errorf("ran %v, want %v", ran, want)
+	}
 }
