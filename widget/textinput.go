@@ -263,7 +263,7 @@ func (t *TextInput) populateComputedParams() {
 		params.RepeatDelay = t.definedParams.RepeatDelay
 	}
 	if t.definedParams.RepeatInterval != nil {
-		params.RepeatDelay = t.definedParams.RepeatDelay
+		params.RepeatInterval = t.definedParams.RepeatInterval
 	}
 	if t.definedParams.ScrollSensitivity != nil {
 		params.ScrollSensitivity = t.definedParams.ScrollSensitivity

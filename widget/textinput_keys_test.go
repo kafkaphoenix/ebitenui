@@ -3,6 +3,7 @@ package widget
 import (
 	"image"
 	"testing"
+	"time"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/uitest"
@@ -37,6 +38,7 @@ func TestTextInput_HeldKeyRepeatsInUpdates(t *testing.T) {
 		"held to the delay":    {nil, 18, "abcdefghijk"},
 		"past the delay":       {nil, 19, "abcdefghij"},
 		"three intervals more": {nil, 25, "abcdefg"},
+		"a slower interval":    {[]TextInputOpt{TextInputOpts.RepeatInterval(100 * time.Millisecond)}, 31, "abcdefgh"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			d := uitest.Use(t)
