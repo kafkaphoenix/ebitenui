@@ -3,7 +3,6 @@ package widget
 import (
 	img "image"
 	"image/color"
-	"sync/atomic"
 	"time"
 
 	"github.com/ebitenui/ebitenui/image"
@@ -16,10 +15,18 @@ type Caret struct {
 	Color         color.Color
 	blinkInterval time.Duration
 
-	init    *MultiOnce
-	widget  *Widget
-	image   *image.NineSlice
-	state   caretBlinkState
+	init   *MultiOnce
+	widget *Widget
+
+	// The color's image, made again only as the color changes, and how it
+	// is placed, made once.
+	image      *image.NineSlice
+	imageColor color.Color
+	place      image.DrawImageOptionsFunc
+
+	// The updates since the caret last showed after a reset, and whether
+	// it shows: it blinks by counting updates.
+	updates int
 	visible bool
 }
 
@@ -29,8 +36,6 @@ type CaretOptions struct {
 }
 
 var CaretOpts CaretOptions
-
-type caretBlinkState func() caretBlinkState
 
 func NewCaret(opts ...CaretOpt) *Caret {
 	c := &Caret{
@@ -84,24 +89,25 @@ func (c *Caret) PreferredSize() (int, int) {
 func (c *Caret) Render(screen *ebiten.Image) {
 	c.init.Do()
 
-	c.state = c.state()
-
 	c.widget.Render(screen)
 
 	if !c.visible {
 		return
 	}
 
-	c.image = image.NewNineSliceColor(c.Color)
-
-	c.image.Draw(screen, c.Width, c.Height, func(opts *ebiten.DrawImageOptions) {
-		p := c.widget.Rect.Min
-		opts.GeoM.Translate(float64(p.X), float64(p.Y))
-	})
+	if c.image == nil || c.Color != c.imageColor {
+		c.image, c.imageColor = image.NewNineSliceColor(c.Color), c.Color
+	}
+	c.image.Draw(screen, c.Width, c.Height, c.place)
 }
 
+// Update blinks the caret: it shows for blinkInterval's updates, then
+// hides as long.
 func (c *Caret) Update(updObj *UpdateObject) {
 	c.init.Do()
+
+	c.updates++
+	c.visible = c.updates/updatesIn(c.blinkInterval)%2 == 0
 
 	c.widget.Update(updObj)
 }
@@ -111,33 +117,15 @@ func (c *Caret) ResetBlinking() {
 	c.resetBlinking()
 }
 
+// resetBlinking shows the caret and starts its blink over.
 func (c *Caret) resetBlinking() {
-	c.state = c.blinkState(true, nil, nil)
-}
-
-func (c *Caret) blinkState(visible bool, timer *time.Timer, expired *atomic.Value) caretBlinkState {
-	return func() caretBlinkState {
-		c.visible = visible
-
-		if timer != nil {
-			if isExpired, _ := expired.Load().(bool); isExpired {
-				return c.blinkState(!visible, nil, nil)
-			}
-		}
-
-		if timer == nil {
-			expired = &atomic.Value{}
-			expired.Store(false)
-
-			timer = time.AfterFunc(c.blinkInterval, func() {
-				expired.Store(true)
-			})
-		}
-
-		return c.blinkState(visible, timer, expired)
-	}
+	c.updates, c.visible = 0, true
 }
 
 func (c *Caret) createWidget() {
 	c.widget = NewWidget()
+	c.place = func(opts *ebiten.DrawImageOptions) {
+		p := c.widget.Rect.Min
+		opts.GeoM.Translate(float64(p.X), float64(p.Y))
+	}
 }
