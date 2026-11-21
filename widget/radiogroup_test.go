@@ -39,7 +39,7 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 	r := newRadioGroup(t, cbs)
 
 	var eventArgs *RadioGroupChangedEventArgs
-	r.ChangedEvent.AddHandler(func(args interface{}) {
+	r.ChangedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
 			eventArgs = a
 		}
@@ -65,7 +65,7 @@ func TestRadioGroup_SetActive(t *testing.T) {
 	r := newRadioGroup(t, cbs)
 
 	var eventArgs *RadioGroupChangedEventArgs
-	r.ChangedEvent.AddHandler(func(args interface{}) {
+	r.ChangedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
 			eventArgs = a
 		}

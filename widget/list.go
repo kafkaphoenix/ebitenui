@@ -1051,7 +1051,7 @@ func (l *List) createEntry(entry any) *Button {
 	if *l.computedParams.SelectPressed {
 		events = but.PressedEvent
 	}
-	events.AddHandler(func(_ interface{}) {
+	events.AddHandler(func(_ any) {
 		l.setSelectedEntry(entry, true)
 	})
 	but.Validate()

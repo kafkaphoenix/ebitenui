@@ -266,7 +266,7 @@ func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 
 func (o SliderOptions) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	return func(s *Slider) {
-		s.ChangedEvent.AddHandler(func(args interface{}) {
+		s.ChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*SliderChangedEventArgs); ok {
 				f(arg)
 			}

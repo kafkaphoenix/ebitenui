@@ -54,7 +54,7 @@ func NewRadioGroup(opts ...RadioGroupOpt) *RadioGroup {
 
 	// use deferred event to initialize
 	e := &event.Event{}
-	event.AddEventHandlerOneShot(e, func(_ interface{}) {
+	event.AddEventHandlerOneShot(e, func(_ any) {
 		r.create()
 	})
 	e.Fire(nil)
@@ -75,7 +75,7 @@ func (o RadioGroupOptions) Elements(e ...RadioGroupElement) RadioGroupOpt {
 
 func (o RadioGroupOptions) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioGroupOpt {
 	return func(r *RadioGroup) {
-		r.ChangedEvent.AddHandler(func(args interface{}) {
+		r.ChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*RadioGroupChangedEventArgs); ok {
 				f(arg)
 			}
@@ -110,7 +110,7 @@ func (r *RadioGroup) SetActive(a RadioGroupElement) {
 	}
 
 	// SetState() fires deferred events, so we need something *after* those to tell us we should listen again
-	event.AddEventHandlerOneShot(r.doneEvent, func(_ interface{}) {
+	event.AddEventHandlerOneShot(r.doneEvent, func(_ any) {
 		r.listen = true
 	})
 	r.doneEvent.Fire(nil)
@@ -124,7 +124,7 @@ func (r *RadioGroup) SetActive(a RadioGroupElement) {
 
 func (r *RadioGroup) create() {
 	for _, c := range r.elements {
-		c.getStateChangedEvent().AddHandler(func(args interface{}) {
+		c.getStateChangedEvent().AddHandler(func(args any) {
 			if !r.listen {
 				return
 			}

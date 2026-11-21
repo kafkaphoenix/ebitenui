@@ -72,8 +72,8 @@ type TextAreaOpt func(l *TextArea)
 
 type TextAreaEntrySelectedEventArgs struct {
 	TextArea      *TextArea
-	Entry         interface{}
-	PreviousEntry interface{}
+	Entry         any
+	PreviousEntry any
 }
 
 type TextAreaEntrySelectedHandlerFunc func(args *TextAreaEntrySelectedEventArgs)
@@ -575,7 +575,7 @@ func (l *TextArea) initWidget() {
 		}
 		l.container.AddChild(l.vSlider)
 
-		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args interface{}) {
+		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetScrolledEventArgs); ok {
 				p := pageSizeFunc() / 3
 				if p < 1 {

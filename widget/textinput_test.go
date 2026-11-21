@@ -65,7 +65,7 @@ func TestTextInput_DoBackspace(t *testing.T) {
 	ti.cursorPosition = 1
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(args interface{}) {
+	ti.ChangedEvent.AddHandler(func(args any) {
 		if arg, ok := args.(*TextInputChangedEventArgs); ok {
 			is.Equal(arg.InputText, "oo")
 		}
@@ -84,7 +84,7 @@ func TestTextInput_DoBackspace_Disabled(t *testing.T) {
 	ti.cursorPosition = 1
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(_ interface{}) {
+	ti.ChangedEvent.AddHandler(func(_ any) {
 		is.Fail() // received event even though widget is disabled
 	})
 
@@ -99,7 +99,7 @@ func TestTextInput_DoDelete(t *testing.T) {
 	ti.SetText("foo")
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(args interface{}) {
+	ti.ChangedEvent.AddHandler(func(args any) {
 		if arg, ok := args.(*TextInputChangedEventArgs); ok {
 			is.Equal(arg.InputText, "oo")
 		}
@@ -117,7 +117,7 @@ func TestTextInput_DoDelete_Disabled(t *testing.T) {
 	ti.SetText("foo")
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(_ interface{}) {
+	ti.ChangedEvent.AddHandler(func(_ any) {
 		is.Fail() // received event even though widget is disabled
 	})
 

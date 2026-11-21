@@ -247,7 +247,7 @@ func (u *UI) setTheme() {
 		}
 	}
 }
-func (u *UI) handleContextMenu(args interface{}) {
+func (u *UI) handleContextMenu(args any) {
 	if a, ok := args.(*widget.WidgetContextMenuEventArgs); ok {
 		x, y := a.Widget.ContextMenu.PreferredSize()
 		r := image.Rect(0, 0, x, y)
@@ -262,7 +262,7 @@ func (u *UI) handleContextMenu(args interface{}) {
 	}
 }
 
-func (u *UI) handleFocusEvent(args interface{}) {
+func (u *UI) handleFocusEvent(args any) {
 	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
 		switch {
 		case a.Focused: // New widget focused
@@ -279,7 +279,7 @@ func (u *UI) handleFocusEvent(args interface{}) {
 	}
 }
 
-func (u *UI) handleToolTipEvent(args interface{}) {
+func (u *UI) handleToolTipEvent(args any) {
 	if a, ok := args.(*widget.WidgetToolTipEventArgs); ok {
 		a.Window.Ephemeral = true
 		if a.Show {
@@ -290,7 +290,7 @@ func (u *UI) handleToolTipEvent(args interface{}) {
 	}
 }
 
-func (u *UI) handleDragAndDropEvent(args interface{}) {
+func (u *UI) handleDragAndDropEvent(args any) {
 	if a, ok := args.(*widget.WidgetDragAndDropEventArgs); ok {
 		if a.Show {
 			a.Window.Ephemeral = true

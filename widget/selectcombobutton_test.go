@@ -88,7 +88,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 			),
 			ComboButtonOpts.Content(newButton(t)),
 		),
-		SelectComboButtonOpts.EntryLabelFunc(func(e interface{}) string {
+		SelectComboButtonOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return "label " + result
 		}),

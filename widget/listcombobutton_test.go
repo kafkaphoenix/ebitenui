@@ -11,16 +11,16 @@ import (
 func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
 		ListComboButtonOpts.Entries(entries),
 
 		ListComboButtonOpts.EntryLabelFunc(
-			func(e interface{}) string {
+			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
-			}, func(e interface{}) string {
+			}, func(e any) string {
 				result, _ := e.(string)
 				return result
 			}))
@@ -32,7 +32,7 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 func TestListComboButton_SetSelectedEntry(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListComboButtonEntrySelectedEventArgs
 	numEvents := 0
@@ -46,10 +46,10 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 		}),
 
 		ListComboButtonOpts.EntryLabelFunc(
-			func(e interface{}) string {
+			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
-			}, func(e interface{}) string {
+			}, func(e any) string {
 				result, _ := e.(string)
 				return result
 			}))
@@ -70,7 +70,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListComboButtonEntrySelectedEventArgs
 	numEvents := 0
@@ -84,10 +84,10 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 		}),
 
 		ListComboButtonOpts.EntryLabelFunc(
-			func(e interface{}) string {
+			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
-			}, func(e interface{}) string {
+			}, func(e any) string {
 				result, _ := e.(string)
 				return result
 			}))
@@ -111,16 +111,16 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 func TestListComboButton_ContentVisible_Click(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
 		ListComboButtonOpts.Entries(entries),
 
 		ListComboButtonOpts.EntryLabelFunc(
-			func(e interface{}) string {
+			func(e any) string {
 				result, _ := e.(string)
 				return result
-			}, func(e interface{}) string {
+			}, func(e any) string {
 				result, _ := e.(string)
 				return result
 			}))
@@ -136,16 +136,16 @@ func TestListComboButton_ContentVisible_Click(t *testing.T) {
 func TestListComboButton_ContentVisible_Programmatic(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
 		ListComboButtonOpts.Entries(entries),
 
 		ListComboButtonOpts.EntryLabelFunc(
-			func(e interface{}) string {
+			func(e any) string {
 				result, _ := e.(string)
 				return result
-			}, func(e interface{}) string {
+			}, func(e any) string {
 				result, _ := e.(string)
 				return result
 			}))

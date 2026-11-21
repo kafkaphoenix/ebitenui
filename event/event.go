@@ -10,7 +10,7 @@ type Event struct {
 
 // A HandlerFunc is a function that receives and handles an event. When firing an event using
 // Event.Fire, arbitrary event arguments may be passed that are in turn passed on to the handler function.
-type HandlerFunc func(args interface{})
+type HandlerFunc func(args any)
 
 // RemoveHandlerFunc is a function that removes a handler from an event.
 type RemoveHandlerFunc func()
@@ -22,7 +22,7 @@ type handler struct {
 
 type deferredEvent struct {
 	event *Event
-	args  interface{}
+	args  any
 }
 
 type deferredAddHandler struct {
@@ -34,11 +34,11 @@ type deferredAddHandler struct {
 // Use this function when passing adding a new handler to an event object, such as
 // button.ClickedEvent.AddHandler(WrapHandler(func (args *widget.ButtonClickedEventArgs){ ... }))
 func WrapHandler[T any](f func(T)) HandlerFunc {
-    return func(args interface{}) {
-        if arg, ok := args.(T); ok {
-            f(arg)
-        }
-    }
+	return func(args any) {
+		if arg, ok := args.(T); ok {
+			f(arg)
+		}
+	}
 }
 
 // AddHandler registers event handler h with e. It returns a function to remove h from e if desired.
@@ -81,14 +81,14 @@ func (e *Event) removeHandler(id uint32) {
 //
 // Events are not fired directly, but are put into a deferred queue. This queue is then
 // processed by the UI.
-func (e *Event) Fire(args interface{}) {
+func (e *Event) Fire(args any) {
 	internalevent.AddDeferred(&deferredEvent{
 		event: e,
 		args:  args,
 	})
 }
 
-func (e *Event) handle(args interface{}) {
+func (e *Event) handle(args any) {
 	for _, h := range e.handlers {
 		h.h(args)
 	}
@@ -107,7 +107,7 @@ func (a *deferredAddHandler) Do() {
 // AddEventHandlerOneShot registers event handler h with e. When e fires an event, h is removed from e immediately.
 func AddEventHandlerOneShot(e *Event, h HandlerFunc) {
 	var r RemoveHandlerFunc
-	rh := func(args interface{}) {
+	rh := func(args any) {
 		r()
 		h(args)
 	}

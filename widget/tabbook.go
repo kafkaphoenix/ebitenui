@@ -311,7 +311,7 @@ func (o TabBookOptions) InitialTab(tab *TabBookTab) TabBookOpt {
 
 func (o TabBookOptions) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
-		t.TabSelectedEvent.AddHandler(func(args interface{}) {
+		t.TabSelectedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*TabBookTabSelectedEventArgs); ok {
 				f(arg)
 			}

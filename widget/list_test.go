@@ -15,12 +15,12 @@ import (
 func TestList_SelectedEntry_Initial(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -33,11 +33,11 @@ func TestList_SelectedEntry_Initial(t *testing.T) {
 }
 
 func TestList_NoSliderOpts(t *testing.T) {
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 	_ = NewList(
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -69,7 +69,7 @@ func TestList_NoSliderOpts(t *testing.T) {
 func TestList_SetSelectedEntry(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListEntrySelectedEventArgs
 	numEvents := 0
@@ -77,7 +77,7 @@ func TestList_SetSelectedEntry(t *testing.T) {
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -106,7 +106,7 @@ func TestList_UpdateEntry(t *testing.T) {
 		label string
 	}
 
-	entries := []interface{}{
+	entries := []any{
 		&listEntry{label: "first"},
 		&listEntry{label: "second"},
 		&listEntry{label: "third"},
@@ -115,7 +115,7 @@ func TestList_UpdateEntry(t *testing.T) {
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*listEntry).label
 		}),
 	)
@@ -138,15 +138,15 @@ func TestList_UpdateEntry(t *testing.T) {
 func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListEntrySelectedEventArgs
-	var selectedEntry interface{}
+	var selectedEntry any
 
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -166,7 +166,7 @@ func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
 func TestList_EntrySelectedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListEntrySelectedEventArgs
 	numEvents := 0
@@ -174,7 +174,7 @@ func TestList_EntrySelectedEvent_User(t *testing.T) {
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -197,7 +197,7 @@ func TestList_EntrySelectedEvent_User(t *testing.T) {
 func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 	is := is.New(t)
 
-	entries := []interface{}{"first", "second", "third"}
+	entries := []any{"first", "second", "third"}
 
 	var eventArgs *ListEntrySelectedEventArgs
 	numEvents := 0
@@ -205,7 +205,7 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 	list := newList(t,
 		ListOpts.Entries(entries),
 
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return result
 		}),
@@ -235,7 +235,7 @@ func TestList_Entries_SortedOnCreate(t *testing.T) {
 	is := is.New(t)
 
 	list := newList(t,
-		ListOpts.Entries([]interface{}{"third", "first", "second"}),
+		ListOpts.Entries([]any{"third", "first", "second"}),
 		ListOpts.EntrySortFunc(func(a, b any) int {
 			left := a.(string)
 			right := b.(string)
@@ -248,7 +248,7 @@ func TestList_Entries_SortedOnCreate(t *testing.T) {
 				return 0
 			}
 		}),
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(string)
 		}),
 	)
@@ -265,11 +265,11 @@ func TestList_AddEntry_ResortsAndReusesButtons(t *testing.T) {
 	is := is.New(t)
 
 	list := newList(t,
-		ListOpts.Entries([]interface{}{2, 4}),
+		ListOpts.Entries([]any{2, 4}),
 		ListOpts.EntrySortFunc(func(a, b any) int {
 			return a.(int) - b.(int)
 		}),
-		ListOpts.EntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e any) string {
 			return strconv.Itoa(e.(int))
 		}),
 	)

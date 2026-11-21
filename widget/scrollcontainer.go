@@ -131,22 +131,22 @@ func (s *ScrollContainer) Validate() {
 // often it is validated.
 func (s *ScrollContainer) forwardContentEvents() {
 	s.forwarding = s.content
-	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
+	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args any) {
 		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
 			s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
 		}
 	})
-	s.content.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
+	s.content.GetWidget().FocusEvent.AddHandler(func(args any) {
 		if a, ok := args.(*WidgetFocusEventArgs); ok {
 			s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
 		}
 	})
-	s.content.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+	s.content.GetWidget().ToolTipEvent.AddHandler(func(args any) {
 		if a, ok := args.(*WidgetToolTipEventArgs); ok {
 			s.GetWidget().FireToolTipEvent(a.Window, a.Show)
 		}
 	})
-	s.content.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
+	s.content.GetWidget().DragAndDropEvent.AddHandler(func(args any) {
 		if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
 			s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		}

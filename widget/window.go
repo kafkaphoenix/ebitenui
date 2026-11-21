@@ -201,7 +201,7 @@ func (o WindowOptions) CloseMode(mode WindowCloseMode) WindowOpt {
 // This handler is triggered when a move event is completed.
 func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
-		w.MoveEvent.AddHandler(func(args interface{}) {
+		w.MoveEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*WindowChangedEventArgs); ok {
 				f(arg)
 			}
@@ -212,7 +212,7 @@ func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 // This handler is triggered when a resize event is completed.
 func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
-		w.ResizeEvent.AddHandler(func(args interface{}) {
+		w.ResizeEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*WindowChangedEventArgs); ok {
 				f(arg)
 			}
@@ -229,7 +229,7 @@ func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 // is already removed from UI.
 func (o WindowOptions) ClosedHandler(f WindowClosedHandlerFunc) WindowOpt {
 	return func(w *Window) {
-		w.ClosedEvent.AddHandler(func(args interface{}) {
+		w.ClosedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*WindowClosedEventArgs); ok {
 				f(arg)
 			}
@@ -506,7 +506,7 @@ func (w *Window) createWidget() {
 
 	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
 		w.container.GetWidget().CustomData = "Window"
-		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
+		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok {
 				if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
 					if w.closeFunc != nil {

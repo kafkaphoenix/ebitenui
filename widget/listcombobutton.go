@@ -46,8 +46,8 @@ type ListComboButtonOpt func(l *ListComboButton)
 
 type ListComboButtonEntrySelectedEventArgs struct {
 	Button        *ListComboButton
-	Entry         interface{}
-	PreviousEntry interface{}
+	Entry         any
+	PreviousEntry any
 }
 
 type ListComboButtonEntrySelectedHandlerFunc func(args *ListComboButtonEntrySelectedEventArgs)
@@ -283,7 +283,7 @@ func (o ListComboButtonOptions) EntryWidgetFunc(f ListEntryWidgetFunc) ListCombo
 
 func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
+		l.EntrySelectedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ListComboButtonEntrySelectedEventArgs); ok {
 				f(arg)
 			}
@@ -452,7 +452,7 @@ func (l *ListComboButton) initWidget() {
 	l.button.GetWidget().parent = l.widget
 	l.button.Validate()
 
-	l.button.EntrySelectedEvent.AddHandler(func(args interface{}) {
+	l.button.EntrySelectedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
 			l.EntrySelectedEvent.Fire(&ListComboButtonEntrySelectedEventArgs{
 				Button:        l,
@@ -462,7 +462,7 @@ func (l *ListComboButton) initWidget() {
 		}
 	})
 
-	l.list.EntrySelectedEvent.AddHandler(func(args interface{}) {
+	l.list.EntrySelectedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*ListEntrySelectedEventArgs); ok {
 			l.SetContentVisible(false)
 			l.SetSelectedEntry(a.Entry)
@@ -479,7 +479,7 @@ func (l *ListComboButton) initWidget() {
 	}
 }
 
-func (l *ListComboButton) SetSelectedEntry(e interface{}) {
+func (l *ListComboButton) SetSelectedEntry(e any) {
 	l.init.Do()
 	l.selectedEntry = e
 	if l.button != nil && l.list != nil {
@@ -488,7 +488,7 @@ func (l *ListComboButton) SetSelectedEntry(e interface{}) {
 	}
 }
 
-func (l *ListComboButton) SelectedEntry() interface{} {
+func (l *ListComboButton) SelectedEntry() any {
 	l.init.Do()
 	if l.button == nil {
 		return l.selectedEntry

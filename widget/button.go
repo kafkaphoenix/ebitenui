@@ -466,7 +466,7 @@ func (o ButtonOptions) DisableDefaultKeys() ButtonOpt {
 
 func (o ButtonOptions) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.PressedEvent.AddHandler(func(args interface{}) {
+		b.PressedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonPressedEventArgs); ok {
 				f(arg)
 			}
@@ -476,7 +476,7 @@ func (o ButtonOptions) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 
 func (o ButtonOptions) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.ReleasedEvent.AddHandler(func(args interface{}) {
+		b.ReleasedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonReleasedEventArgs); ok {
 				f(arg)
 			}
@@ -486,7 +486,7 @@ func (o ButtonOptions) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 
 func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.ClickedEvent.AddHandler(func(args interface{}) {
+		b.ClickedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonClickedEventArgs); ok {
 				f(arg)
 			}
@@ -496,7 +496,7 @@ func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 
 func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.CursorEnteredEvent.AddHandler(func(args interface{}) {
+		b.CursorEnteredEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonHoverEventArgs); ok {
 				f(arg)
 			}
@@ -506,7 +506,7 @@ func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) Butt
 
 func (o ButtonOptions) CursorMovedHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.CursorMovedEvent.AddHandler(func(args interface{}) {
+		b.CursorMovedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonHoverEventArgs); ok {
 				f(arg)
 			}
@@ -516,7 +516,7 @@ func (o ButtonOptions) CursorMovedHandler(f ButtonCursorHoverHandlerFunc) Button
 
 func (o ButtonOptions) CursorExitedHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.CursorExitedEvent.AddHandler(func(args interface{}) {
+		b.CursorExitedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonHoverEventArgs); ok {
 				f(arg)
 			}
@@ -526,7 +526,7 @@ func (o ButtonOptions) CursorExitedHandler(f ButtonCursorHoverHandlerFunc) Butto
 
 func (o ButtonOptions) StateChangedHandler(f ButtonChangedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
-		b.StateChangedEvent.AddHandler(func(args interface{}) {
+		b.StateChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ButtonChangedEventArgs); ok {
 				f(arg)
 			}

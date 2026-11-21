@@ -104,7 +104,7 @@ func main() {
 			DisabledSelectedBackground: color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Background color for the disabled selected entry
 		}),
 		// This required function returns the string displayed in the list.
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(ListEntry).Name
 		}),
 		// Padding for each entry

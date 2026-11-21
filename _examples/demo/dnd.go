@@ -10,7 +10,7 @@ type dragContents struct {
 	text *widget.Text
 }
 
-func (d *dragContents) Create(sourceWidget widget.HasWidget) (*widget.Container, interface{}) {
+func (d *dragContents) Create(sourceWidget widget.HasWidget) (*widget.Container, any) {
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(d.res.toolTip.background),
@@ -28,7 +28,7 @@ func (d *dragContents) Create(sourceWidget widget.HasWidget) (*widget.Container,
 	return c, nil
 }
 
-func (d *dragContents) Update(isDroppable bool, _ widget.HasWidget, _ interface{}) {
+func (d *dragContents) Update(isDroppable bool, _ widget.HasWidget, _ any) {
 	if isDroppable {
 		d.text.Label = "* DROP ME! *"
 	} else {

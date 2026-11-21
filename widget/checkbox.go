@@ -276,7 +276,7 @@ func (o CheckboxOptions) TabOrder(tabOrder int) CheckboxOpt {
 // This option allows you to specify a callback to be called when the checkbox state is changed.
 func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.StateChangedEvent.AddHandler(func(args interface{}) {
+		c.StateChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*CheckboxChangedEventArgs); ok {
 				f(arg)
 			}

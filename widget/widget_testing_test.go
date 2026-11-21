@@ -34,7 +34,7 @@ type simpleWidget struct {
 var loadFontOnce sync.Once
 var fontFace2 text.Face
 
-func newSimpleWidget(preferredWidth int, preferredHeight int, ld interface{}) *simpleWidget {
+func newSimpleWidget(preferredWidth int, preferredHeight int, ld any) *simpleWidget {
 	return &simpleWidget{
 		widget:          NewWidget(WidgetOpts.LayoutData(ld)),
 		preferredWidth:  preferredWidth,
