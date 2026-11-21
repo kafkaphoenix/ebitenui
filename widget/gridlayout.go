@@ -79,8 +79,8 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 	return g
 }
 
-func (gl *GridLayout) validate() {
-	if gl.columns == 0 {
+func (g *GridLayout) validate() {
+	if g.columns == 0 {
 		panic("GridLayout: columns is required.")
 	}
 }

@@ -169,7 +169,7 @@ func WheelLayer(l *Layer) (float64, float64) {
 }
 
 // InputChars returns user keyboard input.
-func InputChars() []rune { //nolint:golint
+func InputChars() []rune {
 	return internalinput.InputHandler.InputChars
 }
 

@@ -160,10 +160,10 @@ func (l *List) Validate() {
 	l.validated = true
 }
 
-func (t *List) populateComputedParams() {
+func (l *List) populateComputedParams() {
 	params := ListParams{}
 
-	theme := t.GetWidget().GetTheme()
+	theme := l.GetWidget().GetTheme()
 
 	// Set theme values
 	if theme != nil {
@@ -191,70 +191,70 @@ func (t *List) populateComputedParams() {
 	}
 
 	// Set definedParam values
-	if t.definedParams.AllowReselect != nil {
-		params.AllowReselect = t.definedParams.AllowReselect
+	if l.definedParams.AllowReselect != nil {
+		params.AllowReselect = l.definedParams.AllowReselect
 	}
-	if t.definedParams.ControlWidgetSpacing != nil {
-		params.ControlWidgetSpacing = t.definedParams.ControlWidgetSpacing
+	if l.definedParams.ControlWidgetSpacing != nil {
+		params.ControlWidgetSpacing = l.definedParams.ControlWidgetSpacing
 	}
-	if t.definedParams.DisableDefaultKeys != nil {
-		params.DisableDefaultKeys = t.definedParams.DisableDefaultKeys
+	if l.definedParams.DisableDefaultKeys != nil {
+		params.DisableDefaultKeys = l.definedParams.DisableDefaultKeys
 	}
-	if t.definedParams.EntryFace != nil {
-		params.EntryFace = t.definedParams.EntryFace
+	if l.definedParams.EntryFace != nil {
+		params.EntryFace = l.definedParams.EntryFace
 	}
-	if t.definedParams.EntryColor != nil {
-		params.EntryColor = t.definedParams.EntryColor
+	if l.definedParams.EntryColor != nil {
+		params.EntryColor = l.definedParams.EntryColor
 	}
-	if t.definedParams.EntryImage != nil || t.definedParams.EntryColor != nil {
-		params.EntryImage = t.definedParams.EntryImage // colors given show, not the theme's images
+	if l.definedParams.EntryImage != nil || l.definedParams.EntryColor != nil {
+		params.EntryImage = l.definedParams.EntryImage // colors given show, not the theme's images
 	}
-	if t.definedParams.EntryTextHorizontalPosition != nil {
-		params.EntryTextHorizontalPosition = t.definedParams.EntryTextHorizontalPosition
+	if l.definedParams.EntryTextHorizontalPosition != nil {
+		params.EntryTextHorizontalPosition = l.definedParams.EntryTextHorizontalPosition
 	}
-	if t.definedParams.EntryTextPadding != nil {
-		params.EntryTextPadding = t.definedParams.EntryTextPadding
+	if l.definedParams.EntryTextPadding != nil {
+		params.EntryTextPadding = l.definedParams.EntryTextPadding
 	}
-	if t.definedParams.EntryTextVerticalPosition != nil {
-		params.EntryTextVerticalPosition = t.definedParams.EntryTextVerticalPosition
+	if l.definedParams.EntryTextVerticalPosition != nil {
+		params.EntryTextVerticalPosition = l.definedParams.EntryTextVerticalPosition
 	}
-	if t.definedParams.ScrollContainerImage != nil {
-		params.ScrollContainerImage = t.definedParams.ScrollContainerImage
+	if l.definedParams.ScrollContainerImage != nil {
+		params.ScrollContainerImage = l.definedParams.ScrollContainerImage
 	}
-	if t.definedParams.ScrollContainerPadding != nil {
-		params.ScrollContainerPadding = t.definedParams.ScrollContainerPadding
+	if l.definedParams.ScrollContainerPadding != nil {
+		params.ScrollContainerPadding = l.definedParams.ScrollContainerPadding
 	}
-	if t.definedParams.SelectFocus != nil {
-		params.SelectFocus = t.definedParams.SelectFocus
+	if l.definedParams.SelectFocus != nil {
+		params.SelectFocus = l.definedParams.SelectFocus
 	}
-	if t.definedParams.SelectPressed != nil {
-		params.SelectPressed = t.definedParams.SelectPressed
+	if l.definedParams.SelectPressed != nil {
+		params.SelectPressed = l.definedParams.SelectPressed
 	}
-	if t.definedParams.MinSize != nil {
-		params.MinSize = t.definedParams.MinSize
+	if l.definedParams.MinSize != nil {
+		params.MinSize = l.definedParams.MinSize
 	}
 
-	if t.definedParams.Slider != nil {
+	if l.definedParams.Slider != nil {
 		if params.Slider == nil {
 			params.Slider = &SliderParams{}
 		}
-		if t.definedParams.Slider.FixedHandleSize != nil {
-			params.Slider.FixedHandleSize = t.definedParams.Slider.FixedHandleSize
+		if l.definedParams.Slider.FixedHandleSize != nil {
+			params.Slider.FixedHandleSize = l.definedParams.Slider.FixedHandleSize
 		}
-		if t.definedParams.Slider.HandleImage != nil {
-			params.Slider.HandleImage = t.definedParams.Slider.HandleImage
+		if l.definedParams.Slider.HandleImage != nil {
+			params.Slider.HandleImage = l.definedParams.Slider.HandleImage
 		}
-		if t.definedParams.Slider.MinHandleSize != nil {
-			params.Slider.MinHandleSize = t.definedParams.Slider.MinHandleSize
+		if l.definedParams.Slider.MinHandleSize != nil {
+			params.Slider.MinHandleSize = l.definedParams.Slider.MinHandleSize
 		}
-		if t.definedParams.Slider.TrackImage != nil {
-			params.Slider.TrackImage = t.definedParams.Slider.TrackImage
+		if l.definedParams.Slider.TrackImage != nil {
+			params.Slider.TrackImage = l.definedParams.Slider.TrackImage
 		}
-		if t.definedParams.Slider.TrackOffset != nil {
-			params.Slider.TrackOffset = t.definedParams.Slider.TrackOffset
+		if l.definedParams.Slider.TrackOffset != nil {
+			params.Slider.TrackOffset = l.definedParams.Slider.TrackOffset
 		}
-		if t.definedParams.Slider.TrackPadding != nil {
-			params.Slider.TrackPadding = t.definedParams.Slider.TrackPadding
+		if l.definedParams.Slider.TrackPadding != nil {
+			params.Slider.TrackPadding = l.definedParams.Slider.TrackPadding
 		}
 	}
 
@@ -303,7 +303,7 @@ func (t *List) populateComputedParams() {
 		Disabled: params.EntryColor.DisabledSelected,
 	}
 
-	t.computedParams = params
+	l.computedParams = params
 }
 
 // entryBackgrounds returns the backgrounds of unselected and of selected

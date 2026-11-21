@@ -15,7 +15,7 @@ type controlMock struct {
 	mock.Mock
 }
 
-func (s *controlMock) Validate() {
+func (c *controlMock) Validate() {
 }
 
 func TestContainer_Render(t *testing.T) {

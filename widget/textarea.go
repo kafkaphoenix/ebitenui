@@ -386,175 +386,175 @@ func (o TextAreaOptions) LinkCursorExitedEvent(linkCursorExitedFunc LinkHandlerF
 	}
 }
 
-func (l *TextArea) GetWidget() *Widget {
-	l.init.Do()
-	return l.container.GetWidget()
+func (t *TextArea) GetWidget() *Widget {
+	t.init.Do()
+	return t.container.GetWidget()
 }
 
-func (l *TextArea) PreferredSize() (int, int) {
-	l.init.Do()
-	w, h := l.container.PreferredSize()
+func (t *TextArea) PreferredSize() (int, int) {
+	t.init.Do()
+	w, h := t.container.PreferredSize()
 
-	if l.container.widget != nil && h < l.container.widget.MinHeight {
-		h = l.container.widget.MinHeight
+	if t.container.widget != nil && h < t.container.widget.MinHeight {
+		h = t.container.widget.MinHeight
 	}
-	if l.container.widget != nil && w < l.container.widget.MinWidth {
-		w = l.container.widget.MinWidth
+	if t.container.widget != nil && w < t.container.widget.MinWidth {
+		w = t.container.widget.MinWidth
 	}
 	return w, h
 }
 
-func (l *TextArea) SetLocation(rect img.Rectangle) {
-	l.init.Do()
-	l.container.GetWidget().Rect = rect
+func (t *TextArea) SetLocation(rect img.Rectangle) {
+	t.init.Do()
+	t.container.GetWidget().Rect = rect
 }
 
-func (l *TextArea) RequestRelayout() {
-	l.init.Do()
-	l.container.RequestRelayout()
+func (t *TextArea) RequestRelayout() {
+	t.init.Do()
+	t.container.RequestRelayout()
 }
 
-func (l *TextArea) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	l.init.Do()
-	l.container.SetupInputLayer(def)
+func (t *TextArea) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	t.init.Do()
+	t.container.SetupInputLayer(def)
 }
 
-func (l *TextArea) GetFocusers() []Focuser {
-	l.init.Do()
+func (t *TextArea) GetFocusers() []Focuser {
+	t.init.Do()
 	var result []Focuser
-	if l.hSlider != nil && l.hSlider.tabOrder != -1 {
-		result = append(result, l.hSlider)
+	if t.hSlider != nil && t.hSlider.tabOrder != -1 {
+		result = append(result, t.hSlider)
 	}
-	if l.vSlider != nil && l.vSlider.tabOrder != -1 {
-		result = append(result, l.vSlider)
+	if t.vSlider != nil && t.vSlider.tabOrder != -1 {
+		result = append(result, t.vSlider)
 	}
 	return result
 }
 
-func (l *TextArea) Render(screen *ebiten.Image) {
-	l.init.Do()
+func (t *TextArea) Render(screen *ebiten.Image) {
+	t.init.Do()
 
-	d := l.container.GetWidget().Disabled
+	d := t.container.GetWidget().Disabled
 
-	if l.vSlider != nil {
-		l.vSlider.DrawTrackDisabled = d
+	if t.vSlider != nil {
+		t.vSlider.DrawTrackDisabled = d
 	}
-	if l.hSlider != nil {
-		l.hSlider.DrawTrackDisabled = d
+	if t.hSlider != nil {
+		t.hSlider.DrawTrackDisabled = d
 	}
-	l.text.MaxWidth = float64(l.container.GetWidget().Rect.Dx())
-	l.scrollContainer.GetWidget().Disabled = d
-	l.container.Render(screen)
+	t.text.MaxWidth = float64(t.container.GetWidget().Rect.Dx())
+	t.scrollContainer.GetWidget().Disabled = d
+	t.container.Render(screen)
 }
 
-func (l *TextArea) Update(updObj *UpdateObject) {
-	l.init.Do()
-	if l.container != nil {
-		l.container.Update(updObj)
+func (t *TextArea) Update(updObj *UpdateObject) {
+	t.init.Do()
+	if t.container != nil {
+		t.container.Update(updObj)
 	}
 }
 
-func (l *TextArea) createWidget() {
+func (t *TextArea) createWidget() {
 	var cols int
-	if l.showVerticalSlider {
+	if t.showVerticalSlider {
 		cols = 2
 	} else {
 		cols = 1
 	}
-	l.layout = NewGridLayout(
+	t.layout = NewGridLayout(
 		GridLayoutOpts.Columns(cols),
 		GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}))
 
-	l.container = NewContainer(
+	t.container = NewContainer(
 		append([]ContainerOpt{
 			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
-			ContainerOpts.Layout(l.layout),
-		}, l.containerOpts...,
+			ContainerOpts.Layout(t.layout),
+		}, t.containerOpts...,
 		)...)
 
-	l.text = NewText(TextOpts.TextLabel(l.initialText))
+	t.text = NewText(TextOpts.TextLabel(t.initialText))
 }
 
-func (l *TextArea) initWidget() {
-	currentText := l.GetText()
-	l.container.RemoveChildren()
-	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
-	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
+func (t *TextArea) initWidget() {
+	currentText := t.GetText()
+	t.container.RemoveChildren()
+	t.layout.columnSpacing = *t.computedParams.ControlWidgetSpacing
+	t.layout.rowSpacing = *t.computedParams.ControlWidgetSpacing
 
 	content := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Direction(DirectionVertical))),
 		ContainerOpts.AutoDisableChildren())
 
-	l.text = NewText(
-		TextOpts.Text(currentText, l.computedParams.Face, l.computedParams.ForegroundColor),
-		TextOpts.Padding(l.computedParams.TextPadding),
-		TextOpts.Position(l.computedParams.TextPosition.HTextPosition, l.computedParams.TextPosition.VTextPosition),
-		TextOpts.ProcessBBCode(l.processBBCode),
-		TextOpts.StripBBCode(*l.computedParams.StripBBCode),
-		TextOpts.LinkColor(l.computedParams.LinkColor),
-		TextOpts.LinkClickedHandler(l.linkClickedFunc),
-		TextOpts.LinkCursorEnteredHandler(l.linkCursorEnteredFunc),
-		TextOpts.LinkCursorExitedHandler(l.linkCursorExitedFunc),
+	t.text = NewText(
+		TextOpts.Text(currentText, t.computedParams.Face, t.computedParams.ForegroundColor),
+		TextOpts.Padding(t.computedParams.TextPadding),
+		TextOpts.Position(t.computedParams.TextPosition.HTextPosition, t.computedParams.TextPosition.VTextPosition),
+		TextOpts.ProcessBBCode(t.processBBCode),
+		TextOpts.StripBBCode(*t.computedParams.StripBBCode),
+		TextOpts.LinkColor(t.computedParams.LinkColor),
+		TextOpts.LinkClickedHandler(t.linkClickedFunc),
+		TextOpts.LinkCursorEnteredHandler(t.linkCursorEnteredFunc),
+		TextOpts.LinkCursorExitedHandler(t.linkCursorExitedFunc),
 	)
-	content.AddChild(l.text)
-	l.text.widget.parent = l.container.GetWidget()
+	content.AddChild(t.text)
+	t.text.widget.parent = t.container.GetWidget()
 
 	scrollOpts := []ScrollContainerOpt{
 		ScrollContainerOpts.Content(content),
 		ScrollContainerOpts.StretchContentWidth(),
-		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
-		ScrollContainerOpts.Padding(l.computedParams.ScrollContainerPadding),
+		ScrollContainerOpts.Image(t.computedParams.ScrollContainerImage),
+		ScrollContainerOpts.Padding(t.computedParams.ScrollContainerPadding),
 	}
-	if l.dragToScroll {
+	if t.dragToScroll {
 		scrollOpts = append(scrollOpts, ScrollContainerOpts.DragToScroll())
 	}
-	l.scrollContainer = NewScrollContainer(scrollOpts...)
+	t.scrollContainer = NewScrollContainer(scrollOpts...)
 
-	if l.dragToScroll {
-		l.scrollContainer.ScrollMovedEvent.AddHandler(func(args any) {
+	if t.dragToScroll {
+		t.scrollContainer.ScrollMovedEvent.AddHandler(func(args any) {
 			if a, ok := args.(*ScrollContainerScrollMovedEventArgs); ok {
-				if l.vSlider != nil {
-					l.vSlider.Current = int(math.Round(a.Top * 1000))
+				if t.vSlider != nil {
+					t.vSlider.Current = int(math.Round(a.Top * 1000))
 				}
-				if l.hSlider != nil {
-					l.hSlider.Current = int(math.Round(a.Left * 1000))
+				if t.hSlider != nil {
+					t.hSlider.Current = int(math.Round(a.Left * 1000))
 				}
 			}
 		})
 	}
-	l.container.AddChild(l.scrollContainer)
+	t.container.AddChild(t.scrollContainer)
 
 	var sliderOpts []SliderOpt
-	if l.computedParams.Slider != nil {
-		if l.computedParams.Slider.FixedHandleSize != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*l.computedParams.Slider.FixedHandleSize))
+	if t.computedParams.Slider != nil {
+		if t.computedParams.Slider.FixedHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*t.computedParams.Slider.FixedHandleSize))
 		} else {
 			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(0))
 		}
-		if l.computedParams.Slider.HandleImage != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(l.computedParams.Slider.HandleImage))
+		if t.computedParams.Slider.HandleImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(t.computedParams.Slider.HandleImage))
 		}
-		if l.computedParams.Slider.TrackImage != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.TrackImage(l.computedParams.Slider.TrackImage))
+		if t.computedParams.Slider.TrackImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackImage(t.computedParams.Slider.TrackImage))
 		}
-		if l.computedParams.Slider.MinHandleSize != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.MinHandleSize(*l.computedParams.Slider.MinHandleSize))
+		if t.computedParams.Slider.MinHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.MinHandleSize(*t.computedParams.Slider.MinHandleSize))
 		}
-		if l.computedParams.Slider.TrackOffset != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.TrackOffset(*l.computedParams.Slider.TrackOffset))
+		if t.computedParams.Slider.TrackOffset != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackOffset(*t.computedParams.Slider.TrackOffset))
 		}
-		if l.computedParams.Slider.TrackPadding != nil {
-			sliderOpts = append(sliderOpts, SliderOpts.TrackPadding(l.computedParams.Slider.TrackPadding))
+		if t.computedParams.Slider.TrackPadding != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackPadding(t.computedParams.Slider.TrackPadding))
 		}
 	}
 
-	if l.showVerticalSlider {
+	if t.showVerticalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+			return int(math.Round(float64(t.scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 		}
 
-		l.vSlider = NewSlider(append(sliderOpts,
+		t.vSlider = NewSlider(append(sliderOpts,
 			SliderOpts.Orientation(DirectionVertical),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
@@ -562,36 +562,36 @@ func (l *TextArea) initWidget() {
 				current := args.Slider.Current
 				if pageSizeFunc() >= 1000 {
 					current = 0
-					if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
+					if t.verticalScrollMode == ScrollEnd || t.verticalScrollMode == PositionAtEnd {
 						current = 1000
 					}
 				}
-				l.scrollContainer.ScrollTop = float64(current) / 1000
+				t.scrollContainer.ScrollTop = float64(current) / 1000
 			}),
 		)...)
 
-		if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
-			l.vSlider.Current = l.vSlider.Max
+		if t.verticalScrollMode == ScrollEnd || t.verticalScrollMode == PositionAtEnd {
+			t.vSlider.Current = t.vSlider.Max
 		}
-		l.container.AddChild(l.vSlider)
+		t.container.AddChild(t.vSlider)
 
-		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
+		t.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetScrolledEventArgs); ok {
 				p := pageSizeFunc() / 3
 				if p < 1 {
 					p = 1
 				}
-				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
+				t.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
 		})
 	}
 
-	if l.showHorizontalSlider {
+	if t.showHorizontalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ViewRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
+			return int(math.Round(float64(t.scrollContainer.ViewRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
 		}
 
-		l.hSlider = NewSlider(append(sliderOpts,
+		t.hSlider = NewSlider(append(sliderOpts,
 			SliderOpts.Orientation(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
@@ -599,52 +599,57 @@ func (l *TextArea) initWidget() {
 				current := args.Slider.Current
 				if pageSizeFunc() >= 1000 {
 					current = 0
-					if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
+					if t.horizontalScrollMode == ScrollEnd || t.horizontalScrollMode == PositionAtEnd {
 						current = 1000
 					}
 				}
-				l.scrollContainer.ScrollLeft = float64(current) / 1000
+				t.scrollContainer.ScrollLeft = float64(current) / 1000
 			}),
 		)...)
 
-		if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
-			l.hSlider.Current = l.hSlider.Max
+		if t.horizontalScrollMode == ScrollEnd || t.horizontalScrollMode == PositionAtEnd {
+			t.hSlider.Current = t.hSlider.Max
 		}
-		l.container.AddChild(l.hSlider)
+		t.container.AddChild(t.hSlider)
 	}
 }
 
-func (l *TextArea) PrependText(value string) {
-	l.init.Do()
-	l.SetText(value + l.text.Label)
+func (t *TextArea) PrependText(value string) {
+	t.init.Do()
+	t.SetText(value + t.text.Label)
 }
 
-func (l *TextArea) AppendText(value string) {
-	l.init.Do()
-	l.SetText(l.text.Label + value)
+func (t *TextArea) AppendText(value string) {
+	t.init.Do()
+	t.SetText(t.text.Label + value)
 }
 
-func (l *TextArea) SetText(value string) {
-	l.init.Do()
-	l.text.Label = value
+func (t *TextArea) SetText(value string) {
+	t.init.Do()
+	t.text.Label = value
 
-	if l.showHorizontalSlider && l.hSlider != nil {
-		if l.horizontalScrollMode == ScrollBeginning {
-			l.hSlider.Current = 0
-		} else if l.horizontalScrollMode == ScrollEnd {
-			l.hSlider.Current = l.hSlider.Max
-		}
+	if t.showHorizontalSlider && t.hSlider != nil {
+		scrollTo(t.hSlider, t.horizontalScrollMode)
 	}
-	if l.showVerticalSlider && l.vSlider != nil {
-		if l.verticalScrollMode == ScrollBeginning {
-			l.vSlider.Current = 0
-		} else if l.verticalScrollMode == ScrollEnd {
-			l.vSlider.Current = l.vSlider.Max
-		}
+	if t.showVerticalSlider && t.vSlider != nil {
+		scrollTo(t.vSlider, t.verticalScrollMode)
 	}
 }
 
-func (l *TextArea) GetText() string {
-	l.init.Do()
-	return l.text.Label
+// scrollTo moves a slider to its start or end as the mode asks on a change
+// of text, or leaves it where it is: PositionAtEnd places the text only as
+// the area is made.
+func scrollTo(s *Slider, mode ScrollMode) {
+	switch mode {
+	case ScrollBeginning:
+		s.Current = 0
+	case ScrollEnd:
+		s.Current = s.Max
+	case None, PositionAtEnd:
+	}
+}
+
+func (t *TextArea) GetText() string {
+	t.init.Do()
+	return t.text.Label
 }

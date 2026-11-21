@@ -299,37 +299,37 @@ func (o CheckboxOptions) DisableDefaultKeys() CheckboxOpt {
 }
 
 // This function will return the internal Text object if this checkbox has a label, otherwise nil.
-func (tw *Checkbox) Text() *Text {
-	if tw.label == nil {
+func (c *Checkbox) Text() *Text {
+	if c.label == nil {
 		return nil
 	}
-	return tw.label.text
+	return c.label.text
 }
 
 // This function will return the current state the checkbox is in.
-func (tw *Checkbox) State() WidgetState {
-	return tw.state
+func (c *Checkbox) State() WidgetState {
+	return c.state
 }
 
 // This function will allow you to update the checkbox's current state.
-func (tw *Checkbox) SetState(state WidgetState) {
-	if state == WidgetGreyed && !tw.triState {
+func (c *Checkbox) SetState(state WidgetState) {
+	if state == WidgetGreyed && !c.triState {
 		panic("non-tri state Checkbox cannot be in greyed state")
 	}
 
-	if state != tw.state {
-		tw.state = state
+	if state != c.state {
+		c.state = state
 
-		tw.StateChangedEvent.Fire(&CheckboxChangedEventArgs{
-			Active: tw,
-			State:  tw.state,
+		c.StateChangedEvent.Fire(&CheckboxChangedEventArgs{
+			Active: c,
+			State:  c.state,
 		})
 	}
 }
 
 // This method is required for this to be part of a radio button group.
-func (tw *Checkbox) getStateChangedEvent() *event.Event {
-	return tw.StateChangedEvent
+func (c *Checkbox) getStateChangedEvent() *event.Event {
+	return c.StateChangedEvent
 }
 
 func (c *Checkbox) GetWidget() *Widget {
