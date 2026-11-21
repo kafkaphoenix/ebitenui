@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -511,7 +510,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
 		},
 
-		handleSize: constantutil.ConstantToPointer(5),
+		handleSize: new(5),
 		face:       fonts.face,
 
 		entry: &widget.ListEntryColor{
@@ -577,7 +576,7 @@ func newSliderResources() (*sliderResources, error) {
 			Disabled: image.NewNineSliceSimple(handleDisabled, 0, 5),
 		},
 
-		handleSize: constantutil.ConstantToPointer(6),
+		handleSize: new(6),
 	}, nil
 }
 
@@ -764,7 +763,7 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
 		},
 
-		handleSize: constantutil.ConstantToPointer(5),
+		handleSize: new(5),
 		face:       fonts.face,
 
 		entryPadding: &widget.Insets{

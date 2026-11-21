@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -154,7 +153,7 @@ func newBasicLightTheme(s shape) *widget.Theme {
 				TextPadding: widget.NewInsetsSimple(5),
 				MinSize:     &img.Point{98, 40},
 			},
-			TabSpacing: constantutil.ConstantToPointer(1),
+			TabSpacing: new(1),
 		},
 		TabTheme: &widget.TabParams{
 			BackgroundImage: s.fill(color.NRGBA{197, 197, 197, 255}),
@@ -176,8 +175,8 @@ func newBasicLightTheme(s shape) *widget.Theme {
 		},
 		TextAreaTheme: &widget.TextAreaParams{
 			Face:                   &face,
-			StripBBCode:            constantutil.ConstantToPointer(true),
-			ControlWidgetSpacing:   constantutil.ConstantToPointer(2),
+			StripBBCode:            new(true),
+			ControlWidgetSpacing:   new(2),
 			TextPadding:            &widget.Insets{Right: 18},
 			ForegroundColor:        color.Black,
 			ScrollContainerPadding: widget.NewInsetsSimple(4),
@@ -208,8 +207,8 @@ func newBasicLightTheme(s shape) *widget.Theme {
 		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(2),
-			FixedHandleSize: constantutil.ConstantToPointer(6),
-			TrackOffset:     constantutil.ConstantToPointer(0),
+			FixedHandleSize: new(6),
+			TrackOffset:     new(0),
 			PageSizeFunc: func() int {
 				return 1
 			},
@@ -226,8 +225,8 @@ func newBasicLightTheme(s shape) *widget.Theme {
 		ListTheme: &widget.ListParams{
 			EntryFace:                   &face,
 			EntryTextPadding:            widget.NewInsetsSimple(5),
-			EntryTextHorizontalPosition: constantutil.ConstantToPointer(widget.TextPositionStart),
-			EntryTextVerticalPosition:   constantutil.ConstantToPointer(widget.TextPositionCenter),
+			EntryTextHorizontalPosition: new(widget.TextPositionStart),
+			EntryTextVerticalPosition:   new(widget.TextPositionCenter),
 			MinSize:                     &img.Point{150, 0},
 			EntryColor:                  entryColor,
 			EntryImage:                  s.entries(entryColor),
@@ -250,12 +249,12 @@ func newBasicLightTheme(s shape) *widget.Theme {
 			},
 		},
 		ListComboButtonTheme: &widget.ListComboButtonParams{
-			MaxContentHeight: constantutil.ConstantToPointer(200),
+			MaxContentHeight: new(200),
 			List: &widget.ListParams{
 				EntryFace:                   &face,
 				EntryTextPadding:            widget.NewInsetsSimple(5),
-				EntryTextHorizontalPosition: constantutil.ConstantToPointer(widget.TextPositionStart),
-				EntryTextVerticalPosition:   constantutil.ConstantToPointer(widget.TextPositionCenter),
+				EntryTextHorizontalPosition: new(widget.TextPositionStart),
+				EntryTextVerticalPosition:   new(widget.TextPositionCenter),
 				MinSize:                     &img.Point{200, 0},
 				EntryColor:                  entryColor,
 				EntryImage:                  s.entries(entryColor),

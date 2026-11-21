@@ -8,7 +8,6 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"slices"
 
@@ -486,21 +485,21 @@ func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOp
 
 func (o ListOptions) AllowReselect() ListOpt {
 	return func(l *List) {
-		l.definedParams.AllowReselect = constantutil.ConstantToPointer(true)
+		l.definedParams.AllowReselect = new(true)
 	}
 }
 
 // SelectFocus automatically selects each focused entry.
 func (o ListOptions) SelectFocus() ListOpt {
 	return func(l *List) {
-		l.definedParams.SelectFocus = constantutil.ConstantToPointer(true)
+		l.definedParams.SelectFocus = new(true)
 	}
 }
 
 // SelectPressed selects entries when pressing instead of releasing (the default).
 func (o ListOptions) SelectPressed() ListOpt {
 	return func(l *List) {
-		l.definedParams.SelectPressed = constantutil.ConstantToPointer(true)
+		l.definedParams.SelectPressed = new(true)
 	}
 }
 
@@ -822,10 +821,7 @@ func (l *List) initWidget() {
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetScrolledEventArgs); ok {
-				p := pageSizeFunc() / 3
-				if p < 1 {
-					p = 1
-				}
+				p := max(pageSizeFunc()/3, 1)
 				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
 		})

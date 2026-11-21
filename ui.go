@@ -2,6 +2,7 @@ package ebitenui
 
 import (
 	"image"
+	"slices"
 	"sort"
 	"time"
 
@@ -306,11 +307,11 @@ func (u *UI) handleDragAndDropEvent(args any) {
 func (u *UI) getDropTargets() []widget.HasWidget {
 	dropTargets := u.Container.GetDropTargets()
 	// Loop through the windows array in reverse. If we find a modal window, only loop through its droppable widgets
-	for i := len(u.windows) - 1; i >= 0; i-- {
-		if !u.windows[i].Modal {
-			dropTargets = append(dropTargets, u.windows[i].GetContainer().GetDropTargets()...)
+	for _, v := range slices.Backward(u.windows) {
+		if !v.Modal {
+			dropTargets = append(dropTargets, v.GetContainer().GetDropTargets()...)
 		} else {
-			dropTargets = u.windows[i].GetContainer().GetDropTargets()
+			dropTargets = v.GetContainer().GetDropTargets()
 			break
 		}
 	}
@@ -342,11 +343,11 @@ func (u *UI) handleFocusChangeRequest() {
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 	focusableWidgets := u.Container.GetFocusers()
 	// Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
-	for i := len(u.windows) - 1; i >= 0; i-- {
-		if !u.windows[i].Modal {
-			focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
+	for _, v := range slices.Backward(u.windows) {
+		if !v.Modal {
+			focusableWidgets = append(focusableWidgets, v.GetContainer().GetFocusers()...)
 		} else {
-			focusableWidgets = u.windows[i].GetContainer().GetFocusers()
+			focusableWidgets = v.GetContainer().GetFocusers()
 			break
 		}
 	}
@@ -365,7 +366,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 			})
 			if u.focusedWidget != nil {
 				if direction == widget.FOCUS_PREVIOUS {
-					for i := 0; i < fwLen; i++ {
+					for i := range fwLen {
 						if focusableWidgets[i] == u.focusedWidget {
 							u.focusedWidget.Focus(false)
 							if i == 0 {
@@ -486,12 +487,7 @@ func (u *UI) closeEphemeralWindows(windowIdx int) {
 
 // This function returns true if the provided window object is currently active in this UI.
 func (u *UI) IsWindowOpen(w *widget.Window) bool {
-	for i := range u.windows {
-		if u.windows[i] == w {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(u.windows, w)
 }
 
 // This function will re-sort the current windows attached to this UI based on its DrawLayer value.
@@ -503,8 +499,8 @@ func (u *UI) SortWindows() {
 
 // This function will return true if any widget is currently focused or a Modal window is open.
 func (u *UI) HasFocus() bool {
-	for i := len(u.windows) - 1; i >= 0; i-- {
-		if u.windows[i].Modal {
+	for _, v := range slices.Backward(u.windows) {
+		if v.Modal {
 			return true
 		}
 	}

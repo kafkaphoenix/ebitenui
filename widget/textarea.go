@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -212,10 +211,10 @@ func (t *TextArea) populateComputedParams() {
 		params.TextPosition = &TextPositioning{}
 	}
 	if params.ControlWidgetSpacing == nil {
-		params.ControlWidgetSpacing = constantutil.ConstantToPointer(0)
+		params.ControlWidgetSpacing = new(0)
 	}
 	if params.StripBBCode == nil {
-		params.StripBBCode = constantutil.ConstantToPointer(false)
+		params.StripBBCode = new(false)
 	}
 	if params.ScrollContainerPadding == nil {
 		params.ScrollContainerPadding = &Insets{}
@@ -577,10 +576,7 @@ func (t *TextArea) initWidget() {
 
 		t.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetScrolledEventArgs); ok {
-				p := pageSizeFunc() / 3
-				if p < 1 {
-					p = 1
-				}
+				p := max(pageSizeFunc()/3, 1)
 				t.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
 		})

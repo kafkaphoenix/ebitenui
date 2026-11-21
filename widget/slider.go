@@ -7,7 +7,6 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -154,7 +153,7 @@ func (s *Slider) populateComputedParams() {
 
 	// Set defaults
 	if params.MinHandleSize == nil {
-		params.MinHandleSize = constantutil.ConstantToPointer(16)
+		params.MinHandleSize = new(16)
 	}
 	if params.PageSizeFunc == nil {
 		params.PageSizeFunc = func() int {
@@ -162,19 +161,19 @@ func (s *Slider) populateComputedParams() {
 		}
 	}
 	if params.Orientation == nil {
-		params.Orientation = constantutil.ConstantToPointer(DirectionHorizontal)
+		params.Orientation = new(DirectionHorizontal)
 	}
 	if params.TrackPadding == nil {
 		params.TrackPadding = &Insets{}
 	}
 	if params.TrackOffset == nil {
-		params.TrackOffset = constantutil.ConstantToPointer(0)
+		params.TrackOffset = new(0)
 	}
 	if params.TrackImage == nil {
 		params.TrackImage = &SliderTrackImage{}
 	}
 	if params.FixedHandleSize == nil {
-		params.FixedHandleSize = constantutil.ConstantToPointer(0)
+		params.FixedHandleSize = new(0)
 	}
 
 	s.computedParams = params
@@ -446,10 +445,7 @@ func (s *Slider) fireEvents() {
 }
 
 func (s *Slider) updateHandleSize(handleLength float64) {
-	l := int(math.Round(handleLength))
-	if l < *s.computedParams.MinHandleSize {
-		l = *s.computedParams.MinHandleSize
-	}
+	l := max(int(math.Round(handleLength)), *s.computedParams.MinHandleSize)
 
 	rect := s.widget.Rect
 
