@@ -31,9 +31,5 @@ require github.com/frustra/bbcode v0.0.0-20201127003707-6ef347fbe1c8
 
 require (
 	github.com/go-text/typesetting v0.3.5
-	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
-	golang.design/x/clipboard v0.7.0 // indirect
-	golang.org/x/exp/shiny v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a // indirect
 	golang.org/x/text v0.43.0 // indirect
 )

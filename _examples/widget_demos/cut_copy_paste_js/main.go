@@ -1,7 +1,7 @@
 //go:build js
 // +build js
 
-// TO RUN: go run github.com/hajimehoshi/wasmserve@latest -http :9090 ./_examples/widget_demos/cut_copy_paste_js
+// TO RUN, in the _examples folder: go run github.com/hajimehoshi/wasmserve@latest -http :9090 ./widget_demos/cut_copy_paste_js
 package main
 
 import (
@@ -15,7 +15,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/internal/jsUtil"
+	"github.com/ebitenui/ebitenui/utilities/mobile"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -64,7 +64,7 @@ func main() {
 		),
 
 		// Set the keyboard type when opened on mobile devices.
-		widget.TextInputOpts.MobileInputMode(jsUtil.TEXT),
+		widget.TextInputOpts.MobileInputMode(mobile.TEXT),
 
 		// Set the Idle and Disabled background image for the text input.
 		// If the NineSlice image has a minimum size, the widget will use that or
