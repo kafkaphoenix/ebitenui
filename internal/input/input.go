@@ -136,6 +136,8 @@ func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) 
 		return handler.MiddleMouseButtonPressed
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonPressed
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}
@@ -149,6 +151,8 @@ func (handler *DefaultInternalHandler) MouseButtonJustPressed(b ebiten.MouseButt
 		return handler.MiddleMouseButtonJustPressed
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonJustPressed
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}
@@ -162,6 +166,8 @@ func (handler *DefaultInternalHandler) MouseButtonJustReleased(b ebiten.MouseBut
 		return handler.MiddleMouseButtonJustReleased
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonJustReleased
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}

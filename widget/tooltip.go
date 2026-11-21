@@ -258,7 +258,7 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
+			if !t.KeepOnHover || !cp.In(t.content.GetWidget().Rect) {
 				t.visible = false
 				parent.FireToolTipEvent(t.window, false)
 				return t.idleState()
@@ -294,7 +294,7 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
+			if !t.KeepOnHover || !cp.In(t.content.GetWidget().Rect) {
 				t.visible = false
 				parent.FireToolTipEvent(t.window, false)
 				return t.idleState()
@@ -304,6 +304,8 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 
 		position := p
 		switch t.Position {
+		case TOOLTIP_POS_CURSOR_STICKY:
+			// Where the pointer was as the tooltip armed.
 		case TOOLTIP_POS_CURSOR_FOLLOW:
 			position = cp
 		case TOOLTIP_POS_WIDGET:
