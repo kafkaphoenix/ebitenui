@@ -56,6 +56,15 @@ drv.Type("hello")
 drv.Key(ebiten.KeyEnter)
 ```
 
+Development
+------
+The tools are pinned in `tools/go.mod`, a module of their own, and run through [Task](https://taskfile.dev):
+
+* `go tool -modfile=tools/go.mod task --list` lists the tasks.
+* `... task ci` runs what CI checks: lint, every test shuffled and with the race detector, the examples built for the desktop and the browser, and the vulnerability scan.
+
+The library supports Go 1.26 and later; its `toolchain` line has those working on it use the Go the tools need.
+
 Used By
 ------
 * [Roboden by quasilyte](https://quasilyte.itch.io/roboden)

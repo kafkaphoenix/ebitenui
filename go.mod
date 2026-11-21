@@ -2,6 +2,8 @@ module github.com/ebitenui/ebitenui
 
 go 1.26.0
 
+toolchain go1.27.4
+
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.11.0-alpha.0.20261119134410-2009ccc2f749
 	github.com/matryer/is v1.4.1

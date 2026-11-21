@@ -1,0 +1,74 @@
+version: "3"
+
+# Tasks for working on the library, run with the pinned task:
+#   go tool -modfile=tools/go.mod task <name>
+# The tools (golangci-lint, govulncheck, task) are pinned in tools/go.mod,
+# a module of their own, so the library's go.mod lists only what the
+# library needs.
+
+vars:
+  TOOL: go tool -modfile=tools/go.mod
+
+tasks:
+  default:
+    desc: List all tasks
+    silent: true
+    cmds:
+      - "{{.TASK_EXE}} --list"
+
+  lint:
+    desc: Lint the library; cognitive complexity and duplication only in what changed since master
+    cmds:
+      # The library has older functions over gocognit's limit and some
+      # duplicated code; until they are reworked, those two linters judge
+      # only code new since the branch left master.
+      - "{{.TOOL}} golangci-lint run --disable gocognit,dupl ./..."
+      - "{{.TOOL}} golangci-lint run --enable-only gocognit,dupl --new-from-merge-base origin/master ./..."
+
+  fmt:
+    desc: Format the code (gofmt, goimports)
+    cmds:
+      - "{{.TOOL}} golangci-lint fmt ./..."
+
+  test:
+    desc: Run every test in a random order, then with the race detector
+    cmds:
+      # Package globals (the input layers, the hovered flag) make tests
+      # depend on their order when one leaves state behind: -shuffle finds
+      # that. Timers' callbacks run on other goroutines, which -race checks.
+      - go test -shuffle=on ./...
+      - go test -race ./...
+
+  cover:
+    desc: Run every test with coverage
+    cmds:
+      # Apart from -race, under which coverage counters are atomic and slow.
+      - go test -cover ./...
+
+  examples:
+    desc: Vet and build the examples, for the desktop and the browser
+    dir: _examples
+    cmds:
+      - go vet ./...
+      - go build ./...
+      - GOOS=js GOARCH=wasm go build ./...
+
+  vuln:
+    desc: Look for known vulnerabilities in what the library calls
+    cmds:
+      - "{{.TOOL}} govulncheck ./..."
+
+  tidy:
+    desc: Tidy the three modules' go.mod files
+    cmds:
+      - go mod tidy
+      - cd _examples && go mod tidy
+      - cd tools && go mod tidy
+
+  ci:
+    desc: What CI checks, locally
+    cmds:
+      - task: lint
+      - task: test
+      - task: examples
+      - task: vuln
