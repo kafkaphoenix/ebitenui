@@ -148,7 +148,7 @@ func (d *DragAndDrop) StopDrag() {
 	d.dndStopped = true
 }
 
-func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+func (d *DragAndDrop) SetupInputLayer(_ input.DeferredSetupInputLayerFunc) {
 	if d.dragWidget != nil {
 		d.dragLayer = input.Layer{ // kept, not made each frame
 			DebugLabel: "drag widget",

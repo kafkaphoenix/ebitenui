@@ -76,7 +76,7 @@ type DefaultInternalHandler struct {
 
 var InternalUIHovered = false
 
-var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
+var InputHandler = &DefaultInternalHandler{
 	Devices:      Ebitengine{},
 	TouchPinch:   1,
 	cursorImages: make(map[string]*ebiten.Image),
@@ -124,13 +124,9 @@ func (handler *DefaultInternalHandler) AfterUpdate() {
 	handler.WheelX, handler.WheelY = 0, 0
 }
 
-func (handler *DefaultInternalHandler) Draw(screen *ebiten.Image) {
+func (handler *DefaultInternalHandler) Draw(_ *ebiten.Image) {}
 
-}
-
-func (handler *DefaultInternalHandler) AfterDraw(screen *ebiten.Image) {
-
-}
+func (handler *DefaultInternalHandler) AfterDraw(_ *ebiten.Image) {}
 
 func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) bool {
 	switch b {

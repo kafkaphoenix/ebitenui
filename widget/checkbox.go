@@ -393,7 +393,7 @@ func (c *Checkbox) SetLocation(rect img.Rectangle) {
 	c.widget.Rect = rect
 }
 
-func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+func (c *Checkbox) SetupInputLayer(_ input.DeferredSetupInputLayerFunc) {
 	c.init.Do()
 }
 
@@ -488,13 +488,13 @@ func (c *Checkbox) Click() {
 func (c *Checkbox) createWidget() {
 	c.widget = NewWidget(append([]WidgetOpt{
 		WidgetOpts.TrackHover(true),
-		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
 			if !c.widget.Disabled {
 				c.hovering = true
 			}
 		}),
 
-		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
 			c.hovering = false
 		}),
 
@@ -510,7 +510,7 @@ func (c *Checkbox) createWidget() {
 			LabelOpts.TextOpts(
 				TextOpts.Position(TextPositionStart, TextPositionCenter),
 				TextOpts.WidgetOpts(
-					WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+					WidgetOpts.MouseButtonClickedHandler(func(_ *WidgetMouseButtonClickedEventArgs) {
 						c.Click()
 					}),
 				),

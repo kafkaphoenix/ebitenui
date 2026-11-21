@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"image/color"
-	"log"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -12,17 +11,17 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-func loadFont(size float64) (text.Face, error) {
+// loadFont returns Go Regular, which the library bundles, at a size; it
+// panics if the font doesn't parse, as a bundled font always does.
+func loadFont(size float64) text.Face {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
-		log.Fatal(err)
-		return nil, fmt.Errorf("%w", err)
+		panic(fmt.Sprintf("themes: the bundled Go Regular doesn't parse: %v", err))
 	}
-
 	return &text.GoTextFace{
 		Source: s,
 		Size:   size,
-	}, nil
+	}
 }
 
 // ThemeOpt shapes the boxes a basic theme draws: buttons, inputs, panels,

@@ -41,7 +41,7 @@ type DrawImageOptionsFunc func(opts *ebiten.DrawImageOptions)
 
 var colorImages map[color.Color]*ebiten.Image = map[color.Color]*ebiten.Image{}
 
-var colorNineSlices map[color.Color]*NineSlice = map[color.Color]*NineSlice{}
+var colorNineSlices = map[color.Color]*NineSlice{}
 
 // NewNineSlice constructs a new NineSlice from i, having columns widths w and row heights h.
 func NewNineSlice(i *ebiten.Image, w [3]int, h [3]int) *NineSlice {

@@ -538,7 +538,7 @@ func (o WidgetOptions) ToolTip(toolTips ...*ToolTip) WidgetOpt {
 	return func(w *Widget) {
 		for _, tt := range toolTips {
 			if w.ToolTips == nil {
-				w.ToolTips = make([]*ToolTip, 0, 0)
+				w.ToolTips = make([]*ToolTip, 0)
 			}
 			if tt != nil {
 				w.ToolTips = append(w.ToolTips, tt)
@@ -847,7 +847,7 @@ func (w *Widget) fireEvents() {
 
 	if w.longPressButton != -1 {
 		if input.MouseButtonPressed(w.longPressButton) && inside && !input.TouchGesture() {
-			w.longPressCurrent += 1
+			w.longPressCurrent++
 		} else {
 			w.longPressCurrent = 0
 			w.longPressButton = -1

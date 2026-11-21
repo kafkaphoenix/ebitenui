@@ -412,8 +412,8 @@ func (t *TabBook) initTabBook() {
 			RowLayoutOpts.Direction(direction),
 			RowLayoutOpts.Spacing(*t.computedParams.TabSpacing))))
 
-	btnElements := []RadioGroupElement{}
-	var currentTab *TabBookTab = t.tab
+	btnElements := make([]RadioGroupElement, 0, len(t.tabs))
+	currentTab := t.tab
 
 	for i := range t.tabs {
 		t.tabs[i].GetWidget().parent = t.GetWidget()

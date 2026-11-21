@@ -78,7 +78,7 @@ const (
 	CURSOR_NONE      = "Cursor_None"
 )
 
-var currentCursor string = CURSOR_DEFAULT
+var currentCursor = CURSOR_DEFAULT
 
 func SetCursorShape(name string) {
 	currentCursor = name

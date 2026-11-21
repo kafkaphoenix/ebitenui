@@ -172,11 +172,11 @@ func (o ProgressBarOptions) TrackPadding(i *Insets) ProgressBarOpt {
 	}
 }
 
-func (o ProgressBarOptions) Values(min int, max int, current int) ProgressBarOpt {
-	return func(s *ProgressBar) {
-		s.Min = min
-		s.Max = max
-		s.current = current
+func (o ProgressBarOptions) Values(lowest, highest, current int) ProgressBarOpt {
+	return func(p *ProgressBar) {
+		p.Min = lowest
+		p.Max = highest
+		p.current = current
 	}
 }
 

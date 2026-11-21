@@ -490,9 +490,8 @@ func (l *ListComboButton) SelectedEntry() any {
 	l.init.Do()
 	if l.button == nil {
 		return l.selectedEntry
-	} else {
-		return l.button.SelectedEntry()
 	}
+	return l.button.SelectedEntry()
 }
 
 func (l *ListComboButton) SetContentVisible(v bool) {
@@ -510,16 +509,14 @@ func (l *ListComboButton) ContentVisible() bool {
 	l.init.Do()
 	if l.button == nil {
 		return false
-	} else {
-		return l.button.ContentVisible()
 	}
+	return l.button.ContentVisible()
 }
 
 func (l *ListComboButton) Label() string {
 	l.init.Do()
 	if l.button == nil {
 		return ""
-	} else {
-		return l.button.Label()
 	}
+	return l.button.Label()
 }
