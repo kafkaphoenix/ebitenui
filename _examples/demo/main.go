@@ -165,7 +165,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 			widget.GridLayoutOpts.Spacing(20, 0),
 		)))
 
-	pages := []interface{}{
+	pages := []any{
 		buttonPage(res),
 		checkboxPage(res),
 		listPage(res),
@@ -195,7 +195,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 
 	pageList := widget.NewList(
 		widget.ListOpts.Entries(pages),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(*page).title
 		}),
 		widget.ListOpts.ScrollContainerImage(res.list.image),
@@ -282,7 +282,7 @@ func newPageContentContainer() *widget.Container {
 		)))
 }
 
-func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboButtonEntryLabelFunc, entryLabel widget.ListEntryLabelFunc,
+func newListComboButton(entries []any, buttonLabel widget.SelectComboButtonEntryLabelFunc, entryLabel widget.ListEntryLabelFunc,
 	entrySelectedHandler widget.ListComboButtonEntrySelectedHandlerFunc, res *uiResources) *widget.ListComboButton {
 
 	return widget.NewListComboButton(
@@ -308,7 +308,7 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 		widget.ListComboButtonOpts.EntrySelectedHandler(entrySelectedHandler))
 }
 
-func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.List {
+func newList(entries []any, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.List {
 	return widget.NewList(
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
 		widget.ListOpts.ScrollContainerImage(res.list.image),
@@ -320,7 +320,7 @@ func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.Widge
 		}),
 		widget.ListOpts.HideHorizontalSlider(),
 		widget.ListOpts.Entries(entries),
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(string)
 		}),
 		widget.ListOpts.EntryFontFace(res.list.face),
@@ -348,7 +348,7 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 	)
 }
 
-func newSeparator(res *uiResources, ld interface{}) widget.PreferredSizeLocateableWidget {
+func newSeparator(res *uiResources, ld any) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),

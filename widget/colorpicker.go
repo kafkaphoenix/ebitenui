@@ -448,7 +448,7 @@ func ringImage(r float64) *ebiten.Image {
 	return img
 }
 
-// ringPixels returns the premultiplied pixels of a ring of radius r, centred
+// ringPixels returns the premultiplied pixels of a ring of radius r, centered
 // in a square size pixels wide: a white line 1.5 pixels wide on a black one
 // 3 wide, smoothed over a pixel.
 func ringPixels(r float64) (pix []byte, size int) {
@@ -469,7 +469,7 @@ func ringPixels(r float64) (pix []byte, size int) {
 	return pix, size
 }
 
-// drawRing draws the ring centred on x, y.
+// drawRing draws the ring centered on x, y.
 func (p *ColorPicker) drawRing(screen *ebiten.Image, x, y float64) {
 	half := float64(p.ring.Bounds().Dx()) / 2
 	p.ringOp.GeoM.Reset()

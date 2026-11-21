@@ -247,7 +247,7 @@ func (u *UI) setTheme() {
 		}
 	}
 }
-func (u *UI) handleContextMenu(args interface{}) {
+func (u *UI) handleContextMenu(args any) {
 	if a, ok := args.(*widget.WidgetContextMenuEventArgs); ok {
 		x, y := a.Widget.ContextMenu.PreferredSize()
 		r := image.Rect(0, 0, x, y)
@@ -262,7 +262,7 @@ func (u *UI) handleContextMenu(args interface{}) {
 	}
 }
 
-func (u *UI) handleFocusEvent(args interface{}) {
+func (u *UI) handleFocusEvent(args any) {
 	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
 		switch {
 		case a.Focused: // New widget focused
@@ -279,7 +279,7 @@ func (u *UI) handleFocusEvent(args interface{}) {
 	}
 }
 
-func (u *UI) handleToolTipEvent(args interface{}) {
+func (u *UI) handleToolTipEvent(args any) {
 	if a, ok := args.(*widget.WidgetToolTipEventArgs); ok {
 		a.Window.Ephemeral = true
 		if a.Show {
@@ -290,7 +290,7 @@ func (u *UI) handleToolTipEvent(args interface{}) {
 	}
 }
 
-func (u *UI) handleDragAndDropEvent(args interface{}) {
+func (u *UI) handleDragAndDropEvent(args any) {
 	if a, ok := args.(*widget.WidgetDragAndDropEventArgs); ok {
 		if a.Show {
 			a.Window.Ephemeral = true
@@ -340,7 +340,6 @@ func (u *UI) handleFocusChangeRequest() {
 // nearest focusable widget that way, keeping the focus where it is when
 // there is none.
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
-
 	focusableWidgets := u.Container.GetFocusers()
 	// Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
 	for i := len(u.windows) - 1; i >= 0; i-- {
@@ -360,7 +359,6 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 			}
 			focusableWidgets[0].Focus(true)
 			u.focusedWidget = focusableWidgets[0]
-
 		} else if fwLen > 0 {
 			sort.SliceStable(focusableWidgets, func(i, j int) bool {
 				return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
@@ -368,7 +366,6 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 			if u.focusedWidget != nil {
 				if direction == widget.FOCUS_PREVIOUS {
 					for i := 0; i < fwLen; i++ {
-
 						if focusableWidgets[i] == u.focusedWidget {
 							u.focusedWidget.Focus(false)
 							if i == 0 {
@@ -381,7 +378,6 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 							return
 						}
 					}
-
 				} else {
 					for i := 0; i < fwLen-1; i++ {
 						if focusableWidgets[i] == u.focusedWidget {
@@ -421,7 +417,7 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 }
 
 // AddWindowQuietly adds window w to ui for rendering. It returns a function to remove w from ui.
-// This function allows you to specify if you would like it to close any open ephemeralWindows (tooltip/dnd/etc)
+// This function allows you to specify if you would like it to close any open ephemeralWindows (tooltip/dnd/etc).
 func (u *UI) AddWindowQuietly(w *widget.Window, closeEphemeralWindows bool) widget.RemoveWindowFunc {
 	if u.addWindow(w) {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
@@ -431,7 +427,6 @@ func (u *UI) AddWindowQuietly(w *widget.Window, closeEphemeralWindows bool) widg
 
 		if w.Modal && u.focusedWidget != nil {
 			u.focusedWidget.Focus(false)
-
 		}
 		if closeEphemeralWindows {
 			// Close all Ephemeral Windows (tooltip/dnd/etc)
@@ -480,7 +475,7 @@ func (u *UI) removeWindow(w *widget.Window) {
 	}
 }
 
-// Used to close tooltips/dnd etc
+// Used to close tooltips/dnd etc.
 func (u *UI) closeEphemeralWindows(windowIdx int) {
 	for i := len(u.windows) - 1; i >= windowIdx; i-- {
 		if u.windows[i].Ephemeral {
@@ -516,7 +511,7 @@ func (u *UI) HasFocus() bool {
 	return u.focusedWidget != nil
 }
 
-// This function will unfocus the currently focused widget
+// This function will unfocus the currently focused widget.
 func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
 		u.focusedWidget.Focus(false)
@@ -524,7 +519,7 @@ func (u *UI) ClearFocus() {
 	}
 }
 
-// This function will return the currently focused widget if available otherwise it returns nil
+// This function will return the currently focused widget if available otherwise it returns nil.
 func (u *UI) GetFocusedWidget() widget.Focuser {
 	return u.focusedWidget
 }
@@ -543,12 +538,12 @@ func (u *UI) SetFocusedWidget(focused widget.Focuser) {
 }
 
 // SetDebugMode enables or disables DebugMode which shows the
-// margins of the Widgets when hovering the cursor on them
+// margins of the Widgets when hovering the cursor on them.
 func (u *UI) SetDebugMode(dm bool) {
 	u.debugMode = dm
 }
 
-// GetDebugMode get's the current value of DebugMode
+// GetDebugMode get's the current value of DebugMode.
 func (u *UI) GetDebugMode() bool {
 	return u.debugMode
 }

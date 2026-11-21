@@ -14,7 +14,7 @@ func TestAddDeferred(t *testing.T) {
 	a1 := &deferredActionMock{}
 	a2 := &deferredActionMock{}
 
-	a1.On("Do").Run(func(args mock.Arguments) {
+	a1.On("Do").Run(func(_ mock.Arguments) {
 		AddDeferred(a2)
 	})
 	a2.On("Do")

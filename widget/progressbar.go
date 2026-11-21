@@ -61,22 +61,21 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 	return pb
 }
 
-func (pb *ProgressBar) Validate() {
-	pb.init.Do()
-	pb.populateComputedParams()
+func (p *ProgressBar) Validate() {
+	p.init.Do()
+	p.populateComputedParams()
 
-	if pb.computedParams.TrackImage == nil {
+	if p.computedParams.TrackImage == nil {
 		panic("ProgressBar: TrackImage is required.")
 	}
-	if pb.computedParams.TrackImage.Idle == nil {
+	if p.computedParams.TrackImage.Idle == nil {
 		panic("ProgressBar: TrackImage.Idle is required")
 	}
-
 }
 
-func (pb *ProgressBar) populateComputedParams() {
+func (p *ProgressBar) populateComputedParams() {
 	params := ProgressBarParams{}
-	theme := pb.widget.GetTheme()
+	theme := p.widget.GetTheme()
 	if theme != nil {
 		if theme.ProgressBarTheme != nil {
 			params.FillImage = theme.ProgressBarTheme.FillImage
@@ -84,47 +83,46 @@ func (pb *ProgressBar) populateComputedParams() {
 			params.TrackPadding = theme.ProgressBarTheme.TrackPadding
 		}
 	}
-	if pb.definedParams.FillImage != nil {
+	if p.definedParams.FillImage != nil {
 		if params.FillImage == nil {
-			params.FillImage = pb.definedParams.FillImage
+			params.FillImage = p.definedParams.FillImage
 		} else {
-			if pb.definedParams.FillImage.Idle != nil {
-				params.FillImage.Idle = pb.definedParams.FillImage.Idle
+			if p.definedParams.FillImage.Idle != nil {
+				params.FillImage.Idle = p.definedParams.FillImage.Idle
 			}
-			if pb.definedParams.FillImage.Hover != nil {
-				params.FillImage.Hover = pb.definedParams.FillImage.Hover
+			if p.definedParams.FillImage.Hover != nil {
+				params.FillImage.Hover = p.definedParams.FillImage.Hover
 			}
-			if pb.definedParams.FillImage.Disabled != nil {
-				params.FillImage.Disabled = pb.definedParams.FillImage.Disabled
+			if p.definedParams.FillImage.Disabled != nil {
+				params.FillImage.Disabled = p.definedParams.FillImage.Disabled
 			}
 		}
 	}
-	if pb.definedParams.TrackImage != nil {
+	if p.definedParams.TrackImage != nil {
 		if params.TrackImage == nil {
-			params.TrackImage = pb.definedParams.TrackImage
+			params.TrackImage = p.definedParams.TrackImage
 		} else {
-
-			if pb.definedParams.TrackImage.Idle != nil {
-				params.TrackImage.Idle = pb.definedParams.TrackImage.Idle
+			if p.definedParams.TrackImage.Idle != nil {
+				params.TrackImage.Idle = p.definedParams.TrackImage.Idle
 			}
-			if pb.definedParams.TrackImage.Hover != nil {
-				params.TrackImage.Hover = pb.definedParams.TrackImage.Hover
+			if p.definedParams.TrackImage.Hover != nil {
+				params.TrackImage.Hover = p.definedParams.TrackImage.Hover
 			}
-			if pb.definedParams.TrackImage.Disabled != nil {
-				params.TrackImage.Disabled = pb.definedParams.TrackImage.Disabled
+			if p.definedParams.TrackImage.Disabled != nil {
+				params.TrackImage.Disabled = p.definedParams.TrackImage.Disabled
 			}
 		}
 	}
 
-	if pb.definedParams.TrackPadding != nil {
-		params.TrackPadding = pb.definedParams.TrackPadding
+	if p.definedParams.TrackPadding != nil {
+		params.TrackPadding = p.definedParams.TrackPadding
 	}
 
 	if params.TrackPadding == nil {
 		params.TrackPadding = &Insets{}
 	}
 
-	pb.computedParams = params
+	p.computedParams = params
 }
 
 func (o ProgressBarOptions) WidgetOpts(opts ...WidgetOpt) ProgressBarOpt {
@@ -174,83 +172,83 @@ func (o ProgressBarOptions) TrackPadding(i *Insets) ProgressBarOpt {
 	}
 }
 
-func (o ProgressBarOptions) Values(min int, max int, current int) ProgressBarOpt {
-	return func(s *ProgressBar) {
-		s.Min = min
-		s.Max = max
-		s.current = current
+func (o ProgressBarOptions) Values(lowest, highest, current int) ProgressBarOpt {
+	return func(p *ProgressBar) {
+		p.Min = lowest
+		p.Max = highest
+		p.current = current
 	}
 }
 
-func (s *ProgressBar) GetWidget() *Widget {
-	s.init.Do()
-	return s.widget
+func (p *ProgressBar) GetWidget() *Widget {
+	p.init.Do()
+	return p.widget
 }
 
-func (s *ProgressBar) PreferredSize() (int, int) {
-	w, h := s.computedParams.TrackImage.Idle.MinSize()
-	if s.widget != nil {
-		if w < s.widget.MinWidth {
-			w = s.widget.MinWidth
+func (p *ProgressBar) PreferredSize() (int, int) {
+	w, h := p.computedParams.TrackImage.Idle.MinSize()
+	if p.widget != nil {
+		if w < p.widget.MinWidth {
+			w = p.widget.MinWidth
 		}
-		if h < s.widget.MinHeight {
-			h = s.widget.MinHeight
+		if h < p.widget.MinHeight {
+			h = p.widget.MinHeight
 		}
 	}
 	return w, h
 }
 
-func (s *ProgressBar) SetLocation(rect img.Rectangle) {
-	s.init.Do()
-	s.widget.Rect = rect
+func (p *ProgressBar) SetLocation(rect img.Rectangle) {
+	p.init.Do()
+	p.widget.Rect = rect
 }
 
-func (s *ProgressBar) Render(screen *ebiten.Image) {
-	s.init.Do()
-	s.widget.Render(screen)
-	s.draw(screen)
+func (p *ProgressBar) Render(screen *ebiten.Image) {
+	p.init.Do()
+	p.widget.Render(screen)
+	p.draw(screen)
 }
 
-func (s *ProgressBar) Update(updObj *UpdateObject) {
-	s.init.Do()
+func (p *ProgressBar) Update(updObj *UpdateObject) {
+	p.init.Do()
 
-	s.widget.Update(updObj)
+	p.widget.Update(updObj)
 }
 
-func (s *ProgressBar) draw(screen *ebiten.Image) {
-	i := s.computedParams.TrackImage.Idle
+func (p *ProgressBar) draw(screen *ebiten.Image) {
+	i := p.computedParams.TrackImage.Idle
 	var fill *image.NineSlice
-	if s.computedParams.FillImage != nil {
-		fill = s.computedParams.FillImage.Idle
+	if p.computedParams.FillImage != nil {
+		fill = p.computedParams.FillImage.Idle
 	}
-	if s.widget.Disabled {
-		if s.computedParams.TrackImage.Disabled != nil {
-			i = s.computedParams.TrackImage.Disabled
+	if p.widget.Disabled {
+		if p.computedParams.TrackImage.Disabled != nil {
+			i = p.computedParams.TrackImage.Disabled
 		}
-		if s.computedParams.FillImage.Disabled != nil {
-			fill = s.computedParams.FillImage.Disabled
+		if p.computedParams.FillImage.Disabled != nil {
+			fill = p.computedParams.FillImage.Disabled
 		}
 	}
 
 	if i != nil {
-		i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), s.widget.drawImageOptions)
+		i.Draw(screen, p.widget.Rect.Dx(), p.widget.Rect.Dy(), p.widget.drawImageOptions)
 	}
-	if fill != nil && s.currentPercentage() > 0 {
-		fillX := s.widget.Rect.Dx() - s.computedParams.TrackPadding.Left - s.computedParams.TrackPadding.Right
-		fillY := s.widget.Rect.Dy() - s.computedParams.TrackPadding.Top - s.computedParams.TrackPadding.Bottom
-		if s.direction == DirectionHorizontal {
-			fillX = int(float64(fillX) * s.currentPercentage())
+	if fill != nil && p.currentPercentage() > 0 {
+		fillX := p.widget.Rect.Dx() - p.computedParams.TrackPadding.Left - p.computedParams.TrackPadding.Right
+		fillY := p.widget.Rect.Dy() - p.computedParams.TrackPadding.Top - p.computedParams.TrackPadding.Bottom
+		if p.direction == DirectionHorizontal {
+			fillX = int(float64(fillX) * p.currentPercentage())
 		} else {
-			fillY = int(float64(fillY) * s.currentPercentage())
+			fillY = int(float64(fillY) * p.currentPercentage())
 		}
 		fill.Draw(screen, fillX, fillY, func(opts *ebiten.DrawImageOptions) {
-			tx := s.widget.Rect.Min.X + s.computedParams.TrackPadding.Left
-			ty := s.widget.Rect.Min.Y + s.computedParams.TrackPadding.Top
-			if s.inverted {
-				if s.direction == DirectionHorizontal {
-					tx = s.widget.Rect.Max.X - s.computedParams.TrackPadding.Right - fillX
+			tx := p.widget.Rect.Min.X + p.computedParams.TrackPadding.Left
+			ty := p.widget.Rect.Min.Y + p.computedParams.TrackPadding.Top
+			if p.inverted {
+				if p.direction == DirectionHorizontal {
+					tx = p.widget.Rect.Max.X - p.computedParams.TrackPadding.Right - fillX
 				} else {
-					ty = s.widget.Rect.Max.Y - s.computedParams.TrackPadding.Bottom - fillY
+					ty = p.widget.Rect.Max.Y - p.computedParams.TrackPadding.Bottom - fillY
 				}
 			}
 			opts.GeoM.Translate(float64(tx), float64(ty))
@@ -258,31 +256,31 @@ func (s *ProgressBar) draw(screen *ebiten.Image) {
 	}
 }
 
-func (s *ProgressBar) currentPercentage() float64 {
-	if s.Max <= s.Min {
+func (p *ProgressBar) currentPercentage() float64 {
+	if p.Max <= p.Min {
 		return 0
 	}
 
-	return float64(s.current-s.Min) / float64(s.Max-s.Min)
+	return float64(p.current-p.Min) / float64(p.Max-p.Min)
 }
 
-func (s *ProgressBar) SetCurrent(value int) bool {
-	oldValue := s.current
+func (p *ProgressBar) SetCurrent(value int) bool {
+	oldValue := p.current
 	switch {
-	case value < s.Min:
-		s.current = s.Min
-	case value > s.Max:
-		s.current = s.Max
+	case value < p.Min:
+		p.current = p.Min
+	case value > p.Max:
+		p.current = p.Max
 	default:
-		s.current = value
+		p.current = value
 	}
-	return oldValue != s.current
+	return oldValue != p.current
 }
 
-func (s *ProgressBar) GetCurrent() int {
-	return s.current
+func (p *ProgressBar) GetCurrent() int {
+	return p.current
 }
 
-func (s *ProgressBar) createWidget() {
-	s.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, s.widgetOpts...)...)
+func (p *ProgressBar) createWidget() {
+	p.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, p.widgetOpts...)...)
 }

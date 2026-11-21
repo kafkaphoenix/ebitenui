@@ -69,7 +69,7 @@ func GetBasicDarkThemeWith(opts ...ThemeOpt) *widget.Theme {
 // shapes them.
 func newBasicDarkTheme(s shape) *widget.Theme {
 	// load button text font
-	face, _ := loadFont(20)
+	face := loadFont(20)
 	entryColor := &widget.ListEntryColor{
 		Unselected:         color.White,
 		Selected:           color.White,

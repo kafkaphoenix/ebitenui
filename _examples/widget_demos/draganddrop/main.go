@@ -33,7 +33,7 @@ type dndWidget struct {
 //
 // Inputs:
 //   - parent - The widget that triggered this Drag and drop event
-func (dnd *dndWidget) Create(parent widget.HasWidget) (*widget.Container, interface{}) {
+func (dnd *dndWidget) Create(parent widget.HasWidget) (*widget.Container, any) {
 	// For this example we do not need to recreate the Dragged element each time. We can re-use it.
 	if dnd.dndObj == nil {
 		// load text font
@@ -60,7 +60,7 @@ func (dnd *dndWidget) Create(parent widget.HasWidget) (*widget.Container, interf
 //   - canDrop - if the cursor is over a widget that allows this object to be dropped
 //   - targetWidget - The widget that will allow this object to be dropped.
 //   - dragData - The drag data provided by the Create method above.
-func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragData interface{}) {
+func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragData any) {
 	if canDrop {
 		dnd.text.Label = "* Can Drop *"
 		if targetWidget != nil {
@@ -82,7 +82,7 @@ func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragDa
 //   - dropped - if drop was completed successfully
 //   - targetWidget - The widget that will allow this object to be dropped.
 //   - dragData - The drag data provided by the Create method above.
-func (dnd *dndWidget) EndDrag(dropped bool, sourceWidget widget.HasWidget, dragData interface{}) {
+func (dnd *dndWidget) EndDrag(dropped bool, sourceWidget widget.HasWidget, dragData any) {
 	if dropped {
 		fmt.Println("Dropped Successful")
 	} else {

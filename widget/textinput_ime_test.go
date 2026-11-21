@@ -181,13 +181,13 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 	ti.GetWidget().Disabled = true
 	ti.Update(&UpdateObject{})
 	is.Equal(ime.updates, 1)                // not asked while disabled
-	is.Equal(ime.ends, []bool{true, false}) // cancelled
+	is.Equal(ime.ends, []bool{true, false}) // canceled
 
 	ti.Focus(false)
 	is.Equal(ime.ends, []bool{true, false, true}) // committed on losing focus
 
 	ti.SetText("bar")
-	is.Equal(ime.ends, []bool{true, false, true, false}) // replaced, so cancelled
+	is.Equal(ime.ends, []bool{true, false, true, false}) // replaced, so canceled
 }
 
 // Dismissing the virtual keyboard ends the input's focus.

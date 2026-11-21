@@ -3,10 +3,11 @@ package widget
 import (
 	"image"
 
+	"slices"
+
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
-	"golang.org/x/exp/slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -46,8 +47,8 @@ type ListComboButtonOpt func(l *ListComboButton)
 
 type ListComboButtonEntrySelectedEventArgs struct {
 	Button        *ListComboButton
-	Entry         interface{}
-	PreviousEntry interface{}
+	Entry         any
+	PreviousEntry any
 }
 
 type ListComboButtonEntrySelectedHandlerFunc func(args *ListComboButtonEntrySelectedEventArgs)
@@ -81,10 +82,10 @@ func (l *ListComboButton) Validate() {
 	l.initWidget()
 }
 
-func (t *ListComboButton) populateComputedParams() {
+func (l *ListComboButton) populateComputedParams() {
 	params := ListComboButtonParams{Button: &ButtonParams{}, List: &ListParams{}}
 
-	theme := t.GetWidget().GetTheme()
+	theme := l.GetWidget().GetTheme()
 
 	// Set theme values
 	if theme != nil {
@@ -130,87 +131,87 @@ func (t *ListComboButton) populateComputedParams() {
 	}
 
 	// Set definedParam values
-	if t.definedParams.DisableDefaultKeys != nil {
-		params.DisableDefaultKeys = t.definedParams.DisableDefaultKeys
+	if l.definedParams.DisableDefaultKeys != nil {
+		params.DisableDefaultKeys = l.definedParams.DisableDefaultKeys
 	}
-	if t.definedParams.MaxContentHeight != nil {
-		params.MaxContentHeight = t.definedParams.MaxContentHeight
+	if l.definedParams.MaxContentHeight != nil {
+		params.MaxContentHeight = l.definedParams.MaxContentHeight
 	}
-	if t.definedParams.Button != nil {
-		if t.definedParams.Button.GraphicImage != nil {
-			params.Button.GraphicImage = t.definedParams.Button.GraphicImage
+	if l.definedParams.Button != nil {
+		if l.definedParams.Button.GraphicImage != nil {
+			params.Button.GraphicImage = l.definedParams.Button.GraphicImage
 		}
-		if t.definedParams.Button.GraphicPadding != nil {
-			params.Button.GraphicPadding = t.definedParams.Button.GraphicPadding
+		if l.definedParams.Button.GraphicPadding != nil {
+			params.Button.GraphicPadding = l.definedParams.Button.GraphicPadding
 		}
-		if t.definedParams.Button.Image != nil {
-			params.Button.Image = t.definedParams.Button.Image
+		if l.definedParams.Button.Image != nil {
+			params.Button.Image = l.definedParams.Button.Image
 		}
-		if t.definedParams.Button.MinSize != nil {
-			params.Button.MinSize = t.definedParams.Button.MinSize
+		if l.definedParams.Button.MinSize != nil {
+			params.Button.MinSize = l.definedParams.Button.MinSize
 		}
-		if t.definedParams.Button.TextColor != nil {
-			params.Button.TextColor = t.definedParams.Button.TextColor
+		if l.definedParams.Button.TextColor != nil {
+			params.Button.TextColor = l.definedParams.Button.TextColor
 		}
-		if t.definedParams.Button.TextFace != nil {
-			params.Button.TextFace = t.definedParams.Button.TextFace
+		if l.definedParams.Button.TextFace != nil {
+			params.Button.TextFace = l.definedParams.Button.TextFace
 		}
-		if t.definedParams.Button.TextPadding != nil {
-			params.Button.TextPadding = t.definedParams.Button.TextPadding
+		if l.definedParams.Button.TextPadding != nil {
+			params.Button.TextPadding = l.definedParams.Button.TextPadding
 		}
-		if t.definedParams.Button.TextPosition != nil {
-			params.Button.TextPosition = t.definedParams.Button.TextPosition
+		if l.definedParams.Button.TextPosition != nil {
+			params.Button.TextPosition = l.definedParams.Button.TextPosition
 		}
 	}
-	if t.definedParams.List != nil {
-		if t.definedParams.List.AllowReselect != nil {
-			params.List.AllowReselect = t.definedParams.List.AllowReselect
+	if l.definedParams.List != nil {
+		if l.definedParams.List.AllowReselect != nil {
+			params.List.AllowReselect = l.definedParams.List.AllowReselect
 		}
-		if t.definedParams.List.ControlWidgetSpacing != nil {
-			params.List.ControlWidgetSpacing = t.definedParams.List.ControlWidgetSpacing
+		if l.definedParams.List.ControlWidgetSpacing != nil {
+			params.List.ControlWidgetSpacing = l.definedParams.List.ControlWidgetSpacing
 		}
-		if t.definedParams.List.DisableDefaultKeys != nil {
-			params.List.DisableDefaultKeys = t.definedParams.List.DisableDefaultKeys
+		if l.definedParams.List.DisableDefaultKeys != nil {
+			params.List.DisableDefaultKeys = l.definedParams.List.DisableDefaultKeys
 		}
-		if t.definedParams.List.EntryFace != nil {
-			params.List.EntryFace = t.definedParams.List.EntryFace
+		if l.definedParams.List.EntryFace != nil {
+			params.List.EntryFace = l.definedParams.List.EntryFace
 		}
-		if t.definedParams.List.EntryColor != nil {
-			params.List.EntryColor = t.definedParams.List.EntryColor
+		if l.definedParams.List.EntryColor != nil {
+			params.List.EntryColor = l.definedParams.List.EntryColor
 		}
-		if t.definedParams.List.EntryImage != nil || t.definedParams.List.EntryColor != nil {
-			params.List.EntryImage = t.definedParams.List.EntryImage // colors given show, not the theme's images
+		if l.definedParams.List.EntryImage != nil || l.definedParams.List.EntryColor != nil {
+			params.List.EntryImage = l.definedParams.List.EntryImage // colors given show, not the theme's images
 		}
 
-		if t.definedParams.List.EntryTextHorizontalPosition != nil {
-			params.List.EntryTextHorizontalPosition = t.definedParams.List.EntryTextHorizontalPosition
+		if l.definedParams.List.EntryTextHorizontalPosition != nil {
+			params.List.EntryTextHorizontalPosition = l.definedParams.List.EntryTextHorizontalPosition
 		}
-		if t.definedParams.List.EntryTextPadding != nil {
-			params.List.EntryTextPadding = t.definedParams.List.EntryTextPadding
+		if l.definedParams.List.EntryTextPadding != nil {
+			params.List.EntryTextPadding = l.definedParams.List.EntryTextPadding
 		}
-		if t.definedParams.List.EntryTextVerticalPosition != nil {
-			params.List.EntryTextVerticalPosition = t.definedParams.List.EntryTextVerticalPosition
+		if l.definedParams.List.EntryTextVerticalPosition != nil {
+			params.List.EntryTextVerticalPosition = l.definedParams.List.EntryTextVerticalPosition
 		}
-		if t.definedParams.List.EntryColor != nil {
-			params.List.EntryColor = t.definedParams.List.EntryColor
+		if l.definedParams.List.EntryColor != nil {
+			params.List.EntryColor = l.definedParams.List.EntryColor
 		}
-		if t.definedParams.List.ScrollContainerImage != nil {
-			params.List.ScrollContainerImage = t.definedParams.List.ScrollContainerImage
+		if l.definedParams.List.ScrollContainerImage != nil {
+			params.List.ScrollContainerImage = l.definedParams.List.ScrollContainerImage
 		}
-		if t.definedParams.List.ScrollContainerPadding != nil {
-			params.List.ScrollContainerPadding = t.definedParams.List.ScrollContainerPadding
+		if l.definedParams.List.ScrollContainerPadding != nil {
+			params.List.ScrollContainerPadding = l.definedParams.List.ScrollContainerPadding
 		}
-		if t.definedParams.List.SelectFocus != nil {
-			params.List.SelectFocus = t.definedParams.List.SelectFocus
+		if l.definedParams.List.SelectFocus != nil {
+			params.List.SelectFocus = l.definedParams.List.SelectFocus
 		}
-		if t.definedParams.List.SelectPressed != nil {
-			params.List.SelectPressed = t.definedParams.List.SelectPressed
+		if l.definedParams.List.SelectPressed != nil {
+			params.List.SelectPressed = l.definedParams.List.SelectPressed
 		}
-		if t.definedParams.List.Slider != nil {
-			params.List.Slider = t.definedParams.List.Slider
+		if l.definedParams.List.Slider != nil {
+			params.List.Slider = l.definedParams.List.Slider
 		}
-		if t.definedParams.List.MinSize != nil {
-			params.List.MinSize = t.definedParams.List.MinSize
+		if l.definedParams.List.MinSize != nil {
+			params.List.MinSize = l.definedParams.List.MinSize
 		}
 	}
 	// Set defaults
@@ -221,7 +222,7 @@ func (t *ListComboButton) populateComputedParams() {
 		params.DisableDefaultKeys = constantutil.ConstantToPointer(false)
 	}
 
-	t.computedParams = params
+	l.computedParams = params
 }
 
 func (o ListComboButtonOptions) WidgetOpts(opts ...WidgetOpt) ListComboButtonOpt {
@@ -283,7 +284,7 @@ func (o ListComboButtonOptions) EntryWidgetFunc(f ListEntryWidgetFunc) ListCombo
 
 func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
+		l.EntrySelectedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*ListComboButtonEntrySelectedEventArgs); ok {
 				f(arg)
 			}
@@ -384,7 +385,6 @@ func (l *ListComboButton) Render(screen *ebiten.Image) {
 	l.init.Do()
 
 	l.button.Render(screen)
-
 }
 
 func (l *ListComboButton) Update(updObj *UpdateObject) {
@@ -422,7 +422,6 @@ func (l *ListComboButton) createWidget() {
 }
 
 func (l *ListComboButton) initWidget() {
-
 	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc))
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
@@ -452,7 +451,7 @@ func (l *ListComboButton) initWidget() {
 	l.button.GetWidget().parent = l.widget
 	l.button.Validate()
 
-	l.button.EntrySelectedEvent.AddHandler(func(args interface{}) {
+	l.button.EntrySelectedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
 			l.EntrySelectedEvent.Fire(&ListComboButtonEntrySelectedEventArgs{
 				Button:        l,
@@ -462,7 +461,7 @@ func (l *ListComboButton) initWidget() {
 		}
 	})
 
-	l.list.EntrySelectedEvent.AddHandler(func(args interface{}) {
+	l.list.EntrySelectedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*ListEntrySelectedEventArgs); ok {
 			l.SetContentVisible(false)
 			l.SetSelectedEntry(a.Entry)
@@ -479,7 +478,7 @@ func (l *ListComboButton) initWidget() {
 	}
 }
 
-func (l *ListComboButton) SetSelectedEntry(e interface{}) {
+func (l *ListComboButton) SetSelectedEntry(e any) {
 	l.init.Do()
 	l.selectedEntry = e
 	if l.button != nil && l.list != nil {
@@ -488,13 +487,12 @@ func (l *ListComboButton) SetSelectedEntry(e interface{}) {
 	}
 }
 
-func (l *ListComboButton) SelectedEntry() interface{} {
+func (l *ListComboButton) SelectedEntry() any {
 	l.init.Do()
 	if l.button == nil {
 		return l.selectedEntry
-	} else {
-		return l.button.SelectedEntry()
 	}
+	return l.button.SelectedEntry()
 }
 
 func (l *ListComboButton) SetContentVisible(v bool) {
@@ -512,16 +510,14 @@ func (l *ListComboButton) ContentVisible() bool {
 	l.init.Do()
 	if l.button == nil {
 		return false
-	} else {
-		return l.button.ContentVisible()
 	}
+	return l.button.ContentVisible()
 }
 
 func (l *ListComboButton) Label() string {
 	l.init.Do()
 	if l.button == nil {
 		return ""
-	} else {
-		return l.button.Label()
 	}
+	return l.button.Label()
 }

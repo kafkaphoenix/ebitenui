@@ -276,7 +276,7 @@ func (o CheckboxOptions) TabOrder(tabOrder int) CheckboxOpt {
 // This option allows you to specify a callback to be called when the checkbox state is changed.
 func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.StateChangedEvent.AddHandler(func(args interface{}) {
+		c.StateChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*CheckboxChangedEventArgs); ok {
 				f(arg)
 			}
@@ -299,37 +299,37 @@ func (o CheckboxOptions) DisableDefaultKeys() CheckboxOpt {
 }
 
 // This function will return the internal Text object if this checkbox has a label, otherwise nil.
-func (tw *Checkbox) Text() *Text {
-	if tw.label == nil {
+func (c *Checkbox) Text() *Text {
+	if c.label == nil {
 		return nil
 	}
-	return tw.label.text
+	return c.label.text
 }
 
 // This function will return the current state the checkbox is in.
-func (tw *Checkbox) State() WidgetState {
-	return tw.state
+func (c *Checkbox) State() WidgetState {
+	return c.state
 }
 
 // This function will allow you to update the checkbox's current state.
-func (tw *Checkbox) SetState(state WidgetState) {
-	if state == WidgetGreyed && !tw.triState {
+func (c *Checkbox) SetState(state WidgetState) {
+	if state == WidgetGreyed && !c.triState {
 		panic("non-tri state Checkbox cannot be in greyed state")
 	}
 
-	if state != tw.state {
-		tw.state = state
+	if state != c.state {
+		c.state = state
 
-		tw.StateChangedEvent.Fire(&CheckboxChangedEventArgs{
-			Active: tw,
-			State:  tw.state,
+		c.StateChangedEvent.Fire(&CheckboxChangedEventArgs{
+			Active: c,
+			State:  c.state,
 		})
 	}
 }
 
 // This method is required for this to be part of a radio button group.
-func (tw *Checkbox) getStateChangedEvent() *event.Event {
-	return tw.StateChangedEvent
+func (c *Checkbox) getStateChangedEvent() *event.Event {
+	return c.StateChangedEvent
 }
 
 func (c *Checkbox) GetWidget() *Widget {
@@ -391,10 +391,9 @@ func (c *Checkbox) checkboxPreferredSize() (int, int) {
 func (c *Checkbox) SetLocation(rect img.Rectangle) {
 	c.init.Do()
 	c.widget.Rect = rect
-
 }
 
-func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+func (c *Checkbox) SetupInputLayer(_ input.DeferredSetupInputLayerFunc) {
 	c.init.Do()
 }
 
@@ -432,7 +431,6 @@ func (c *Checkbox) Render(screen *ebiten.Image) {
 			c.currentImage().Draw(screen, cx, cy, func(opts *ebiten.DrawImageOptions) {
 				opts.GeoM.Translate(float64(c.widget.Rect.Min.X+lx+c.spacing), float64(checkboxStartY))
 			})
-
 		}
 	}
 }
@@ -490,13 +488,13 @@ func (c *Checkbox) Click() {
 func (c *Checkbox) createWidget() {
 	c.widget = NewWidget(append([]WidgetOpt{
 		WidgetOpts.TrackHover(true),
-		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
 			if !c.widget.Disabled {
 				c.hovering = true
 			}
 		}),
 
-		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
 			c.hovering = false
 		}),
 
@@ -512,7 +510,7 @@ func (c *Checkbox) createWidget() {
 			LabelOpts.TextOpts(
 				TextOpts.Position(TextPositionStart, TextPositionCenter),
 				TextOpts.WidgetOpts(
-					WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+					WidgetOpts.MouseButtonClickedHandler(func(_ *WidgetMouseButtonClickedEventArgs) {
 						c.Click()
 					}),
 				),

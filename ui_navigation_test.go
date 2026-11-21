@@ -196,7 +196,7 @@ func TestUI_Back(t *testing.T) {
 
 	combo := widget.NewListComboButton(
 		widget.ListComboButtonOpts.Entries([]any{"a", "b"}),
-		widget.ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, func(e any) string { return e.(string) }), //nolint:forcetypeassert // strings
+		widget.ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, func(e any) string { return e.(string) }),
 	)
 	combo.GetWidget().Rect = image.Rect(0, 0, 100, 20)
 	ui := focusUI(combo)

@@ -120,7 +120,6 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 }
 
 func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
-
 	if ld.StretchHorizontal {
 		ww = rect.Dx()
 	}

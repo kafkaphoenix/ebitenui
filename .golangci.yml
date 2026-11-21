@@ -1,20 +1,156 @@
+version: "2"
+
+# As strict as project-astra's, with the library's own linters (decorder,
+# dupl, forcetypeassert, goconst, godot, nilerr, predeclared, wrapcheck).
+# The exclusions say why each is there; the last ones list what was over
+# gocognit's limit or duplicated when they were set, so new code meets
+# both, and each goes as its code is reworked.
+
 linters:
+  default: standard
   enable:
-    - errcheck
-    - gosimple
-    - ineffassign
+    - copyloopvar
     - decorder
     - dupl
+    - durationcheck
     - errorlint
     - exhaustive
     - forcetypeassert
+    - gochecknoinits
+    - gocognit
     - goconst
-    - godot
-    - prealloc
-    - nilerr
-    - predeclared
-    - unconvert
-    - wrapcheck
-    - staticcheck
-    - dupl
     - gocritic
+    - godot
+    - gosec
+    - iface
+    - inamedparam
+    - misspell
+    - nilerr
+    - nolintlint
+    - perfsprint
+    - prealloc
+    - predeclared
+    - reassign
+    - revive
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - whitespace
+    - wrapcheck
+  settings:
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+    exhaustive:
+      default-signifies-exhaustive: false
+    gocognit:
+      min-complexity: 20
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+    inamedparam:
+      skip-single-param: true
+    misspell:
+      locale: US
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    generated: lax
+    rules:
+      # In tests a literal repeated reads better than a constant, and an
+      # unchecked type assertion that fails panics, failing the test where
+      # it happened.
+      - path: _test\.go
+        linters:
+          - gosec
+          - goconst
+          - forcetypeassert
+      # Doc comments on every exported name are the goal; most have none
+      # yet, and they come package by package.
+      - linters:
+          - revive
+        text: (comment on exported|should have( a package)? comment|comment should be of the form)
+      # Exported names callers use (input.CURSOR_DEFAULT, Visibility_Hide,
+      # LinkEventArgs.Id, NewBorder's type, widget.WidgetOpt): renaming
+      # them changes the API, which waits for a branch of its own.
+      - linters:
+          - revive
+        text: "exported: .* that stutters"
+      - linters:
+          - revive
+        path: (input.input|widget.(checkbox|dnd|text|tooltip|widget|window)|image.nineslice)\.go$
+        text: "(var-naming: don't use (ALL_CAPS|underscores)|var-naming: struct field Id|unexported-return)"
+      # Functions over gocognit's limit when it was set, each to be
+      # reworked; a function's name goes from its rule as it is.
+      - linters: [gocognit]
+        path: ^ui\.go$
+        text: '`\(\*UI\)\.(ChangeFocus|Update)`'
+      - linters: [gocognit]
+        path: widget.button\.go$
+        text: '`\(\*Button\)\.(Render|createWidget|draw|populateComputedParams)`'
+      - linters: [gocognit]
+        path: widget.checkbox\.go$
+        text: '`\(\*Checkbox\)\.populateComputedParams`'
+      - linters: [gocognit]
+        path: widget.dnd\.go$
+        text: '`\(\*DragAndDrop\)\.(draggingState|droppingState)`'
+      - linters: [gocognit]
+        path: widget.label\.go$
+        text: '`\(\*Label\)\.populateComputedParams`'
+      - linters: [gocognit]
+        path: widget.list\.go$
+        text: '`\(\*List\)\.(initWidget|populateComputedParams)`'
+      - linters: [gocognit]
+        path: widget.listcombobutton\.go$
+        text: '`\(\*ListComboButton\)\.populateComputedParams`'
+      - linters: [gocognit]
+        path: widget.progressbar\.go$
+        text: '`\(\*ProgressBar\)\.populateComputedParams`'
+      - linters: [gocognit]
+        path: widget.scrollcontainer\.go$
+        text: '`\(\*ScrollContainer\)\.updateDrag`'
+      - linters: [gocognit]
+        path: widget.slider\.go$
+        text: '`\(\*Slider\)\.createWidget`'
+      - linters: [gocognit]
+        path: widget.tabbook\.go$
+        text: '`\(\*TabBook\)\.(initTabBook|populateComputedParams)`'
+      - linters: [gocognit]
+        path: widget.text\.go$
+        text: '`\(\*Text\)\.(draw|handleLinkEvents|processTree)`'
+      - linters: [gocognit]
+        path: widget.textarea\.go$
+        text: '`\(\*TextArea\)\.(initWidget|populateComputedParams)`'
+      - linters: [gocognit]
+        path: widget.textinput\.go$
+        text: '`\(\*TextInput\)\.(idleState|populateComputedParams)`'
+      - linters: [gocognit]
+        path: widget.virtuallist\.go$
+        text: '`\(\*VirtualList\)\.lookUpLabels`'
+      - linters: [gocognit]
+        path: widget.widget\.go$
+        text: '`\(\*Widget\)\.fireEvents`'
+      - linters: [gocognit]
+        path: widget.window\.go$
+        text: '`\(\*Window\)\.(Render|createWidget)`'
+      # Code duplicated when dupl was set: the basic themes' check box
+      # and slider images, and List's and TextArea's slider set-up.
+      - linters: [dupl]
+        path: themes.theme_basic_(dark|light)\.go$
+      - linters: [dupl]
+        path: widget.(list|textarea)\.go$
+        text: 'duplicate of `widget.(list|textarea)\.go'
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any

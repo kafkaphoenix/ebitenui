@@ -46,21 +46,20 @@ type DragAndDropOptions struct {
 var DragAndDropOpts DragAndDropOptions
 
 type DragContentsCreater interface {
-	Create(HasWidget) (*Container, interface{})
+	Create(HasWidget) (*Container, any)
 }
 
 type DragContentsUpdater interface {
-	// arg1 - isDroppable
-	// arg2 - HasWidget if droppable
-	// arg3 - DragData
-	Update(bool, HasWidget, interface{})
+	// Update is called as the contents are dragged: droppable is whether
+	// they may be dropped where they are, target the widget they would be
+	// dropped on, if droppable, and data the drag's data.
+	Update(droppable bool, target HasWidget, data any)
 }
 
 type DragContentsEnder interface {
-	// arg1 - Drop was successful
-	// arg2 - Source Widget
-	// arg3 - DragData
-	EndDrag(bool, HasWidget, interface{})
+	// EndDrag is called as the drag ends: dropped is whether the drop
+	// succeeded, source the widget dragged from and data the drag's data.
+	EndDrag(dropped bool, source HasWidget, data any)
 }
 
 type dragAndDropState func(HasWidget) (dragAndDropState, bool)
@@ -149,7 +148,7 @@ func (d *DragAndDrop) StopDrag() {
 	d.dndStopped = true
 }
 
-func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+func (d *DragAndDrop) SetupInputLayer(_ input.DeferredSetupInputLayerFunc) {
 	if d.dragWidget != nil {
 		d.dragLayer = input.Layer{ // kept, not made each frame
 			DebugLabel: "drag widget",
@@ -209,7 +208,7 @@ func (d *DragAndDrop) dragArmedState(srcX int, srcY int) dragAndDropState {
 	}
 }
 
-func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, dragData interface{}, mousePressed bool) dragAndDropState {
+func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, dragData any, mousePressed bool) dragAndDropState {
 	return func(parent HasWidget) (dragAndDropState, bool) {
 		x, y := input.CursorPosition()
 
@@ -272,7 +271,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 		if input.KeyPressed(ebiten.KeyEscape) || d.dndStopped {
 			if dce, ok := d.contentsCreater.(DragContentsEnder); ok {
 				e := &event.Event{}
-				event.AddEventHandlerOneShot(e, func(_ interface{}) {
+				event.AddEventHandlerOneShot(e, func(_ any) {
 					dce.EndDrag(false, parent, dragData)
 				})
 				e.Fire(nil)
@@ -292,7 +291,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 	}
 }
 
-func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData interface{}) dragAndDropState {
+func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData any) dragAndDropState {
 	return func(parent HasWidget) (dragAndDropState, bool) {
 		args := &DragAndDropDroppedEventArgs{
 			Source:  parent,
@@ -317,7 +316,7 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 				if target.GetWidget().drop != nil {
 					args.Target = target
 					e := &event.Event{}
-					event.AddEventHandlerOneShot(e, func(_ interface{}) {
+					event.AddEventHandlerOneShot(e, func(_ any) {
 						target.GetWidget().drop(args)
 					})
 					e.Fire(nil)
@@ -329,7 +328,7 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 
 		if dce, ok := d.contentsCreater.(DragContentsEnder); ok {
 			e := &event.Event{}
-			event.AddEventHandlerOneShot(e, func(_ interface{}) {
+			event.AddEventHandlerOneShot(e, func(_ any) {
 				dce.EndDrag(dropSuccessful, parent, dragData)
 			})
 			e.Fire(nil)

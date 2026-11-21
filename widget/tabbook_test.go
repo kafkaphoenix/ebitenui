@@ -126,7 +126,7 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 }
 
 func tabBookButtons(t *TabBook) []*Button {
-	buttons := []*Button{}
+	buttons := make([]*Button, 0, len(t.tabs))
 	for _, tab := range t.tabs {
 		buttons = append(buttons, t.tabToButton[tab])
 	}

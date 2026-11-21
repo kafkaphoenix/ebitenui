@@ -13,14 +13,14 @@ import (
 
 func getLightCheckbox(s shape) *widget.CheckboxImage {
 	border := s.upTo(checkboxRadius).box(color.White, color.Black, 2)
-	hover_border := s.upTo(checkboxRadius).box(color.NRGBA{214, 242, 255, 255}, color.Black, 2)
+	hoverBorder := s.upTo(checkboxRadius).box(color.NRGBA{214, 242, 255, 255}, color.Black, 2)
 	idle := ebiten.NewImage(32, 32)
 	border.Draw(idle, 32, 32, nil)
 	idle9s := image.NewFixedNineSlice(idle)
 
-	idle_hover := ebiten.NewImage(32, 32)
-	hover_border.Draw(idle_hover, 32, 32, nil)
-	idle_hover9s := image.NewFixedNineSlice(idle_hover)
+	idleHover := ebiten.NewImage(32, 32)
+	hoverBorder.Draw(idleHover, 32, 32, nil)
+	idleHover9s := image.NewFixedNineSlice(idleHover)
 	// Create checked image
 	checked := ebiten.NewImage(32, 32)
 	border.Draw(checked, 32, 32, nil)
@@ -39,10 +39,10 @@ func getLightCheckbox(s shape) *widget.CheckboxImage {
 	vector.StrokePath(checked, &checkmark, strokeOp, drawOp)
 	checked9s := image.NewFixedNineSlice(checked)
 
-	checked_hover := ebiten.NewImage(32, 32)
-	hover_border.Draw(checked_hover, 32, 32, nil)
-	vector.StrokePath(checked_hover, &checkmark, strokeOp, drawOp)
-	checked_hover9s := image.NewFixedNineSlice(checked_hover)
+	checkedHover := ebiten.NewImage(32, 32)
+	hoverBorder.Draw(checkedHover, 32, 32, nil)
+	vector.StrokePath(checkedHover, &checkmark, strokeOp, drawOp)
+	checkedHover9s := image.NewFixedNineSlice(checkedHover)
 
 	// Create greyed image
 	greyed := ebiten.NewImage(32, 32)
@@ -50,18 +50,18 @@ func getLightCheckbox(s shape) *widget.CheckboxImage {
 	vector.StrokeLine(greyed, 5, 16, 27, 16, 3, color.Black, true)
 	greyed9s := image.NewFixedNineSlice(greyed)
 
-	greyed_hover := ebiten.NewImage(32, 32)
-	hover_border.Draw(greyed_hover, 32, 32, nil)
-	vector.StrokeLine(greyed_hover, 5, 16, 27, 16, 3, color.Black, true)
-	greyed_hover9s := image.NewFixedNineSlice(greyed_hover)
+	greyedHover := ebiten.NewImage(32, 32)
+	hoverBorder.Draw(greyedHover, 32, 32, nil)
+	vector.StrokeLine(greyedHover, 5, 16, 27, 16, 3, color.Black, true)
+	greyedHover9s := image.NewFixedNineSlice(greyedHover)
 
 	return &widget.CheckboxImage{
 		Unchecked:         idle9s,
 		Checked:           checked9s,
 		Greyed:            greyed9s,
-		UncheckedHovered:  idle_hover9s,
-		CheckedHovered:    checked_hover9s,
-		GreyedHovered:     greyed_hover9s,
+		UncheckedHovered:  idleHover9s,
+		CheckedHovered:    checkedHover9s,
+		GreyedHovered:     greyedHover9s,
 		UncheckedDisabled: idle9s,
 		CheckedDisabled:   checked9s,
 		GreyedDisabled:    greyed9s,
@@ -82,7 +82,7 @@ func GetBasicLightThemeWith(opts ...ThemeOpt) *widget.Theme {
 // shapes them.
 func newBasicLightTheme(s shape) *widget.Theme {
 	// load button text font
-	face, _ := loadFont(20)
+	face := loadFont(20)
 	entryColor := &widget.ListEntryColor{
 		Unselected:         color.Black,
 		Selected:           color.Black,

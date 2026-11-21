@@ -118,7 +118,7 @@ func listPage(res *uiResources) *page {
 			widget.GridLayoutOpts.Spacing(10, 0))))
 	c.AddChild(listsContainer)
 
-	entries1 := []interface{}{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"}
+	entries1 := []any{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"}
 	list1 := newList(entries1, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: 220,
 	}))
@@ -144,7 +144,7 @@ func listPage(res *uiResources) *page {
 		bs = append(bs, b)
 	}
 
-	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
+	entries2 := []any{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
 	list2 := newList(entries2, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: 220,
 	}))
@@ -266,17 +266,17 @@ func textAreaPage(res *uiResources) *page {
 func comboButtonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	entries := []interface{}{}
+	entries := []any{}
 	for i := 1; i <= 20; i++ {
 		entries = append(entries, i)
 	}
 
 	cb := newListComboButton(
 		entries,
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("Entry %d", e.(int))
 		},
-		func(e interface{}) string {
+		func(e any) string {
 			return fmt.Sprintf("Entry %d", e.(int))
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {

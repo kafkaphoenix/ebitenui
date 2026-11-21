@@ -39,7 +39,7 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 	r := newRadioGroup(t, cbs)
 
 	var eventArgs *RadioGroupChangedEventArgs
-	r.ChangedEvent.AddHandler(func(args interface{}) {
+	r.ChangedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
 			eventArgs = a
 		}
@@ -65,7 +65,7 @@ func TestRadioGroup_SetActive(t *testing.T) {
 	r := newRadioGroup(t, cbs)
 
 	var eventArgs *RadioGroupChangedEventArgs
-	r.ChangedEvent.AddHandler(func(args interface{}) {
+	r.ChangedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
 			eventArgs = a
 		}
@@ -83,7 +83,7 @@ func TestRadioGroup_SetActive(t *testing.T) {
 func newRadioGroup(t *testing.T, cbs []*Checkbox, opts ...RadioGroupOpt) *RadioGroup {
 	t.Helper()
 
-	elements := []RadioGroupElement{}
+	elements := make([]RadioGroupElement, 0, len(cbs))
 
 	for _, cb := range cbs {
 		elements = append(elements, cb)

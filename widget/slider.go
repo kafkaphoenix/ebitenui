@@ -186,9 +186,9 @@ func (o SliderOptions) WidgetOpts(opts ...WidgetOpt) SliderOpt {
 	}
 }
 
-func (so SliderOptions) Orientation(o Direction) SliderOpt {
+func (o SliderOptions) Orientation(d Direction) SliderOpt {
 	return func(s *Slider) {
-		s.definedParams.Orientation = &o
+		s.definedParams.Orientation = &d
 	}
 }
 
@@ -266,7 +266,7 @@ func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 
 func (o SliderOptions) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	return func(s *Slider) {
-		s.ChangedEvent.AddHandler(func(args interface{}) {
+		s.ChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*SliderChangedEventArgs); ok {
 				f(arg)
 			}

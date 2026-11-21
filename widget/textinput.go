@@ -328,7 +328,7 @@ func (o TextInputOptions) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
 
 func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
-		t.ChangedEvent.AddHandler(func(args interface{}) {
+		t.ChangedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*TextInputChangedEventArgs); ok {
 				f(arg)
 			}
@@ -338,7 +338,7 @@ func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInpu
 
 func (o TextInputOptions) SubmitHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
-		t.SubmitEvent.AddHandler(func(args interface{}) {
+		t.SubmitEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*TextInputChangedEventArgs); ok {
 				f(arg)
 			}
@@ -970,7 +970,6 @@ func (t *TextInput) setText(text string, isJS bool) {
 		}
 	}
 	if t.inputText != t.lastInputText {
-
 		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
 			TextInput: t,
 			InputText: t.inputText,

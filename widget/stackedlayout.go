@@ -7,9 +7,9 @@ import (
 // StackedLayout lays out multiple widgets stacked on top of each other in the order they are added as children
 // Each child will have the dimensions equal to the max size of all the StackedLayout's children
 //
-// Note: Events will propogate to each layer. e.g. if you have overlapping buttons, a click event over both will trigger both events.
+// Note: Events will propagate to each layer. e.g. if you have overlapping buttons, a click event over both will trigger both events.
 //
-// Widget.LayoutData of widgets being layed out by StackedLayout should be left empty.
+// Widget.LayoutData of widgets being laid out by StackedLayout should be left empty.
 type StackedLayout struct {
 	padding *Insets
 }

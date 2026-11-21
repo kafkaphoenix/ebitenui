@@ -46,7 +46,7 @@ func NewListTab() *widget.TabBookTab {
 		widget.ListOpts.HideHorizontalSlider(),
 
 		// This required function returns the string displayed in the list
-		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
 			return e.(ListEntry).Name
 		}),
 		// Padding for each entry

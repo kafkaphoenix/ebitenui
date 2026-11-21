@@ -42,7 +42,7 @@ type withChildren interface {
 	Children() []PreferredSizeLocateableWidget
 }
 
-// key returns the keyboard's key labelled label.
+// key returns the keyboard's key labeled label.
 func key(t *testing.T, k *OnScreenKeyboard, label string) *Button {
 	t.Helper()
 	var found *Button
@@ -66,7 +66,7 @@ func key(t *testing.T, k *OnScreenKeyboard, label string) *Button {
 	return found
 }
 
-// press clicks the keys labelled labels, one after the other.
+// press clicks the keys labeled labels, one after the other.
 func press(t *testing.T, k *OnScreenKeyboard, labels ...string) {
 	t.Helper()
 	for _, l := range labels {

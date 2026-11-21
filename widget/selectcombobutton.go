@@ -17,17 +17,17 @@ type SelectComboButton struct {
 
 	init          *MultiOnce
 	button        *ComboButton
-	selectedEntry interface{}
+	selectedEntry any
 }
 
 type SelectComboButtonOpt func(s *SelectComboButton)
 
-type SelectComboButtonEntryLabelFunc func(e interface{}) string
+type SelectComboButtonEntryLabelFunc func(e any) string
 
 type SelectComboButtonEntrySelectedEventArgs struct {
 	Button        *SelectComboButton
-	Entry         interface{}
-	PreviousEntry interface{}
+	Entry         any
+	PreviousEntry any
 }
 
 type SelectComboButtonEntrySelectedHandlerFunc func(args *SelectComboButtonEntrySelectedEventArgs)
@@ -74,7 +74,7 @@ func (o SelectComboButtonOptions) ComboButtonOpts(opts ...ComboButtonOpt) Select
 
 func (o SelectComboButtonOptions) EntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
-		s.EntrySelectedEvent.AddHandler(func(args interface{}) {
+		s.EntrySelectedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
 				f(arg)
 			}
@@ -127,7 +127,7 @@ func (s *SelectComboButton) createWidget() {
 	s.button = NewComboButton(s.buttonOpts...)
 }
 
-func (s *SelectComboButton) SetSelectedEntry(e interface{}) {
+func (s *SelectComboButton) SetSelectedEntry(e any) {
 	if e != s.selectedEntry {
 		s.init.Do()
 
@@ -144,7 +144,7 @@ func (s *SelectComboButton) SetSelectedEntry(e interface{}) {
 	}
 }
 
-func (s *SelectComboButton) SelectedEntry() interface{} {
+func (s *SelectComboButton) SelectedEntry() any {
 	return s.selectedEntry
 }
 

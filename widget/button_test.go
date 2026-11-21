@@ -112,9 +112,9 @@ func TestButton_PreferredSizeBeforeItsTheme(t *testing.T) {
 	w, h = b.PreferredSize()
 	is.Equal([]int{w, h}, []int{80, 80}) // the theme's image's corners
 
-	labelled := NewButton(ButtonOpts.Image(&ButtonImage{Idle: big, Pressed: big}),
+	labeled := NewButton(ButtonOpts.Image(&ButtonImage{Idle: big, Pressed: big}),
 		ButtonOpts.Text("A label much wider than eighty pixels", loadFont(t), &ButtonTextColor{Idle: color.White}))
-	w, _ = labelled.PreferredSize()
+	w, _ = labeled.PreferredSize()
 	is.True(w > 200) // all it needs given: validated, so sized by its label
 
 	ns := newNineSliceEmpty(t)

@@ -180,7 +180,7 @@ func (c *ComboButton) relayoutContent() {
 
 	var w int
 	var h int
-	if p, ok := c.content.(PreferredSizer); ok {
+	if p, sized := c.content.(PreferredSizer); sized {
 		w, h = p.PreferredSize()
 	} else {
 		w, h = 50, 50

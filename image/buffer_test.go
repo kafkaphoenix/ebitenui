@@ -34,9 +34,9 @@ func TestMaskedRenderBuffer_Draw(t *testing.T) {
 	draw := false
 	drawMask := false
 
-	b.Draw(screen, func(buf *ebiten.Image) {
+	b.Draw(screen, func(_ *ebiten.Image) {
 		draw = true
-	}, func(buf *ebiten.Image) {
+	}, func(_ *ebiten.Image) {
 		drawMask = true
 	})
 

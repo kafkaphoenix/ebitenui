@@ -157,11 +157,11 @@ func (g *game) HandleCCPJS() {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		var result string
-		promise := js.Global().Get("navigator").Get("clipboard").Call("readText").Call("then", js.FuncOf(func(me js.Value, args []js.Value) interface{} {
+		promise := js.Global().Get("navigator").Get("clipboard").Call("readText").Call("then", js.FuncOf(func(me js.Value, args []js.Value) any {
 			result = args[0].String()
 			wg.Done()
 			return nil
-		}), js.FuncOf(func(me js.Value, args []js.Value) interface{} {
+		}), js.FuncOf(func(me js.Value, args []js.Value) any {
 			wg.Done()
 			return nil
 		}))

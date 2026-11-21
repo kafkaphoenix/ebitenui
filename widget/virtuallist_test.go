@@ -30,7 +30,7 @@ func (v *virtualRows) row() PreferredSizeLocateableWidget {
 
 func (v *virtualRows) bind(row PreferredSizeLocateableWidget, index int) {
 	v.binds++
-	v.shows[row.(*simpleWidget)] = index //nolint:forcetypeassert // made by row
+	v.shows[row.(*simpleWidget)] = index
 }
 
 // at returns the entry the row laid out at y shows, or -1.
@@ -207,7 +207,7 @@ func TestVirtualList_RowsTakeInput(t *testing.T) {
 				ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { clicked = append(clicked, bound[b]) }))
 			return b
 		}),
-		VirtualListOpts.BindFunc(func(row PreferredSizeLocateableWidget, i int) { bound[row.(*Button)] = i }), //nolint:forcetypeassert // made above
+		VirtualListOpts.BindFunc(func(row PreferredSizeLocateableWidget, i int) { bound[row.(*Button)] = i }),
 		VirtualListOpts.ScrollContainerImage(&ScrollContainerImage{Idle: ns, Mask: ns}),
 		VirtualListOpts.SliderParams(&SliderParams{TrackImage: &SliderTrackImage{}, HandleImage: &ButtonImage{Idle: ns, Pressed: ns}}),
 	)
@@ -494,9 +494,9 @@ func TestVirtualList_TakesActions(t *testing.T) {
 		{ActionDown, false, 2}, // the last: left
 		{ActionUp, true, 1},
 	} {
-		a := given(s.act)
-		l.Update(&UpdateObject{Actions: a})
-		is.Equal([]any{i, !a.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
+		step := given(s.act)
+		l.Update(&UpdateObject{Actions: step})
+		is.Equal([]any{i, !step.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
 	}
 
 	a = given(ActionActivate)
@@ -579,13 +579,13 @@ func TestVirtualList_Focuser(t *testing.T) {
 	is.Equal(events, []bool{true, false}) // the UI follows it
 }
 
-// The text colors of labelled lists' entries, each its own.
+// The text colors of labeled lists' entries, each its own.
 var labelColors = &ListEntryColor{
 	Unselected: color.NRGBA{1, 1, 1, 255}, Selected: color.NRGBA{2, 2, 2, 255},
 	DisabledUnselected: color.NRGBA{3, 3, 3, 255}, DisabledSelected: color.NRGBA{4, 4, 4, 255},
 }
 
-// newLabelsList returns a virtual list of count entries labelled "Entry i",
+// newLabelsList returns a virtual list of count entries labeled "Entry i",
 // with theme, if any, and opts, 200 by 100 px, drawn once.
 func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt) *VirtualList {
 	t.Helper()
@@ -608,7 +608,7 @@ func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt
 func labelAt(l *VirtualList, i int) *Text {
 	for _, r := range l.content.rows {
 		if r.index == i {
-			return r.widget.(*Text) //nolint:forcetypeassert // a labelled list's rows
+			return r.widget.(*Text)
 		}
 	}
 	return nil
@@ -648,7 +648,7 @@ func TestVirtualList_Labels(t *testing.T) {
 	is.Equal(given.rowHeight, 40) // a row height given wins
 }
 
-// A labelled list takes what it isn't given from its theme's lists: the
+// A labeled list takes what it isn't given from its theme's lists: the
 // entry face, or else the theme's default one, the padding and the colors,
 // or else the theme's text color, again as the theme changes. A state
 // without a color takes the unselected one. Without a face or a text color
@@ -656,7 +656,7 @@ func TestVirtualList_Labels(t *testing.T) {
 func TestVirtualList_LabelsFromTheTheme(t *testing.T) {
 	is := is.New(t)
 
-	small := text.Face(&text.GoTextFace{Source: (*loadFont(t)).(*text.GoTextFace).Source, Size: 10}) //nolint:forcetypeassert // a GoTextFace
+	small := text.Face(&text.GoTextFace{Source: (*loadFont(t)).(*text.GoTextFace).Source, Size: 10})
 	pad := &Insets{Top: 2, Bottom: 2}
 	end := TextPositionEnd
 	l := newLabelsList(t, &Theme{ListTheme: &ListParams{EntryFace: &small, EntryTextPadding: pad, EntryColor: labelColors,

@@ -41,10 +41,10 @@ type CursorUpdater interface {
 	GetCursorOffset(name string) image.Point
 }
 
-// This flag allows you to disable ebitenui's cursor management
+// This flag allows you to disable ebitenui's cursor management.
 var CursorManagementEnabled = true
 
-// This variable indicates if the UI has currently being hovered over
+// This variable indicates if the UI has currently being hovered over.
 var UIHovered = false
 
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
@@ -78,7 +78,7 @@ const (
 	CURSOR_NONE      = "Cursor_None"
 )
 
-var currentCursor string = CURSOR_DEFAULT
+var currentCursor = CURSOR_DEFAULT
 
 func SetCursorShape(name string) {
 	currentCursor = name
@@ -169,7 +169,7 @@ func WheelLayer(l *Layer) (float64, float64) {
 }
 
 // InputChars returns user keyboard input.
-func InputChars() []rune { //nolint:golint
+func InputChars() []rune {
 	return internalinput.InputHandler.InputChars
 }
 
@@ -269,7 +269,7 @@ func AfterDraw(screen *ebiten.Image) {
 	if CursorManagementEnabled {
 		// Process Cursor
 		posX, posY := currentCursorUpdater.CursorPosition()
-		//If cursor outside the window do nothing
+		// If the cursor is outside the window, do nothing.
 		if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 			return
 		}
@@ -307,7 +307,6 @@ func AfterDraw(screen *ebiten.Image) {
 			if ebiten.CursorMode() != cursorMode {
 				ebiten.SetCursorMode(cursorMode)
 			}
-
 		}
 	}
 }

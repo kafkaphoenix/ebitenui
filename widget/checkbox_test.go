@@ -192,10 +192,10 @@ func TestCheckbox_HoveredImage(t *testing.T) {
 		c := newCheckboxWithImages(t, images, state)
 		normal, _, hovered := checkboxImagesFor(images, state)
 
-		moveCursor(c, 10, 10, t)
+		moveCursor(c, 10, t)
 		is.Equal(c.currentImage(), hovered) // cursor over the checkbox
 
-		moveCursor(c, 30, 10, t)
+		moveCursor(c, 30, t)
 		is.Equal(c.currentImage(), normal) // cursor gone
 
 		c.Focus(true)
@@ -210,14 +210,14 @@ func TestCheckbox_DisabledImage(t *testing.T) {
 		normal, disabled, _ := checkboxImagesFor(images, state)
 
 		c := newCheckboxWithImages(t, images, state)
-		moveCursor(c, 10, 10, t)
+		moveCursor(c, 10, t)
 		c.GetWidget().Disabled = true
 		is.Equal(c.currentImage(), disabled) // disabled, though hovered
 
 		// Without disabled images: the normal image, not the hovered one.
 		images.UncheckedDisabled, images.CheckedDisabled, images.GreyedDisabled = nil, nil, nil
 		c = newCheckboxWithImages(t, images, state)
-		moveCursor(c, 10, 10, t)
+		moveCursor(c, 10, t)
 		c.GetWidget().Disabled = true
 		is.Equal(c.currentImage(), normal)
 	}
@@ -274,11 +274,11 @@ func checkboxImagesFor(i *CheckboxImage, state WidgetState) (normal, disabled, h
 	return nil, nil, nil
 }
 
-// moveCursor puts the cursor at x, y and updates w, so that it sees the
-// cursor enter or leave.
-func moveCursor(w Updater, x, y int, t *testing.T) {
+// moveCursor puts the cursor at x on the check box's row, y 10, and
+// updates w, so that it sees the cursor enter or leave.
+func moveCursor(w Updater, x int, t *testing.T) {
 	t.Helper()
-	point(uitest.Use(t), x, y, false)
+	point(uitest.Use(t), x, 10, false)
 	w.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 }

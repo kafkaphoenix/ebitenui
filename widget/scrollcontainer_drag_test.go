@@ -51,7 +51,7 @@ func TestScrollContainer_DragToScroll(t *testing.T) {
 	s := newDragScroll(t, nil, ScrollContainerOpts.DragToScroll())
 	var moves []float64
 	s.ScrollMovedEvent.AddHandler(func(args any) {
-		moves = append(moves, args.(*ScrollContainerScrollMovedEventArgs).Top) //nolint:forcetypeassert // the event's own args
+		moves = append(moves, args.(*ScrollContainerScrollMovedEventArgs).Top)
 	})
 
 	pointerAt(t, s, s, d, 60, true) // below the view
@@ -151,7 +151,7 @@ func TestList_DragToScroll(t *testing.T) {
 	for i := range entries {
 		entries[i] = fmt.Sprint("entry ", i)
 	}
-	l := newList(t, ListOpts.Entries(entries), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }), //nolint:forcetypeassert // strings
+	l := newList(t, ListOpts.Entries(entries), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }),
 		ListOpts.DragToScroll())
 	l.SetLocation(img.Rect(0, 0, 200, 100))
 	render(l, t)

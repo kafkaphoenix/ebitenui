@@ -15,7 +15,7 @@ type controlMock struct {
 	mock.Mock
 }
 
-func (s *controlMock) Validate() {
+func (c *controlMock) Validate() {
 }
 
 func TestContainer_Render(t *testing.T) {
@@ -57,7 +57,7 @@ func TestContainer_Render_AutoDisableChildren(t *testing.T) {
 }
 
 func TestContainer_SetupInputLayer(t *testing.T) {
-	def := func(s input.SetupInputLayerFunc) {
+	def := func(_ input.SetupInputLayerFunc) {
 		// nothing to do
 	}
 

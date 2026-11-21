@@ -2,6 +2,8 @@ module github.com/ebitenui/ebitenui
 
 go 1.26.0
 
+toolchain go1.27.4
+
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.11.0-alpha.0.20261119134410-2009ccc2f749
 	github.com/matryer/is v1.4.1
@@ -22,7 +24,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/sync v0.24.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

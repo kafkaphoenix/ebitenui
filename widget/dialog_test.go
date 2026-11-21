@@ -54,7 +54,7 @@ func TestDialog_Choice(t *testing.T) {
 
 	d, choices, closed := newDialog(t)
 	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[3].(*Button), t) //nolint:forcetypeassert // the second choice
+	leftMouseButtonClick(d.contents.children[3].(*Button), t)
 
 	is.Equal(len(*choices), 1)
 	is.Equal((*choices)[0].Choice, 1)
@@ -68,7 +68,7 @@ func TestDialog_KeepOpen(t *testing.T) {
 
 	d, choices, closed := newDialog(t, DialogOpts.KeepOpen())
 	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[2].(*Button), t) //nolint:forcetypeassert // the first choice
+	leftMouseButtonClick(d.contents.children[2].(*Button), t)
 
 	is.Equal(len(*choices), 1)
 	is.True(!*closed)
@@ -83,7 +83,7 @@ func TestDialog_WindowOpts(t *testing.T) {
 		WindowOpts.Transition(WindowTransition{Duration: 4, Out: WindowMotion{Offset: img.Pt(0, 20)}}),
 	))
 	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[2].(*Button), t) //nolint:forcetypeassert // the first choice
+	leftMouseButtonClick(d.contents.children[2].(*Button), t)
 
 	is.True(d.Window().Closing()) // easing out
 	is.True(!*closed)             // not yet removed

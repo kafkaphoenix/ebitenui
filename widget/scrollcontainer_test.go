@@ -14,7 +14,7 @@ func TestScrollContainer_ScrollVisible(t *testing.T) {
 	is := is.New(t)
 
 	content := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Direction(DirectionVertical))))
-	var rows []*simpleWidget
+	rows := make([]*simpleWidget, 0, 10)
 	for range 10 {
 		r := newSimpleWidget(50, 20, nil)
 		rows = append(rows, r)

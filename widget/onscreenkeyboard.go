@@ -151,7 +151,7 @@ func trueSlice(n int) []bool {
 	return s
 }
 
-// key returns a key labelled label that calls press when clicked.
+// key returns a key labeled label that calls press when clicked.
 func (k *OnScreenKeyboard) key(label string, press func()) *Button {
 	return NewButton(append(k.keyOpts[:len(k.keyOpts):len(k.keyOpts)],
 		ButtonOpts.TextLabel(label),

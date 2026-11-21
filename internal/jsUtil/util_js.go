@@ -38,7 +38,7 @@ func init() {
 
 	//Get the canvas and attach an event listener for screen touches
 	requestAnimationFrame := js.Global().Get("requestAnimationFrame")
-	requestAnimationFrame.Invoke(js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	requestAnimationFrame.Invoke(js.FuncOf(func(this js.Value, args []js.Value) any {
 		canvas := document.Get("body").Call("getElementsByTagName", "canvas").Index(0)
 		offsetTop = canvas.Get("offsetTop").Int()
 		canvas.Call("addEventListener", "touchstart", js.FuncOf(handleClick), false)

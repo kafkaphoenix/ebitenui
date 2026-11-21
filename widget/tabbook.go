@@ -226,7 +226,6 @@ func (t *TabBook) populateComputedParams() {
 	}
 
 	t.computedParams = params
-
 }
 
 func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
@@ -311,7 +310,7 @@ func (o TabBookOptions) InitialTab(tab *TabBookTab) TabBookOpt {
 
 func (o TabBookOptions) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
-		t.TabSelectedEvent.AddHandler(func(args interface{}) {
+		t.TabSelectedEvent.AddHandler(func(args any) {
 			if arg, ok := args.(*TabBookTabSelectedEventArgs); ok {
 				f(arg)
 			}
@@ -413,11 +412,10 @@ func (t *TabBook) initTabBook() {
 			RowLayoutOpts.Direction(direction),
 			RowLayoutOpts.Spacing(*t.computedParams.TabSpacing))))
 
-	btnElements := []RadioGroupElement{}
-	var currentTab *TabBookTab = t.tab
+	btnElements := make([]RadioGroupElement, 0, len(t.tabs))
+	currentTab := t.tab
 
 	for i := range t.tabs {
-
 		t.tabs[i].GetWidget().parent = t.GetWidget()
 		t.tabs[i].Validate()
 		btnOpts := []ButtonOpt{

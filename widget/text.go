@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"math"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -17,8 +16,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
-
-var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[\/color]|\[link]|\[\/link]|\[link=[^\]]*]`)
 
 const COLOR_TAG = "color"
 const LINK_TAG = "link"
@@ -793,7 +790,6 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 				result = append(result, &tb)
 			}
 		}
-
 	}
 
 	return result, newColor, linkVal

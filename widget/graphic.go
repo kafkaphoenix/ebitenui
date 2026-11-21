@@ -185,7 +185,7 @@ func (g *Graphic) Update(updObj *UpdateObject) {
 
 		if time.Since(g.gifCurrentImageAt) > time.Duration(g.gif.Delay[g.gifCurrentImage]*10)*time.Millisecond {
 			g.gifCurrentImageAt = time.Now()
-			g.gifCurrentImage += 1
+			g.gifCurrentImage++
 			if g.gifCurrentImage >= len(g.gifImages) {
 				g.gifCurrentImage = 0
 			}

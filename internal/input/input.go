@@ -76,7 +76,7 @@ type DefaultInternalHandler struct {
 
 var InternalUIHovered = false
 
-var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
+var InputHandler = &DefaultInternalHandler{
 	Devices:      Ebitengine{},
 	TouchPinch:   1,
 	cursorImages: make(map[string]*ebiten.Image),
@@ -124,13 +124,9 @@ func (handler *DefaultInternalHandler) AfterUpdate() {
 	handler.WheelX, handler.WheelY = 0, 0
 }
 
-func (handler *DefaultInternalHandler) Draw(screen *ebiten.Image) {
+func (handler *DefaultInternalHandler) Draw(_ *ebiten.Image) {}
 
-}
-
-func (handler *DefaultInternalHandler) AfterDraw(screen *ebiten.Image) {
-
-}
+func (handler *DefaultInternalHandler) AfterDraw(_ *ebiten.Image) {}
 
 func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) bool {
 	switch b {
@@ -140,6 +136,8 @@ func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) 
 		return handler.MiddleMouseButtonPressed
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonPressed
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}
@@ -153,6 +151,8 @@ func (handler *DefaultInternalHandler) MouseButtonJustPressed(b ebiten.MouseButt
 		return handler.MiddleMouseButtonJustPressed
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonJustPressed
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}
@@ -166,6 +166,8 @@ func (handler *DefaultInternalHandler) MouseButtonJustReleased(b ebiten.MouseBut
 		return handler.MiddleMouseButtonJustReleased
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonJustReleased
+	case ebiten.MouseButton3, ebiten.MouseButton4:
+		return false
 	default:
 		return false
 	}
