@@ -3,7 +3,6 @@ package widget
 import (
 	"image"
 	"image/color"
-	"sync/atomic"
 	"time"
 
 	e_image "github.com/ebitenui/ebitenui/image"
@@ -58,6 +57,7 @@ type ToolTip struct {
 	visible                 bool
 
 	state          toolTipState
+	armedUpdates   int // the updates the pointer has rested since the tooltip armed
 	ToolTipUpdater ToolTipUpdater
 }
 type ToolTipOpt func(t *ToolTip)
@@ -244,11 +244,14 @@ func (t *ToolTip) idleState() toolTipState {
 			return t.showingState(p)
 		}
 
-		return t.armedState(p, nil, nil)
+		t.armedUpdates = 0
+		return t.armedState()
 	}
 }
 
-func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.Value) toolTipState {
+// armedState waits for the pointer to rest on the widget for the delay,
+// counted in updates, then shows the tooltip from the next update on.
+func (t *ToolTip) armedState() toolTipState {
 	return func(parent *Widget) toolTipState {
 		x, y := input.CursorPosition()
 		cp := image.Point{x, y}
@@ -264,23 +267,10 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 				return t.idleState()
 			}
 		}
-		if timer != nil {
-			if isExpired, _ := expired.Load().(bool); isExpired {
-				return t.showingState(cp)
-			}
+		t.armedUpdates++
+		if t.armedUpdates >= updatesIn(t.Delay) {
+			return t.showingState(cp)
 		}
-
-		if timer == nil {
-			expired = &atomic.Value{}
-			expired.Store(false)
-
-			timer = time.AfterFunc(t.Delay, func() {
-				expired.Store(true)
-			})
-
-			return t.armedState(p, timer, expired)
-		}
-
 		return nil
 	}
 }

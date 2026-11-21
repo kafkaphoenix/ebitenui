@@ -4,6 +4,7 @@ import (
 	img "image"
 	"image/color"
 	"testing"
+	"time"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -67,4 +68,44 @@ func TestListComboButton_ToolTip(t *testing.T) {
 		event.ExecuteDeferred()
 	}
 	is.Equal(shown, 1)
+}
+
+// A tooltip with a delay shows once the pointer has rested on its widget
+// that long, counted in updates: 500 ms is 30 at 60 a second, between the
+// update that sees the pointer arrive and the one that shows it. Moving
+// off starts it over.
+func TestToolTip_DelayInUpdates(t *testing.T) {
+	d := uitest.Use(t)
+	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
+	tip := NewToolTip(ToolTipOpts.Content(NewContainer()), ToolTipOpts.Delay(500*time.Millisecond))
+	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
+		ListComboButtonOpts.WidgetOpts(WidgetOpts.ToolTip(tip)))
+	l.SetLocation(img.Rect(0, 0, 100, 30))
+	shown := 0
+	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
+		if a.(*WidgetToolTipEventArgs).Show {
+			shown++
+		}
+	})
+	update := func(n int) int {
+		for range n {
+			l.Update(&UpdateObject{})
+			event.ExecuteDeferred()
+		}
+		return shown
+	}
+
+	point(d, 50, 15, false)
+	if got := update(31); got != 0 {
+		t.Fatalf("shown %d times in the 31 updates since the pointer came, want none yet", got)
+	}
+	if got := update(1); got != 1 {
+		t.Fatalf("shown %d times in the 32 updates since the pointer came, want once", got)
+	}
+	point(d, 500, 500, false)
+	update(1)
+	point(d, 50, 15, false)
+	if got := update(31); got != 1 {
+		t.Errorf("shown %d times in the 31 updates since the pointer came back, want no new show yet", got)
+	}
 }
