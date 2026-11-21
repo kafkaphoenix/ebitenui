@@ -19,7 +19,7 @@ func buttonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	bs := []*widget.Button{}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -39,7 +39,7 @@ func buttonPage(res *uiResources) *page {
 	}))
 
 	toggles := []*widget.Button{}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -132,7 +132,7 @@ func listPage(res *uiResources) *page {
 	listsContainer.AddChild(buttonsContainer)
 
 	bs := []*widget.Button{}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -304,7 +304,7 @@ func tabBookPage(res *uiResources) *page {
 
 	tabs := []*widget.TabBookTab{}
 
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		tab := widget.NewTabBookTab(widget.TabBookTabOpts.Label(fmt.Sprintf("Tab %d", i+1)),
 			widget.TabBookTabOpts.ContainerOpts(
 				widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -312,7 +312,7 @@ func tabBookPage(res *uiResources) *page {
 					widget.RowLayoutOpts.Spacing(10))),
 				widget.ContainerOpts.AutoDisableChildren()))
 
-		for j := 0; j < 3; j++ {
+		for j := range 3 {
 			b := widget.NewButton(
 				widget.ButtonOpts.Image(res.button.image),
 				widget.ButtonOpts.TextPadding(res.button.padding),
@@ -364,8 +364,8 @@ func gridLayoutPage(res *uiResources) *page {
 	c.AddChild(bc)
 
 	i := 0
-	for row := 0; row < 3; row++ {
-		for col := 0; col < 4; col++ {
+	for range 3 {
+		for range 4 {
 			b := widget.NewButton(
 				widget.ButtonOpts.Image(res.button.image),
 				widget.ButtonOpts.Text(fmt.Sprintf("%s %d", string(rune('A'+i)), i+1), res.button.face, res.button.text))
@@ -392,7 +392,7 @@ func rowLayoutPage(res *uiResources) *page {
 			widget.RowLayoutOpts.Spacing(5))))
 	c.AddChild(bc)
 
-	for col := 0; col < 5; col++ {
+	for col := range 5 {
 		b := widget.NewButton(
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.TextPadding(res.button.padding),
@@ -434,7 +434,6 @@ func sliderPage(res *uiResources) *page {
 	sliders := []*widget.Slider{}
 
 	for _, ps := range pageSizes {
-		ps := ps
 
 		sc := widget.NewContainer(
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -576,7 +575,7 @@ func toolTipPage(res *uiResources) *page {
 
 	}, res)
 
-	for col := 0; col < 4; col++ {
+	for col := range 4 {
 		tt := widget.NewContainer(
 			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -777,7 +776,7 @@ func radioGroupPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	var cbs []*widget.Checkbox
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		cb := newCheckbox(fmt.Sprintf("Checkbox %d", i+1), nil, res)
 		c.AddChild(cb)
 		cbs = append(cbs, cb)

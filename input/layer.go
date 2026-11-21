@@ -2,6 +2,7 @@ package input
 
 import (
 	"image"
+	"slices"
 )
 
 // Layerer may be implemented by widgets that need to set up input layers by calling AddLayer.
@@ -108,9 +109,7 @@ func (l *Layer) ActiveFor(x int, y int, eventType LayerEventType) bool {
 		return false
 	}
 
-	for i := len(layers) - 1; i >= 0; i-- {
-		layer := layers[i]
-
+	for _, layer := range slices.Backward(layers) {
 		if !layer.contains(x, y) {
 			continue
 		}

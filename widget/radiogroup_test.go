@@ -10,8 +10,8 @@ import (
 func TestRadioGroup_Active_Initial(t *testing.T) {
 	is := is.New(t)
 
-	cbs := []*Checkbox{}
-	for i := 0; i < 3; i++ {
+	cbs := make([]*Checkbox, 0, 3)
+	for range 3 {
 		c := newCheckbox(t)
 		cbs = append(cbs, c)
 	}
@@ -30,8 +30,8 @@ func TestRadioGroup_Active_Initial(t *testing.T) {
 func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	cbs := []*Checkbox{}
-	for i := 0; i < 3; i++ {
+	cbs := make([]*Checkbox, 0, 3)
+	for range 3 {
 		c := newCheckbox(t)
 		cbs = append(cbs, c)
 	}
@@ -56,8 +56,8 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 func TestRadioGroup_SetActive(t *testing.T) {
 	is := is.New(t)
 
-	cbs := []*Checkbox{}
-	for i := 0; i < 3; i++ {
+	cbs := make([]*Checkbox, 0, 3)
+	for range 3 {
 		c := newCheckbox(t)
 		cbs = append(cbs, c)
 	}

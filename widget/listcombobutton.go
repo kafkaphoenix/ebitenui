@@ -7,7 +7,6 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -216,10 +215,10 @@ func (l *ListComboButton) populateComputedParams() {
 	}
 	// Set defaults
 	if params.MaxContentHeight == nil {
-		params.MaxContentHeight = constantutil.ConstantToPointer(200)
+		params.MaxContentHeight = new(200)
 	}
 	if params.DisableDefaultKeys == nil {
-		params.DisableDefaultKeys = constantutil.ConstantToPointer(false)
+		params.DisableDefaultKeys = new(false)
 	}
 
 	l.computedParams = params
@@ -425,7 +424,7 @@ func (l *ListComboButton) initWidget() {
 	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc))
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
-	l.list.definedParams.AllowReselect = constantutil.ConstantToPointer(true)
+	l.list.definedParams.AllowReselect = new(true)
 	l.list.GetWidget().parent = l.widget
 	l.list.Validate()
 	btnOpts := []ButtonOpt{

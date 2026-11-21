@@ -48,9 +48,8 @@ func main() {
 	)))
 
 	// Add 20 buttons to the scrollable content container
-	for x := 0; x < 20; x++ {
+	for x := range 20 {
 		// Capture x for use in callback
-		x := x
 		// construct a button
 		button := widget.NewButton(
 			// set general widget options

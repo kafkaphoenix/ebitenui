@@ -7,8 +7,8 @@ type nopAction struct {
 
 func BenchmarkExecuteDeferred(b *testing.B) {
 	a := &nopAction{}
-	for i := 0; i < b.N; i++ {
-		for j := 0; j < 100; j++ {
+	for b.Loop() {
+		for range 100 {
 			AddDeferred(a)
 		}
 		ExecuteDeferred()

@@ -9,7 +9,6 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -82,7 +81,7 @@ func main() {
 					Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				},
 				HandleImage:   buttonImage,
-				MinHandleSize: constantutil.ConstantToPointer(5),
+				MinHandleSize: new(5),
 				TrackPadding:  widget.NewInsetsSimple(2),
 			},
 			EntryFace: &face,
