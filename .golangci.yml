@@ -126,7 +126,7 @@ linters:
         text: '`\(\*TextArea\)\.(initWidget|populateComputedParams)`'
       - linters: [gocognit]
         path: widget.textinput\.go$
-        text: '`\(\*TextInput\)\.(idleState|populateComputedParams)`'
+        text: '`\(\*TextInput\)\.populateComputedParams`'
       - linters: [gocognit]
         path: widget.virtuallist\.go$
         text: '`\(\*VirtualList\)\.lookUpLabels`'
