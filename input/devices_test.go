@@ -1,9 +1,10 @@
-package input
+package input_test
 
 import (
 	"image"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -23,12 +24,12 @@ func TestKeyJustPressed(t *testing.T) {
 		{true, true, true}, // down again
 	} {
 		d.Keys[ebiten.KeyEnter] = s.down
-		Update()
-		is.Equal([]any{i, KeyPressed(ebiten.KeyEnter), KeyJustPressed(ebiten.KeyEnter), AnyKeyPressed()}, []any{i, s.pressed, s.just, s.down})
-		AfterUpdate()
+		input.Update()
+		is.Equal([]any{i, input.KeyPressed(ebiten.KeyEnter), input.KeyJustPressed(ebiten.KeyEnter), input.AnyKeyPressed()}, []any{i, s.pressed, s.just, s.down})
+		input.AfterUpdate()
 	}
 	for _, k := range []ebiten.Key{-1, ebiten.KeyMax + 1} {
-		is.True(!KeyPressed(k) && !KeyJustPressed(k))
+		is.True(!input.KeyPressed(k) && !input.KeyJustPressed(k))
 	}
 }
 
@@ -49,16 +50,16 @@ func TestGamepadButtons(t *testing.T) {
 		{false, true, true, true}, // the second alone
 	} {
 		d.Pads[0].Buttons[b], d.Pads[1].Buttons[b] = s.first, s.second
-		Update()
-		is.Equal([]any{i, GamepadButtonPressed(b), GamepadButtonJustPressed(b)}, []any{i, s.pressed, s.just})
-		AfterUpdate()
+		input.Update()
+		is.Equal([]any{i, input.GamepadButtonPressed(b), input.GamepadButtonJustPressed(b)}, []any{i, s.pressed, s.just})
+		input.AfterUpdate()
 	}
 
 	d.Pads = d.Pads[:1] // the second, holding b, unplugged
-	Update()
-	is.True(!GamepadButtonPressed(b))
+	input.Update()
+	is.True(!input.GamepadButtonPressed(b))
 	for _, b := range []ebiten.StandardGamepadButton{-1, ebiten.StandardGamepadButtonMax + 1} {
-		is.True(!GamepadButtonPressed(b) && !GamepadButtonJustPressed(b))
+		is.True(!input.GamepadButtonPressed(b) && !input.GamepadButtonJustPressed(b))
 	}
 }
 
@@ -73,16 +74,16 @@ func TestGamepadAxes(t *testing.T) {
 	a := ebiten.StandardGamepadAxisLeftStickHorizontal
 	for _, v := range [][2]float64{{0.2, -0.9}, {-0.9, 0.2}} {
 		d.Pads[0].Axes[a], d.Pads[1].Axes[a] = v[0], v[1]
-		Update()
-		is.Equal(GamepadAxis(a), -0.9)
+		input.Update()
+		is.Equal(input.GamepadAxis(a), -0.9)
 	}
-	is.Equal(GamepadAxis(ebiten.StandardGamepadAxisLeftStickVertical), 0.0)
+	is.Equal(input.GamepadAxis(ebiten.StandardGamepadAxisLeftStickVertical), 0.0)
 
 	d.Pads = d.Pads[1:] // the first, at -0.9, unplugged
-	Update()
-	is.Equal(GamepadAxis(a), 0.2)
+	input.Update()
+	is.Equal(input.GamepadAxis(a), 0.2)
 	for _, a := range []ebiten.StandardGamepadAxis{-1, ebiten.StandardGamepadAxisMax + 1} {
-		is.Equal(GamepadAxis(a), 0.0)
+		is.Equal(input.GamepadAxis(a), 0.0)
 	}
 }
 
@@ -97,8 +98,8 @@ func TestUpdate_DoesNotAllocate(t *testing.T) {
 	d.Keys[ebiten.KeyA] = true
 	is.Equal(testing.AllocsPerRun(1, func() {
 		for range 10_000 {
-			Update()
-			AfterUpdate()
+			input.Update()
+			input.AfterUpdate()
 		}
 	}), 0.0)
 }
@@ -129,9 +130,9 @@ func TestTouchPinchAndPan(t *testing.T) {
 		{5, []image.Point{{0, 0}, {0, 100}}, 1, 0, 0}, // other fingers
 	} {
 		d.FirstTouchID, d.Touches = s.first, s.fingers
-		Update()
-		x, y := TouchPan()
-		is.Equal([]any{i, TouchPinch(), x, y}, []any{i, s.pinch, s.panX, s.panY})
-		AfterUpdate()
+		input.Update()
+		x, y := input.TouchPan()
+		is.Equal([]any{i, input.TouchPinch(), x, y}, []any{i, s.pinch, s.panX, s.panY})
+		input.AfterUpdate()
 	}
 }

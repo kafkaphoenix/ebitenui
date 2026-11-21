@@ -18,7 +18,6 @@ func touchButton(t *testing.T, touchscreen bool) (b *Button, clicks, menus *int,
 	t.Helper()
 	d := uitest.Use(t)
 	d.Touchscreen = touchscreen
-	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	clicks, menus = new(int), new(int)
 	b = newButton(t, ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { *clicks++ }),
 		ButtonOpts.WidgetOpts(WidgetOpts.ContextMenu(NewContainer())))
@@ -110,7 +109,6 @@ func TestTouch_MouseLongPressUnchanged(t *testing.T) {
 	is := is.New(t)
 
 	d := uitest.Use(t)
-	input.SetupInputLayersWithDeferred(nil)
 	clicks, menus := 0, 0
 	b := newButton(t, ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { clicks++ }),
 		ButtonOpts.WidgetOpts(WidgetOpts.ContextMenu(NewContainer())))

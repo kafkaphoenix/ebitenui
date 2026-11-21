@@ -45,7 +45,7 @@ The examples can also be tested as WASM by running the following commands in the
 
 Testing
 ------
-Package `uitest` plays a user on an interface in tests: it stands in for the mouse, the keyboard, the gamepads and the touch screen, and runs the interface frame by frame, so a test presses where a player would.
+Package `uitest` plays a user on an interface in tests: it stands in for the mouse, the keyboard, the gamepads and the touch screen, and runs the interface frame by frame, so a test presses where a player would. Each test starts as a new window does, with nothing hovered and no input layers, whatever the test before it left.
 
 ```go
 ui := &ebitenui.UI{Container: root}

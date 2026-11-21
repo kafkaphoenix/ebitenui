@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ebitenui/ebitenui/event"
-	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
@@ -50,7 +49,6 @@ func TestListComboButton_ToolTip(t *testing.T) {
 	is := is.New(t)
 
 	d := uitest.Use(t)
-	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	tip := NewToolTip(ToolTipOpts.Content(NewContainer()))
 	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
 		ListComboButtonOpts.WidgetOpts(WidgetOpts.ToolTip(tip)))
@@ -76,7 +74,6 @@ func TestListComboButton_ToolTip(t *testing.T) {
 // off starts it over.
 func TestToolTip_DelayInUpdates(t *testing.T) {
 	d := uitest.Use(t)
-	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	tip := NewToolTip(ToolTipOpts.Content(NewContainer()), ToolTipOpts.Delay(500*time.Millisecond))
 	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
 		ListComboButtonOpts.WidgetOpts(WidgetOpts.ToolTip(tip)))

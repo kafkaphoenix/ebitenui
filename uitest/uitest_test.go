@@ -151,3 +151,24 @@ func TestDriverFrames(t *testing.T) {
 	drv.Frames(3)
 	is.Equal([]int{updates, draws}, []int{3, 3})
 }
+
+// Each test starts with the input as a new window does, nothing hovered
+// and no input layers, whatever the test before it left, and leaves it so.
+func TestUseStartsOver(t *testing.T) {
+	left := &input.Layer{EventTypes: input.LayerEventTypeAll, FullScreen: true}
+	t.Run("a test that leaves state", func(t *testing.T) {
+		uitest.Use(t)
+		input.UIHovered = true
+		input.AddLayer(left)
+	})
+	if input.UIHovered || left.Valid() {
+		t.Errorf("after a test, hovered %v and its layer valid %v, want neither", input.UIHovered, left.Valid())
+	}
+
+	input.UIHovered = true
+	input.AddLayer(left)
+	uitest.Use(t)
+	if input.UIHovered || left.Valid() {
+		t.Errorf("as a test starts, hovered %v and an earlier layer valid %v, want neither", input.UIHovered, left.Valid())
+	}
+}

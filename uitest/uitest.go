@@ -5,13 +5,16 @@
 //
 // The stand-in replaces what the input package reads from Ebitengine; a
 // cursor updater set with input.SetCursorUpdater still takes the pointer's
-// place, as it does in a game.
+// place, as it does in a game. The input's state, kept from one interface
+// to the next in package variables, starts over with each test as with a
+// new window: nothing hovered, no input layers.
 package uitest
 
 import (
 	"image"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/input"
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -46,9 +49,11 @@ type Pad struct {
 }
 
 // Use makes the input read the returned devices until the test ends, and
-// then updates it once with nothing pressed.
+// then updates it once with nothing pressed. The input's state starts over
+// as Use is called and again as the test ends (see the package's doc).
 func Use(t testing.TB) *Devices {
 	t.Helper()
+	startOver()
 	d := &Devices{}
 	h := internalinput.InputHandler
 	old := h.Devices
@@ -58,8 +63,17 @@ func Use(t testing.TB) *Devices {
 		h.Update()
 		h.AfterUpdate()
 		h.Devices = old
+		startOver()
 	})
 	return d
+}
+
+// startOver clears what an interface leaves in the input's package state
+// between frames: whether it was hovered, and its input layers and those
+// deferred. Each update starts the cursor's shape over itself.
+func startOver() {
+	input.UIHovered = false
+	input.SetupInputLayersWithDeferred(nil)
 }
 
 func (d *Devices) IsMouseButtonPressed(b ebiten.MouseButton) bool { return d.Mouse[b] }
