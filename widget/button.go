@@ -677,7 +677,6 @@ func (b *Button) Render(screen *ebiten.Image) {
 	b.draw(screen)
 
 	if b.autoUpdateTextAndGraphic {
-
 		// We set the defaults first and then if needed
 		// they'll be overwritten by the other states
 		if b.text != nil {
@@ -740,7 +739,6 @@ func (b *Button) Update(updObj *UpdateObject) {
 	} else {
 		b.justSubmitted = false
 	}
-
 }
 
 func (b *Button) draw(screen *ebiten.Image) {
@@ -924,7 +922,6 @@ func (b *Button) SetImage(image *ButtonImage) {
 }
 
 func (b *Button) initWidget() {
-
 	if b.computedParams.MinSize != nil {
 		b.widget.MinWidth = b.computedParams.MinSize.X
 		b.widget.MinHeight = b.computedParams.MinSize.Y
@@ -1017,7 +1014,6 @@ func (b *Button) createWidget() {
 					DiffY:   0,
 				})
 			}
-
 		}),
 
 		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
@@ -1046,7 +1042,6 @@ func (b *Button) createWidget() {
 		}),
 
 		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
-
 			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.pressing = true
 				b.PressedEvent.Fire(&ButtonPressedEventArgs{
@@ -1055,12 +1050,10 @@ func (b *Button) createWidget() {
 					OffsetY: args.OffsetY,
 				})
 			}
-
 		}),
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
-
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
 					Inside:  args.Inside,

@@ -717,7 +717,6 @@ func (l *List) createWidget() {
 			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
 			ContainerOpts.Layout(l.layout)}, l.containerOpts...)...,
 	)
-
 }
 
 func (l *List) initWidget() {

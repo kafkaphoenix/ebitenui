@@ -316,7 +316,7 @@ func (o TextAreaOptions) TextPadding(i Insets) TextAreaOpt {
 	}
 }
 
-// Set the positioning of the text within the text area
+// Set the positioning of the text within the text area.
 func (o TextAreaOptions) TextPosition(textPosition TextPositioning) TextAreaOpt {
 	return func(l *TextArea) {
 		l.definedParams.TextPosition = &textPosition
@@ -612,7 +612,6 @@ func (l *TextArea) initWidget() {
 		}
 		l.container.AddChild(l.hSlider)
 	}
-
 }
 
 func (l *TextArea) PrependText(value string) {

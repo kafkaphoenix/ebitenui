@@ -184,7 +184,7 @@ func TestColorPicker_RingPixels(t *testing.T) {
 
 	pix, size := ringPixels(6)
 	is.Equal(size, 17)          // the ring, 1.5 px of black and a pixel of smoothing each side
-	at := func(x int) [4]byte { // along the middle row; the centre lies at 8.5, the radius at 14.5
+	at := func(x int) [4]byte { // along the middle row; the center lies at 8.5, the radius at 14.5
 		i := 4 * (8*size + x)
 		return [4]byte{pix[i], pix[i+1], pix[i+2], pix[i+3]}
 	}

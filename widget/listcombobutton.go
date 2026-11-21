@@ -384,7 +384,6 @@ func (l *ListComboButton) Render(screen *ebiten.Image) {
 	l.init.Do()
 
 	l.button.Render(screen)
-
 }
 
 func (l *ListComboButton) Update(updObj *UpdateObject) {
@@ -422,7 +421,6 @@ func (l *ListComboButton) createWidget() {
 }
 
 func (l *ListComboButton) initWidget() {
-
 	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc))
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys

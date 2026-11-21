@@ -579,13 +579,13 @@ func TestVirtualList_Focuser(t *testing.T) {
 	is.Equal(events, []bool{true, false}) // the UI follows it
 }
 
-// The text colors of labelled lists' entries, each its own.
+// The text colors of labeled lists' entries, each its own.
 var labelColors = &ListEntryColor{
 	Unselected: color.NRGBA{1, 1, 1, 255}, Selected: color.NRGBA{2, 2, 2, 255},
 	DisabledUnselected: color.NRGBA{3, 3, 3, 255}, DisabledSelected: color.NRGBA{4, 4, 4, 255},
 }
 
-// newLabelsList returns a virtual list of count entries labelled "Entry i",
+// newLabelsList returns a virtual list of count entries labeled "Entry i",
 // with theme, if any, and opts, 200 by 100 px, drawn once.
 func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt) *VirtualList {
 	t.Helper()
@@ -608,7 +608,7 @@ func newLabelsList(t *testing.T, theme *Theme, count int, opts ...VirtualListOpt
 func labelAt(l *VirtualList, i int) *Text {
 	for _, r := range l.content.rows {
 		if r.index == i {
-			return r.widget.(*Text) //nolint:forcetypeassert // a labelled list's rows
+			return r.widget.(*Text) //nolint:forcetypeassert // a labeled list's rows
 		}
 	}
 	return nil
@@ -648,7 +648,7 @@ func TestVirtualList_Labels(t *testing.T) {
 	is.Equal(given.rowHeight, 40) // a row height given wins
 }
 
-// A labelled list takes what it isn't given from its theme's lists: the
+// A labeled list takes what it isn't given from its theme's lists: the
 // entry face, or else the theme's default one, the padding and the colors,
 // or else the theme's text color, again as the theme changes. A state
 // without a color takes the unselected one. Without a face or a text color

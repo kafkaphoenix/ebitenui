@@ -22,7 +22,7 @@ const (
 	// The tooltip will display based on the Widget and Content anchor settings.
 	// It defaults to opening right aligned and directly under the widget.
 	TOOLTIP_POS_WIDGET
-	// The tooltip will display based on x/y (offset is required)
+	// The tooltip will display based on x/y (offset is required).
 	TOOLTIP_POS_ABSOLUTE
 	// The tooltip will display based on the Widget and Content anchor settings.
 	// It defaults to opening right aligned and directly under the x: 0, y: 0.
@@ -155,14 +155,14 @@ func (o ToolTipOptions) Offset(off image.Point) ToolTipOpt {
 	}
 }
 
-// The vertical position of the anchor on the widget. Only used when Postion = WIDGET.
+// The vertical position of the anchor on the widget. Only used when Position = WIDGET.
 func (o ToolTipOptions) AnchorOriginVertical(anchorOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.AnchorOriginVertical = anchorOriginVertical
 	}
 }
 
-// The horizontal position of the anchor on the widget. Only used when Postion = WIDGET.
+// The horizontal position of the anchor on the widget. Only used when Position = WIDGET.
 func (o ToolTipOptions) AnchorOriginHorizontal(anchorOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.AnchorOriginHorizontal = anchorOriginHorizontal
@@ -206,7 +206,7 @@ func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt
 }
 
 // KeepOnHover will make it so if the user cursor is on the ToolTip it'll
-// not be hidden as it does by default
+// not be hidden as it does by default.
 func (o ToolTipOptions) KeepOnHover(b bool) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.KeepOnHover = b
@@ -226,7 +226,6 @@ func (t *ToolTip) idleState() toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!parent.IsVisible() {
-
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return nil
@@ -259,7 +258,6 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-
 			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
 				t.visible = false
 				parent.FireToolTipEvent(t.window, false)
@@ -296,7 +294,6 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-
 			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
 				t.visible = false
 				parent.FireToolTipEvent(t.window, false)

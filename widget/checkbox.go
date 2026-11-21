@@ -391,7 +391,6 @@ func (c *Checkbox) checkboxPreferredSize() (int, int) {
 func (c *Checkbox) SetLocation(rect img.Rectangle) {
 	c.init.Do()
 	c.widget.Rect = rect
-
 }
 
 func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
@@ -432,7 +431,6 @@ func (c *Checkbox) Render(screen *ebiten.Image) {
 			c.currentImage().Draw(screen, cx, cy, func(opts *ebiten.DrawImageOptions) {
 				opts.GeoM.Translate(float64(c.widget.Rect.Min.X+lx+c.spacing), float64(checkboxStartY))
 			})
-
 		}
 	}
 }

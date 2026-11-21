@@ -32,7 +32,7 @@ type deferredAddHandler struct {
 
 // WrapHandler accepts a function of one argument and converts it into a HandlerFunc.
 // Use this function when passing adding a new handler to an event object, such as
-// button.ClickedEvent.AddHandler(WrapHandler(func (args *widget.ButtonClickedEventArgs){ ... }))
+// button.ClickedEvent.AddHandler(WrapHandler(func (args *widget.ButtonClickedEventArgs){ ... })).
 func WrapHandler[T any](f func(T)) HandlerFunc {
 	return func(args any) {
 		if arg, ok := args.(T); ok {

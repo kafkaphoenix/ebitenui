@@ -73,7 +73,7 @@ type VirtualList struct {
 	hoverY     int // where the pointer is, while hovering
 }
 
-// labelLook is how a labelled list draws its rows' text.
+// labelLook is how a labeled list draws its rows' text.
 type labelLook struct {
 	face    *text.Face
 	padding *Insets
@@ -421,7 +421,7 @@ func (l *VirtualList) Validate() {
 	l.container.Validate()
 }
 
-// lookUpLabels takes a labelled list's face, padding, positions and text
+// lookUpLabels takes a labeled list's face, padding, positions and text
 // colors from its options, or else from its theme's lists, gives them to the
 // rows it has, and makes a row a line tall unless RowHeight was given.
 func (l *VirtualList) lookUpLabels() {
@@ -479,14 +479,14 @@ func (l *VirtualList) lookUpLabels() {
 	}
 }
 
-// labelRow makes a labelled list's row: a text in its look.
+// labelRow makes a labeled list's row: a text in its look.
 func (l *VirtualList) labelRow() PreferredSizeLocateableWidget {
 	t := NewText()
 	l.styleLabel(t)
 	return t
 }
 
-// styleLabel gives a labelled list's row its face, padding and position.
+// styleLabel gives a labeled list's row its face, padding and position.
 func (l *VirtualList) styleLabel(row PreferredSizeLocateableWidget) {
 	t := row.(*Text) //nolint:forcetypeassert // made by labelRow
 	t.SetFace(l.labelLook.face)
@@ -495,7 +495,7 @@ func (l *VirtualList) styleLabel(row PreferredSizeLocateableWidget) {
 	t.SetPosition(&TextPositioning{HTextPosition: l.labelLook.h, VTextPosition: l.labelLook.v})
 }
 
-// bindLabel shows entry index's label in a labelled list's row.
+// bindLabel shows entry index's label in a labeled list's row.
 func (l *VirtualList) bindLabel(row PreferredSizeLocateableWidget, index int) {
 	row.(*Text).Label = l.labelFunc(index) //nolint:forcetypeassert // made by labelRow
 }

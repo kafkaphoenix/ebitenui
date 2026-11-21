@@ -338,7 +338,7 @@ type WidgetDragAndDropEventArgs struct { //nolint:golint
 	DnD    *DragAndDrop
 }
 
-type DragAndDropDroppedEventArgs struct { //nolint:golint
+type DragAndDropDroppedEventArgs struct {
 	Source  HasWidget
 	SourceX int
 	SourceY int
@@ -671,7 +671,7 @@ func (w *Widget) Update(updObj *UpdateObject) {
 	w.debugMode = updObj.DebugMode
 }
 
-// SetVisibility changes the visibility of the Widget
+// SetVisibility changes the visibility of the Widget.
 func (w *Widget) SetVisibility(v Visibility) {
 	if w.visibility != v {
 		w.visibility = v
@@ -679,7 +679,7 @@ func (w *Widget) SetVisibility(v Visibility) {
 	}
 }
 
-// GetVisibility changes the visibility of the Widget
+// GetVisibility changes the visibility of the Widget.
 func (w *Widget) GetVisibility() Visibility {
 	return w.visibility
 }

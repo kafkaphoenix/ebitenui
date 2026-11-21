@@ -793,7 +793,6 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 				result = append(result, &tb)
 			}
 		}
-
 	}
 
 	return result, newColor, linkVal

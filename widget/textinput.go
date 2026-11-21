@@ -970,7 +970,6 @@ func (t *TextInput) setText(text string, isJS bool) {
 		}
 	}
 	if t.inputText != t.lastInputText {
-
 		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
 			TextInput: t,
 			InputText: t.inputText,

@@ -184,7 +184,7 @@ func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 
 // Dynamic will check to change the default size of the Window
 // if the content sizes goes over or below the current one
-// Will not work with Resizeable
+// Will not work with Resizeable.
 func (o WindowOptions) Dynamic() WindowOpt {
 	return func(w *Window) {
 		w.Dynamic = true
@@ -522,5 +522,4 @@ func (w *Window) createWidget() {
 			w.FocusedWindow = true
 		}
 	})
-
 }

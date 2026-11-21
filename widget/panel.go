@@ -40,7 +40,6 @@ func (p *Panel) Validate() {
 	if p.computedParams.BackgroundImage == nil {
 		panic("Panel: BackgroundImage is required.")
 	}
-
 }
 
 // themedPanel is a container that, without a background of its own, draws

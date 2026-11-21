@@ -71,7 +71,6 @@ func (pb *ProgressBar) Validate() {
 	if pb.computedParams.TrackImage.Idle == nil {
 		panic("ProgressBar: TrackImage.Idle is required")
 	}
-
 }
 
 func (pb *ProgressBar) populateComputedParams() {
@@ -103,7 +102,6 @@ func (pb *ProgressBar) populateComputedParams() {
 		if params.TrackImage == nil {
 			params.TrackImage = pb.definedParams.TrackImage
 		} else {
-
 			if pb.definedParams.TrackImage.Idle != nil {
 				params.TrackImage.Idle = pb.definedParams.TrackImage.Idle
 			}

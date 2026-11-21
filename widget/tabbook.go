@@ -226,7 +226,6 @@ func (t *TabBook) populateComputedParams() {
 	}
 
 	t.computedParams = params
-
 }
 
 func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
@@ -417,7 +416,6 @@ func (t *TabBook) initTabBook() {
 	var currentTab *TabBookTab = t.tab
 
 	for i := range t.tabs {
-
 		t.tabs[i].GetWidget().parent = t.GetWidget()
 		t.tabs[i].Validate()
 		btnOpts := []ButtonOpt{
