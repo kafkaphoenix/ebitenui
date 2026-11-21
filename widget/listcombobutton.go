@@ -3,10 +3,11 @@ package widget
 import (
 	"image"
 
+	"slices"
+
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
-	"golang.org/x/exp/slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"

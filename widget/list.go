@@ -10,9 +10,10 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
+	"slices"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"golang.org/x/exp/slices"
 )
 
 type ListParams struct {
