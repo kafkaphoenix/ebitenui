@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ebitenui/ebitenui/input"
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -169,7 +168,6 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 	ti.Focus(true)
 	ime := stubIME(t)
 	r := ti.GetWidget().Rect
-	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
 	d := uitest.Use(t)
 	point(d, r.Min.X+1, r.Min.Y+r.Dy()/2, true) // a press in the input
 

@@ -250,10 +250,8 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	)
 	scroll.SetLocation(image.Rect(0, 0, 100, 50))
 	render(scroll, t)
+	d := uitest.Use(t) // before the layers, which it starts over
 	input.SetupInputLayersWithDeferred([]input.Layerer{scroll})
-	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) }) // the layers are the input package's
-
-	d := uitest.Use(t)
 	press := func() { // and let go
 		r := tw.GetWidget().Rect
 		for _, down := range []bool{true, false} {
