@@ -220,6 +220,9 @@ func newBasicLightTheme(s shape) *widget.Theme {
 			ArrowColor: color.NRGBA{51, 51, 51, 255},
 			DotColor:   color.NRGBA{77, 77, 77, 255},
 		},
+		TableTheme: &widget.TableParams{
+			HighlightImage: image.NewNineSliceColor(color.NRGBA{0, 0, 0, 30}),
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(2),
 			FixedHandleSize: new(6),

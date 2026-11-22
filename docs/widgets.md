@@ -118,6 +118,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Lists and choosers
 
 - **`List`** shows entries to choose from, scrolled. It only keeps widgets for the rows in view, so it handles thousands of entries. Entries can be text, rows of any widget all the same height, or a widget each of its own height. A filter shows only the entries it keeps, as a search does (`SetFilter`). Demos: `list`, `long_list`.
+- **`Table`** shows rows of data in columns under a header, like a spreadsheet, and handles thousands of rows. Each column formats its cells your way, such as numbers in scientific notation or dates. A click on a column's header sorts by it, again the other way, and Shift and a click sorts by one more column; dragging a header's edge resizes a column. A filter, fed by a search bar, shows only the rows it keeps. With a rank column and a highlighted row it makes a leaderboard. Demo: `table`.
 - **`ListComboButton`** shows the chosen entry on a button that opens a list to choose another. Demo: `combobox`.
 - **`ComboButton`** and **`SelectComboButton`** are buttons that open any content under them. Demo: `combobox`.
 

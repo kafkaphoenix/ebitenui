@@ -37,59 +37,80 @@ const TextPageSize = textPageSize
 type TextSlot = textSlot
 type ThemedPanel = themedPanel
 
-func (x *Button) Hovering() bool                                        { return x.hovering }
-func (x *Button) TextLabel() string                                     { return x.textLabel }
-func (x *Caret) Visible() bool                                          { return x.visible }
-func (x *Checkbox) CurrentImage() *image.NineSlice                      { return x.currentImage() }
-func (x *ColorPicker) Container() *Container                            { return x.container }
-func (x *ColorPicker) Ring() *ebiten.Image                              { return x.ring }
-func (x *ColorPicker) Slider() *Slider                                  { return x.slider }
-func (x *ColorPicker) Square() *colorSquare                             { return x.square }
-func (x *ColorPicker) SwatchFrames() [2][2]*image.NineSlice             { return x.swatchFrames }
-func (x *ColorPicker) Wheel() *colorWheel                               { return x.wheel }
-func (x *ComboButton) Content() HasWidget                               { return x.content }
-func (x *Container) ChildrenForTest() []PreferredSizeLocateableWidget   { return x.children }
-func (x *Container) EffectBuffer() *ebiten.Image                        { return x.effectBuffer }
-func (x *Container) Widget() *Widget                                    { return x.widget }
-func (x *Dialog) Contents() *themedPanel                                { return x.contents }
-func (x *Graphic) GifCurrentImage() int                                 { return x.gifCurrentImage }
-func (x *Graphic) ImageForTest() *ebiten.Image                          { return x.image() }
-func (x *Label) Text() *Text                                            { return x.text }
-func (x *List) ComputedParams() *ListParams                             { return &x.computedParams }
-func (x *List) DefinedParams() *ListParams                              { return &x.definedParams }
-func (x *List) FocusIndex() int                                         { return x.focusIndex }
-func (x *List) HSlider() *Slider                                        { return x.hSlider }
-func (x *List) Rows() *listRows                                         { return x.rows }
-func (x *List) ScrollContainer() *ScrollContainer                       { return x.scrollContainer }
-func (x *List) SetScrollTop(a0 float64)                                 { x.setScrollTop(a0) }
-func (x *List) VSlider() *Slider                                        { return x.vSlider }
-func (x *Carousel) ComputedParams() *CarouselParams                     { return &x.computedParams }
-func (x *Carousel) Dot() *ebiten.Image                                  { return x.dot }
-func (x *Carousel) DotRect(a0 int) image2.Rectangle                     { return x.dotRect(a0) }
-func (x *Carousel) NextButton() *Button                                 { return x.next }
-func (x *Carousel) PageRect() image2.Rectangle                          { return x.pageRect() }
-func (x *Carousel) PrevButton() *Button                                 { return x.prev }
-func (x *Loading) BandX() int                                           { return x.bandX() }
-func (x *Loading) ComputedParams() *LoadingParams                       { return &x.computedParams }
-func (x *Loading) Dot() *ebiten.Image                                   { return x.dot }
-func (x *Loading) IndicatorRect() image2.Rectangle                      { return x.indicatorRect() }
-func (x *Loading) Step() int                                            { return x.step() }
-func (x *Loading) Tip() string                                          { return x.tip.Label }
-func (x *Loading) TipText() *Text                                       { return x.tip }
-func (x *ListComboButton) Button() *SelectComboButton                   { return x.button }
-func (x *ListComboButton) DefinedParams() *ListComboButtonParams        { return &x.definedParams }
-func (x *ListComboButton) List() *List                                  { return x.list }
-func (x *ListParams) EntrySelectedColor() *ButtonImage                  { return x.entrySelectedColor }
-func (x *ListParams) EntryUnselectedColor() *ButtonImage                { return x.entryUnselectedColor }
-func (x *OnScreenKeyboard) Container() *themedPanel                     { return x.container }
-func (x *OnScreenKeyboard) Letters() []*Button                          { return x.letters }
-func (x *OnScreenKeyboard) Preview() *Text                              { return x.preview }
-func (x *Panel) EffectShaderOp() *ebiten.DrawRectShaderOptions          { return &x.effectShaderOp }
-func (x *SearchBar) ClearButton() *Button                               { return x.clear }
-func (x *SearchBar) ComputedParams() *SearchBarParams                   { return &x.computedParams }
-func (x *SearchBar) Icon() *Graphic                                     { return x.icon }
-func (x *ScrollContainer) Image() *ScrollContainerImage                 { return x.image }
-func (x *SelectComboButton) Button() *ComboButton                       { return x.button }
+func (x *Button) Hovering() bool                                      { return x.hovering }
+func (x *Button) TextLabel() string                                   { return x.textLabel }
+func (x *Caret) Visible() bool                                        { return x.visible }
+func (x *Checkbox) CurrentImage() *image.NineSlice                    { return x.currentImage() }
+func (x *ColorPicker) Container() *Container                          { return x.container }
+func (x *ColorPicker) Ring() *ebiten.Image                            { return x.ring }
+func (x *ColorPicker) Slider() *Slider                                { return x.slider }
+func (x *ColorPicker) Square() *colorSquare                           { return x.square }
+func (x *ColorPicker) SwatchFrames() [2][2]*image.NineSlice           { return x.swatchFrames }
+func (x *ColorPicker) Wheel() *colorWheel                             { return x.wheel }
+func (x *ComboButton) Content() HasWidget                             { return x.content }
+func (x *Container) ChildrenForTest() []PreferredSizeLocateableWidget { return x.children }
+func (x *Container) EffectBuffer() *ebiten.Image                      { return x.effectBuffer }
+func (x *Container) Widget() *Widget                                  { return x.widget }
+func (x *Dialog) Contents() *themedPanel                              { return x.contents }
+func (x *Graphic) GifCurrentImage() int                               { return x.gifCurrentImage }
+func (x *Graphic) ImageForTest() *ebiten.Image                        { return x.image() }
+func (x *Label) Text() *Text                                          { return x.text }
+func (x *List) ComputedParams() *ListParams                           { return &x.computedParams }
+func (x *List) DefinedParams() *ListParams                            { return &x.definedParams }
+func (x *List) FocusIndex() int                                       { return x.focusIndex }
+func (x *List) HSlider() *Slider                                      { return x.hSlider }
+func (x *List) Rows() *listRows                                       { return x.rows }
+func (x *List) ScrollContainer() *ScrollContainer                     { return x.scrollContainer }
+func (x *List) SetScrollTop(a0 float64)                               { x.setScrollTop(a0) }
+func (x *List) VSlider() *Slider                                      { return x.vSlider }
+func (x *Carousel) ComputedParams() *CarouselParams                   { return &x.computedParams }
+func (x *Carousel) Dot() *ebiten.Image                                { return x.dot }
+func (x *Carousel) DotRect(a0 int) image2.Rectangle                   { return x.dotRect(a0) }
+func (x *Carousel) NextButton() *Button                               { return x.next }
+func (x *Carousel) PageRect() image2.Rectangle                        { return x.pageRect() }
+func (x *Carousel) PrevButton() *Button                               { return x.prev }
+func (x *Loading) BandX() int                                         { return x.bandX() }
+func (x *Loading) ComputedParams() *LoadingParams                     { return &x.computedParams }
+func (x *Loading) Dot() *ebiten.Image                                 { return x.dot }
+func (x *Loading) IndicatorRect() image2.Rectangle                    { return x.indicatorRect() }
+func (x *Loading) Step() int                                          { return x.step() }
+func (x *Loading) Tip() string                                        { return x.tip.Label }
+func (x *Loading) TipText() *Text                                     { return x.tip }
+func (x *ListComboButton) Button() *SelectComboButton                 { return x.button }
+func (x *ListComboButton) DefinedParams() *ListComboButtonParams      { return &x.definedParams }
+func (x *ListComboButton) List() *List                                { return x.list }
+func (x *ListParams) EntrySelectedColor() *ButtonImage                { return x.entrySelectedColor }
+func (x *ListParams) EntryUnselectedColor() *ButtonImage              { return x.entryUnselectedColor }
+func (x *OnScreenKeyboard) Container() *themedPanel                   { return x.container }
+func (x *OnScreenKeyboard) Letters() []*Button                        { return x.letters }
+func (x *OnScreenKeyboard) Preview() *Text                            { return x.preview }
+func (x *Panel) EffectShaderOp() *ebiten.DrawRectShaderOptions        { return &x.effectShaderOp }
+func (x *SearchBar) ClearButton() *Button                             { return x.clear }
+func (x *SearchBar) ComputedParams() *SearchBarParams                 { return &x.computedParams }
+func (x *SearchBar) Icon() *Graphic                                   { return x.icon }
+func (x *ScrollContainer) Image() *ScrollContainerImage               { return x.image }
+func (x *SelectComboButton) Button() *ComboButton                     { return x.button }
+func (x *Table) CellText(i, col int) string {
+	r := x.list.rows
+	for _, lr := range r.labels {
+		if lr.entry == i {
+			return lr.row.(*tableRow).cells[col].Label
+		}
+	}
+	return ""
+}
+func (x *Table) ComputedParams() *TableParams { return &x.computedParams }
+func (x *Table) Header() *tableHeader         { return x.header }
+func (x *Table) List() *List                  { return x.list }
+func (x *Table) RowHighlighted(i int) bool {
+	for _, lr := range x.list.rows.labels {
+		if lr.entry == i {
+			return lr.row.(*tableRow).highlighted
+		}
+	}
+	return false
+}
+func (x *tableHeader) CellRect(i int) image2.Rectangle                  { return x.cellRect(i) }
 func (x *TabBook) BtnContainer() *Container                             { return x.btnContainer }
 func (x *TabBook) FlipBook() *FlipBook                                  { return x.flipBook }
 func (x *TabBook) TabToButton() map[*TabBookTab]*Button                 { return x.tabToButton }

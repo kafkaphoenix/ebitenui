@@ -1011,6 +1011,17 @@ func (l *List) SetFilter(f func(entry any) bool) {
 	l.resetFocusIndex()
 }
 
+// setOrder gives the list every entry anew, in a new order, as a table
+// sorts its rows: without the checks SetEntries makes, the selection kept.
+func (l *List) setOrder(entries []any) {
+	l.all = entries
+	l.refilter()
+	if l.validated {
+		l.rows.changed()
+	}
+	l.resetFocusIndex()
+}
+
 // refilter makes the entries shown those of all the filter keeps.
 func (l *List) refilter() {
 	if l.filter == nil {
