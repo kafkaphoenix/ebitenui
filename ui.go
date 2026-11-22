@@ -98,7 +98,8 @@ type UI struct {
 // Changed reports whether widgets changed the interface's picture by
 // themselves since the last call: a text input's caret blinking, a
 // tooltip showing or going, a GIF's next frame, a window's transition, a
-// list gliding on after a drag. A game that draws only frames that show
+// list gliding on after a drag, a loading indicator's band moving, spinner
+// turning or next tip. A game that draws only frames that show
 // something new draws then; what its own code changes and the player's
 // input it knows itself.
 func (u *UI) Changed() bool {

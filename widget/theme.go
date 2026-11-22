@@ -23,6 +23,7 @@ type Theme struct {
 	TextAreaTheme        *TextAreaParams
 	ListTheme            *ListParams
 	ListComboButtonTheme *ListComboButtonParams
+	LoadingTheme         *LoadingParams
 }
 
 /*

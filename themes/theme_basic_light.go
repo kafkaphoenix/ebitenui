@@ -205,6 +205,11 @@ func newBasicLightTheme(s shape) *widget.Theme {
 				Disabled: s.upTo(smallRadius).box(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
 			},
 		},
+		LoadingTheme: &widget.LoadingParams{
+			TrackImage: s.upTo(smallRadius).box(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+			FillImage:  s.upTo(smallRadius).box(color.NRGBA{77, 77, 77, 255}, color.NRGBA{77, 77, 77, 255}, 1),
+			Color:      color.Black,
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(2),
 			FixedHandleSize: new(6),

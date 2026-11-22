@@ -62,6 +62,12 @@ func (x *List) Rows() *listRows                                         { return
 func (x *List) ScrollContainer() *ScrollContainer                       { return x.scrollContainer }
 func (x *List) SetScrollTop(a0 float64)                                 { x.setScrollTop(a0) }
 func (x *List) VSlider() *Slider                                        { return x.vSlider }
+func (x *Loading) BandX() int                                           { return x.bandX() }
+func (x *Loading) ComputedParams() *LoadingParams                       { return &x.computedParams }
+func (x *Loading) IndicatorRect() image2.Rectangle                      { return x.indicatorRect() }
+func (x *Loading) Step() int                                            { return x.step() }
+func (x *Loading) Tip() string                                          { return x.tip.Label }
+func (x *Loading) TipText() *Text                                       { return x.tip }
 func (x *ListComboButton) Button() *SelectComboButton                   { return x.button }
 func (x *ListComboButton) DefinedParams() *ListComboButtonParams        { return &x.definedParams }
 func (x *ListComboButton) List() *List                                  { return x.list }
