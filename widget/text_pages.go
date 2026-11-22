@@ -2,10 +2,8 @@ package widget
 
 import (
 	"image"
-	"runtime"
 	"slices"
-	"sync"
-	"sync/atomic"
+	"weak"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -23,11 +21,14 @@ const (
 )
 
 // textSlot is a text's room on a page: rect, and a pixel's gap right and
-// below it.
+// below it; owner is the text it is kept for, until the collector drops
+// the text, and freed whether the room was given back.
 type textSlot struct {
 	page  *textPage
 	shelf int // the shelf's index on the page
 	rect  image.Rectangle
+	owner weak.Pointer[Text]
+	freed bool
 }
 
 // textPage is a page's texture and its shelves, top to bottom.
@@ -46,20 +47,25 @@ type textShelf struct {
 
 type textSpan struct{ x0, x1 int }
 
-// textPages is the pool of pages. Slots of texts the collector drops wait in
-// freed, since cleanups run on another goroutine, until the next draw from a
-// page or allocation frees them.
+// textPages is the pool of pages and the slots given out. The slots of
+// texts the collector dropped are freed by the next draw from a page or
+// allocation after a collection: collected tells, so nothing goes over the
+// slots in the frames between.
 var textPages struct {
-	pages   []*textPage
-	mu      sync.Mutex
-	freed   []*textSlot
-	pending atomic.Bool
+	pages     []*textPage
+	kept      []*textSlot
+	collected weak.Pointer[gcSentinel] // nil once the collector ran since the last sweep
 }
+
+// gcSentinel is an object only a weak pointer holds, gone with the first
+// collection after it is made; large enough not to share the tiny
+// allocator's blocks, which would keep it alive.
+type gcSentinel [32]byte
 
 // allocTextSlot returns room for a w by h text on a page, making a page when
 // none has room, or nil when the text is too tall or too wide for a page.
 func allocTextSlot(w, h int) *textSlot {
-	drainFreedTextSlots()
+	sweepTextSlots()
 	if w+1 > textPageSize || h > textPageMaxSlot {
 		return nil
 	}
@@ -77,6 +83,7 @@ func allocTextSlot(w, h int) *textSlot {
 // freeTextSlot gives s's room back, and releases its page when the page is
 // left empty and another one remains.
 func freeTextSlot(s *textSlot) {
+	s.freed = true
 	p := s.page
 	p.free(s)
 	if p.used == 0 && len(textPages.pages) > 1 {
@@ -85,28 +92,23 @@ func freeTextSlot(s *textSlot) {
 	}
 }
 
-// freeLater queues s to be freed on the drawing goroutine; it is the cleanup
-// of a text the collector drops.
-func freeLater(s *textSlot) {
-	textPages.mu.Lock()
-	textPages.freed = append(textPages.freed, s)
-	textPages.mu.Unlock()
-	textPages.pending.Store(true)
-}
-
-// drainFreedTextSlots frees the slots of texts the collector dropped.
-func drainFreedTextSlots() {
-	if !textPages.pending.Load() {
+// sweepTextSlots frees the slots of texts the collector dropped, if it ran
+// since the last sweep, and forgets those freed already.
+func sweepTextSlots() {
+	if textPages.collected.Value() != nil {
 		return
 	}
-	textPages.mu.Lock()
-	freed := textPages.freed
-	textPages.freed = nil
-	textPages.pending.Store(false)
-	textPages.mu.Unlock()
-	for _, s := range freed {
-		freeTextSlot(s)
-	}
+	textPages.kept = slices.DeleteFunc(textPages.kept, func(s *textSlot) bool {
+		if s.freed {
+			return true
+		}
+		if s.owner.Value() == nil {
+			freeTextSlot(s)
+			return true
+		}
+		return false
+	})
+	textPages.collected = weak.Make(new(gcSentinel))
 }
 
 // alloc gives room for a w by h text: on the tightest shelf at most half
@@ -197,20 +199,21 @@ func (s *textShelf) empty() bool {
 	return len(s.free) == 1 && s.free[0] == textSpan{0, textPageSize}
 }
 
-// keepSlot gives the text a slot that frees itself when the collector drops
+// keepSlot gives the text a slot, freed by a sweep once the collector drops
 // the text.
 func (t *Text) keepSlot(s *textSlot) {
 	t.cache.slot = s
-	t.cache.slotCleanup = runtime.AddCleanup(t, freeLater, s)
+	s.owner = weak.Make(t)
+	textPages.kept = append(textPages.kept, s)
 }
 
-// dropSlot frees the text's slot now, if it has one.
+// dropSlot frees the text's slot now, if it has one; the next sweep
+// forgets it.
 func (t *Text) dropSlot() {
 	c := t.cache
 	if c.slot == nil {
 		return
 	}
-	c.slotCleanup.Stop()
 	freeTextSlot(c.slot)
 	c.slot = nil
 }
