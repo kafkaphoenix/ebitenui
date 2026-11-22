@@ -412,6 +412,13 @@ func (w *Window) Render(screen *ebiten.Image) {
 		}
 	}
 
+	w.fitContents()
+	w.container.Render(screen)
+}
+
+// fitContents sizes a dynamic window that can't be resized to its
+// contents' preferred size.
+func (w *Window) fitContents() {
 	if w.Dynamic && !w.Resizeable {
 		x, y := w.container.PreferredSize()
 		rec := w.placeRect()
@@ -421,7 +428,6 @@ func (w *Window) Render(screen *ebiten.Image) {
 			w.SetLocation(newRect)
 		}
 	}
-	w.container.Render(screen)
 }
 
 func (w *Window) Update(updObj *UpdateObject) {

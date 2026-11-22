@@ -233,6 +233,23 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	widget.RenderDeferred(screen)
 }
 
+// Layout lays the interface out on a screen width by height pixels, as
+// Draw does before it draws, without drawing: after it, every widget in
+// its containers, scroll containers, lists, tab books, flip books, text
+// areas and windows, and in widgets of the game's that place children
+// (widget.ChildPlacer), is where it will show. A game places things by
+// them before the first frame, or right after a change rather than a frame
+// later. A widget's own parts, a button's text, are placed as it draws.
+// Draw lays out again only what changed since. For ebitenui/ebitenui#233.
+func (u *UI) Layout(width, height int) {
+	u.setTheme()
+	u.Container.SetLocation(image.Rect(0, 0, width, height))
+	widget.PlaceChildren(u.Container)
+	for _, w := range u.windows {
+		w.PlaceChildren()
+	}
+}
+
 func (u *UI) setupInputLayers() {
 	num := 1
 	if len(u.windows) > 0 {
