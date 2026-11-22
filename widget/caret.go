@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -107,7 +109,10 @@ func (c *Caret) Update(updObj *UpdateObject) {
 	c.init.Do()
 
 	c.updates++
-	c.visible = c.updates/updatesIn(c.blinkInterval)%2 == 0
+	if visible := c.updates/updatesIn(c.blinkInterval)%2 == 0; visible != c.visible {
+		c.visible = visible
+		changes.Mark()
+	}
 
 	c.widget.Update(updObj)
 }

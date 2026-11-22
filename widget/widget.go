@@ -4,6 +4,8 @@ import (
 	"image"
 	"image/color"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
@@ -918,6 +920,7 @@ func (w *Widget) FireContextMenuEvent(target *Widget, l image.Point) {
 }
 
 func (w *Widget) FireToolTipEvent(window *Window, show bool) {
+	changes.Mark()
 	w.ToolTipEvent.Fire(&ToolTipEventArgs{
 		Window: window,
 		Show:   show,

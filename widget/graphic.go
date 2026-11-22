@@ -5,6 +5,8 @@ import (
 	"image/gif"
 	"time"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/image"
 
 	img "image"
@@ -185,6 +187,7 @@ func (g *Graphic) Update(updObj *UpdateObject) {
 		if g.gifUpdates >= updatesIn(time.Duration(g.gif.Delay[g.gifCurrentImage])*10*time.Millisecond) {
 			g.gifUpdates = 0
 			g.gifCurrentImage = (g.gifCurrentImage + 1) % len(g.gifImages)
+			changes.Mark()
 		}
 	}
 

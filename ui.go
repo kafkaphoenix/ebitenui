@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/utilities/sliceutil"
@@ -81,6 +83,21 @@ type UI struct {
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
+
+	changes uint64 // the changes widgets made by themselves, as Changed last saw them
+}
+
+// Changed reports whether widgets changed the interface's picture by
+// themselves since the last call: a text input's caret blinking, a
+// tooltip showing or going, a GIF's next frame, a window's transition, a
+// list gliding on after a drag. A game that draws only frames that show
+// something new draws then; what its own code changes and the player's
+// input it knows itself.
+func (u *UI) Changed() bool {
+	c := changes.Count()
+	changed := c != u.changes
+	u.changes = c
+	return changed
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.

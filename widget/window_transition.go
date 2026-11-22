@@ -4,6 +4,8 @@ import (
 	"image"
 	"math"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/event"
 )
 
@@ -85,6 +87,7 @@ func (w *Window) updateTransition() {
 	default:
 		return
 	}
+	changes.Mark()
 	w.applyTransition()
 	if w.closing && w.progress == 0 {
 		w.transitionEnded.Fire(nil)
