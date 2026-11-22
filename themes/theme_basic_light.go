@@ -223,6 +223,14 @@ func newBasicLightTheme(s shape) *widget.Theme {
 		TableTheme: &widget.TableParams{
 			HighlightImage: image.NewNineSliceColor(color.NRGBA{0, 0, 0, 30}),
 		},
+		ChecklistTheme: &widget.ChecklistParams{
+			HoverImage:   image.NewNineSliceColor(color.NRGBA{0, 0, 0, 18}),
+			CurrentImage: image.NewNineSliceColor(color.NRGBA{0, 0, 0, 30}),
+			Colors: &widget.ChecklistColors{
+				DoneMark:   color.NRGBA{40, 140, 60, 255},
+				FailedMark: color.NRGBA{200, 50, 40, 255},
+			},
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(2),
 			FixedHandleSize: new(6),
