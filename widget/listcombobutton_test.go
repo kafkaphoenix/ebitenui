@@ -229,3 +229,19 @@ func TestListComboButton_EntryWidgets(t *testing.T) {
 	is.Equal(built, []any{"a", "b"})
 	is.Equal(len(l.List().Rows().Widgets()), 2) // widgets in place of labels
 }
+
+// With MeasureLabels its list measures every label as it is made, so the
+// open list is as wide as its widest entry from the first time it opens;
+// without, as wide as the entries it has shown yet.
+func TestListComboButton_MeasureLabels(t *testing.T) {
+	is := is.New(t)
+
+	width := func(opts ...widget.ListComboButtonOpt) int {
+		l := newListComboButton(t, append(opts, widget.ListComboButtonOpts.Entries(entriesNamed(100, 90)),
+			widget.ListComboButtonOpts.EntryLabelFunc(nameOf, nameOf))...)
+		w, _ := l.List().PreferredSize()
+		return w
+	}
+	lazy, all := width(), width(widget.ListComboButtonOpts.MeasureLabels())
+	is.True(all > 2*lazy) // the wide entry, out of view, counted
+}

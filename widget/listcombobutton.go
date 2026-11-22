@@ -35,6 +35,7 @@ type ListComboButton struct {
 	buttonLabelFunc SelectComboButtonEntryLabelFunc
 	listLabelFunc   ListEntryLabelFunc
 	listWidgetFunc  ListEntryWidgetFunc
+	measureLabels   bool
 
 	selectedEntry any
 
@@ -291,6 +292,17 @@ func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelec
 	}
 }
 
+// MeasureLabels has the list measure every entry's label as it is made
+// and as its entries change (ListOpts.MeasureLabels), so the open list is
+// as wide as its widest entry from the first time it opens. As there, at
+// most ListMeasureLabelsMax entries: with more, it panics as its list is
+// made or given them. Keep it to short choices.
+func (o ListComboButtonOptions) MeasureLabels() ListComboButtonOpt {
+	return func(l *ListComboButton) {
+		l.measureLabels = true
+	}
+}
+
 func (o ListComboButtonOptions) MaxContentHeight(h int) ListComboButtonOpt {
 	return func(c *ListComboButton) {
 		c.definedParams.MaxContentHeight = &h
@@ -421,7 +433,11 @@ func (l *ListComboButton) createWidget() {
 }
 
 func (l *ListComboButton) initWidget() {
-	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc))
+	listOpts := []ListOpt{ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc)}
+	if l.measureLabels {
+		listOpts = append(listOpts, ListOpts.MeasureLabels())
+	}
+	l.list = NewList(listOpts...)
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
 	l.list.definedParams.AllowReselect = new(true)
