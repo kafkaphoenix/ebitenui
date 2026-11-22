@@ -95,7 +95,7 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 	render(l, t)
 
 	l.SetContentVisible(true)
-	leftMouseButtonClick(listEntryButtons(listComboButtonContentList(l))[1], t)
+	clickListEntry(t, listComboButtonContentList(l), 1)
 
 	is.Equal(l.SelectedEntry(), entries[1])
 	is.Equal(eventArgs.Entry, entries[1])
@@ -103,7 +103,7 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 	is.Equal(l.Label(), "label second")
 
 	l.SetContentVisible(true)
-	leftMouseButtonClick(listEntryButtons(listComboButtonContentList(l))[1], t)
+	clickListEntry(t, listComboButtonContentList(l), 1)
 
 	is.Equal(numEvents, 3)
 }
@@ -225,5 +225,5 @@ func TestListComboButton_EntryWidgets(t *testing.T) {
 	)
 
 	is.Equal(built, []any{"a", "b"})
-	is.True(listEntryButtons(l.list)[0].content != nil) // a widget in place of a label
+	is.Equal(len(l.list.rows.widgets), 2) // widgets in place of labels
 }
