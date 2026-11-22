@@ -1,6 +1,6 @@
 module github.com/ebitenui/ebitenui/_examples
 
-go 1.26.0
+go 1.27.4
 
 replace github.com/ebitenui/ebitenui => ../
 
