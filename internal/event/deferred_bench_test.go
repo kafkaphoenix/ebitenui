@@ -1,6 +1,10 @@
-package event
+package event_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/ebitenui/ebitenui/internal/event"
+)
 
 type nopAction struct {
 }
@@ -9,9 +13,9 @@ func BenchmarkExecuteDeferred(b *testing.B) {
 	a := &nopAction{}
 	for b.Loop() {
 		for range 100 {
-			AddDeferred(a)
+			event.AddDeferred(a)
 		}
-		ExecuteDeferred()
+		event.ExecuteDeferred()
 	}
 }
 

@@ -1,8 +1,10 @@
-package themes
+package themes_test
 
 import (
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/themes"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -11,9 +13,9 @@ import (
 )
 
 // The basic themes, each built with options.
-var shapedGetters = map[string]func(...ThemeOpt) *widget.Theme{
-	"dark":  GetBasicDarkThemeWith,
-	"light": GetBasicLightThemeWith,
+var shapedGetters = map[string]func(...themes.ThemeOpt) *widget.Theme{
+	"dark":  themes.GetBasicDarkThemeWith,
+	"light": themes.GetBasicLightThemeWith,
 }
 
 // corners returns how much of a nine-slice its corners take, across and
@@ -49,7 +51,7 @@ func TestThemes_Unshaped(t *testing.T) {
 	is := is.New(t)
 
 	for name, get := range shapedGetters {
-		for _, th := range []*widget.Theme{get(), map[string]*widget.Theme{"dark": GetBasicDarkTheme(), "light": GetBasicLightTheme()}[name]} {
+		for _, th := range []*widget.Theme{get(), map[string]*widget.Theme{"dark": themes.GetBasicDarkTheme(), "light": themes.GetBasicLightTheme()}[name]} {
 			bordered, filled, _ := boxes(th)
 			is.Equal(corners(bordered[0]), [2]int{4, 4})      // the buttons' 2 px border
 			is.Equal(corners(bordered[2]), [2]int{2, 2})      // the inputs' 1 px border
@@ -68,7 +70,7 @@ func TestThemes_Rounded(t *testing.T) {
 	is := is.New(t)
 
 	for name, get := range shapedGetters {
-		th := get(Rounded(6))
+		th := get(themes.Rounded(6))
 		bordered, filled, small := boxes(th)
 		for i, n := range bordered {
 			is.Equal([]any{name, "bordered", i, corners(n)}, []any{name, "bordered", i, [2]int{12, 12}})
@@ -88,8 +90,8 @@ func TestThemes_Rounded(t *testing.T) {
 		}
 		is.Equal(corners(th.TextInputTheme.Image.Highlight), [2]int{6, 6}) // a small part
 
-		is.Equal(corners(get(Rounded(1)).ButtonTheme.Image.Idle), [2]int{4, 4})  // the 2 px border, wider
-		is.Equal(corners(get(Rounded(-3)).ButtonTheme.Image.Idle), [2]int{4, 4}) // square
+		is.Equal(corners(get(themes.Rounded(1)).ButtonTheme.Image.Idle), [2]int{4, 4})  // the 2 px border, wider
+		is.Equal(corners(get(themes.Rounded(-3)).ButtonTheme.Image.Idle), [2]int{4, 4}) // square
 	}
 }
 
@@ -99,19 +101,19 @@ func TestThemes_Borders(t *testing.T) {
 	is := is.New(t)
 
 	for name, get := range shapedGetters {
-		bordered, filled, small := boxes(get(Borders(5)))
+		bordered, filled, small := boxes(get(themes.Borders(5)))
 		for i, n := range append(bordered, small...) {
 			is.Equal([]any{name, i, corners(n)}, []any{name, i, [2]int{10, 10}})
 		}
 		is.Equal(corners(filled[0]), [2]int{0, 0}) // no border
 
-		bordered, _, _ = boxes(get(Borders(0)))
+		bordered, _, _ = boxes(get(themes.Borders(0)))
 		for i, n := range bordered {
 			is.Equal([]any{name, i, corners(n)}, []any{name, i, [2]int{0, 0}}) // a plain fill
 		}
 
-		is.Equal(corners(get(Rounded(4), Borders(8)).ButtonTheme.Image.Idle), [2]int{16, 16})
-		is.Equal(corners(get(Rounded(9), Borders(2)).ButtonTheme.Image.Idle), [2]int{18, 18})
+		is.Equal(corners(get(themes.Rounded(4), themes.Borders(8)).ButtonTheme.Image.Idle), [2]int{16, 16})
+		is.Equal(corners(get(themes.Rounded(9), themes.Borders(2)).ButtonTheme.Image.Idle), [2]int{18, 18})
 	}
 }
 
@@ -121,16 +123,16 @@ func TestThemes_Borders(t *testing.T) {
 func TestThemes_SystemShaped(t *testing.T) {
 	is := is.New(t)
 
-	opts := []ThemeOpt{Rounded(6)}
-	first, again := GetBasicSystemThemeWith(opts...), GetBasicSystemThemeWith(opts...)
+	opts := []themes.ThemeOpt{themes.Rounded(6)}
+	first, again := themes.GetBasicSystemThemeWith(opts...), themes.GetBasicSystemThemeWith(opts...)
 	is.True(first == again)
-	first, again = GetBasicSystemThemeWith(Rounded(6)), GetBasicSystemThemeWith(Rounded(6))
+	first, again = themes.GetBasicSystemThemeWith(themes.Rounded(6)), themes.GetBasicSystemThemeWith(themes.Rounded(6))
 	is.True(first == again) // the same options, given anew
-	is.True(GetBasicSystemThemeWith(Rounded(6)) != GetBasicSystemThemeWith(Rounded(7)))
-	is.True(GetBasicSystemThemeWith() == GetBasicSystemTheme())
+	is.True(themes.GetBasicSystemThemeWith(themes.Rounded(6)) != themes.GetBasicSystemThemeWith(themes.Rounded(7)))
+	is.True(themes.GetBasicSystemThemeWith() == themes.GetBasicSystemTheme())
 
-	rounded := newShape([]ThemeOpt{Rounded(6)})
-	dark, light := shapedThemeFor(ebiten.ColorModeDark, rounded), shapedThemeFor(ebiten.ColorModeLight, rounded)
+	rounded := themes.NewShape([]themes.ThemeOpt{themes.Rounded(6)})
+	dark, light := themes.ShapedThemeFor(ebiten.ColorModeDark, rounded), themes.ShapedThemeFor(ebiten.ColorModeLight, rounded)
 	is.True(dark != light)
 	is.True(dark.DefaultTextColor != light.DefaultTextColor) // each its mode's
 	is.Equal(corners(dark.ButtonTheme.Image.Idle), [2]int{12, 12})
@@ -151,7 +153,7 @@ func TestThemes_EntryImageColors(t *testing.T) {
 		filled[n] = c
 		return n
 	}
-	e := entryImages(c, fill)
+	e := themes.EntryImages(c, fill)
 	is.Equal([]color.Color{filled[e.Focused], filled[e.Selecting], filled[e.Selected], filled[e.DisabledSelected], filled[e.SelectedFocused], filled[e.SelectingFocused]},
 		[]color.Color{shade(1), shade(2), shade(3), shade(4), shade(5), shade(6)})
 }

@@ -1,9 +1,11 @@
-package image
+package image_test
 
 import (
 	"image"
 	"image/color"
 	"testing"
+
+	eimage "github.com/ebitenui/ebitenui/image"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -12,17 +14,17 @@ import (
 func TestNineSlice_MinSize(t *testing.T) {
 	is := is.New(t)
 
-	n := NewNineSlice(newImageEmptySize(20, 20, t), [3]int{3, 10, 7}, [3]int{2, 16, 2})
+	n := eimage.NewNineSlice(newImageEmptySize(20, 20, t), [3]int{3, 10, 7}, [3]int{2, 16, 2})
 	w, h := n.MinSize()
 	is.Equal(w, 10)
 	is.Equal(h, 4)
 
-	n = NewNineSliceColor(color.White)
+	n = eimage.NewNineSliceColor(color.White)
 	w, h = n.MinSize()
 	is.Equal(w, 0)
 	is.Equal(h, 0)
 
-	n = NewNineSliceColor(color.Transparent)
+	n = eimage.NewNineSliceColor(color.Transparent)
 	w, h = n.MinSize()
 	is.Equal(w, 0)
 	is.Equal(h, 0)
@@ -36,25 +38,25 @@ func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
 func Test_NewNineSliceColor(t *testing.T) {
 	is := is.New(t)
 
-	n := NewNineSliceColor(nil)
-	is.Equal(n.transparent, true)
+	n := eimage.NewNineSliceColor(nil)
+	is.Equal(n.Transparent(), true)
 
-	n = NewNineSliceColor(color.RGBA{0, 0, 0, 0})
-	is.Equal(n.transparent, true)
+	n = eimage.NewNineSliceColor(color.RGBA{0, 0, 0, 0})
+	is.Equal(n.Transparent(), true)
 }
 
 func Test_NewNineSliceBorder(t *testing.T) {
 	is := is.New(t)
 
 	img := newImageEmptySize(20, 20, t)
-	n := NewNineSliceBorder(img, 3)
+	n := eimage.NewNineSliceBorder(img, 3)
 
-	is.Equal(n.widths[0], 3)
-	is.Equal(n.widths[1], 20-3*2)
-	is.Equal(n.widths[2], 3)
-	is.Equal(n.heights[0], 3)
-	is.Equal(n.heights[1], 20-3*2)
-	is.Equal(n.heights[2], 3)
+	is.Equal(n.Widths()[0], 3)
+	is.Equal(n.Widths()[1], 20-3*2)
+	is.Equal(n.Widths()[2], 3)
+	is.Equal(n.Heights()[0], 3)
+	is.Equal(n.Heights()[1], 20-3*2)
+	is.Equal(n.Heights()[2], 3)
 }
 
 // A nine-slice is drawn when any of it lands on the image, and skipped when
@@ -62,7 +64,7 @@ func Test_NewNineSliceBorder(t *testing.T) {
 func TestNineSlice_SkipsDrawingOffTheImage(t *testing.T) {
 	is := is.New(t)
 
-	n := NewNineSliceSimple(ebiten.NewImage(12, 12), 4, 4)
+	n := eimage.NewNineSliceSimple(ebiten.NewImage(12, 12), 4, 4)
 	screen := ebiten.NewImageWithOptions(image.Rect(100, 100, 200, 200), nil)
 	calls := func(opts func(*ebiten.DrawImageOptions)) int {
 		count := 0

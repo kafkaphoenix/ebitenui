@@ -1,8 +1,10 @@
-package event
+package event_test
 
 import (
 	"slices"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/internal/event"
 )
 
 // action is a deferred action that runs a function.
@@ -17,11 +19,11 @@ func TestAddDeferred(t *testing.T) {
 	second := action(func() { ran = append(ran, "second") })
 	first := action(func() {
 		ran = append(ran, "first")
-		AddDeferred(second)
+		event.AddDeferred(second)
 	})
 
-	AddDeferred(first)
-	ExecuteDeferred()
+	event.AddDeferred(first)
+	event.ExecuteDeferred()
 
 	if want := []string{"first", "second"}; !slices.Equal(ran, want) {
 		t.Errorf("ran %v, want %v", ran, want)

@@ -1,7 +1,9 @@
-package themes
+package themes_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/themes"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -12,10 +14,10 @@ import (
 func TestBasicThemeFor(t *testing.T) {
 	is := is.New(t)
 
-	dark, light := basicThemeFor(ebiten.ColorModeDark), basicThemeFor(ebiten.ColorModeLight)
+	dark, light := themes.BasicThemeFor(ebiten.ColorModeDark), themes.BasicThemeFor(ebiten.ColorModeLight)
 	is.True(dark != light)
-	is.Equal(basicThemeFor(ebiten.ColorModeDark), dark)     // made once
-	is.Equal(basicThemeFor(ebiten.ColorModeLight), light)   // made once
-	is.Equal(basicThemeFor(ebiten.ColorModeUnknown), light) // light when the system doesn't say
-	is.Equal(GetBasicSystemTheme(), basicThemeFor(ebiten.SystemColorMode()))
+	is.Equal(themes.BasicThemeFor(ebiten.ColorModeDark), dark)     // made once
+	is.Equal(themes.BasicThemeFor(ebiten.ColorModeLight), light)   // made once
+	is.Equal(themes.BasicThemeFor(ebiten.ColorModeUnknown), light) // light when the system doesn't say
+	is.Equal(themes.GetBasicSystemTheme(), themes.BasicThemeFor(ebiten.SystemColorMode()))
 }

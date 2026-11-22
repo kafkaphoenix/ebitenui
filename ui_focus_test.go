@@ -1,9 +1,11 @@
-package ebitenui
+package ebitenui_test
 
 import (
 	"image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui"
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
@@ -23,15 +25,15 @@ func focusButton(rect image.Rectangle, opts ...widget.ButtonOpt) *widget.Button 
 
 // focusUI returns a UI holding widgets where they are placed; its container
 // has no layout, so they stay there.
-func focusUI(widgets ...widget.PreferredSizeLocateableWidget) *UI {
-	ui := &UI{Container: widget.NewContainer()}
+func focusUI(widgets ...widget.PreferredSizeLocateableWidget) *ebitenui.UI {
+	ui := &ebitenui.UI{Container: widget.NewContainer()}
 	ui.Container.AddChild(widgets...)
 	return ui
 }
 
 // focusGrid lays out three rows of three buttons, 40 by 20, 10 apart, and
 // returns them by row and column.
-func focusGrid() (*UI, [3][3]*widget.Button) {
+func focusGrid() (*ebitenui.UI, [3][3]*widget.Button) {
 	var g [3][3]*widget.Button
 	all := make([]widget.PreferredSizeLocateableWidget, 0, 9)
 	for r := range 3 {

@@ -1,8 +1,10 @@
-package image
+package image_test
 
 import (
 	img "image"
 	"testing"
+
+	eimage "github.com/ebitenui/ebitenui/image"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -11,7 +13,7 @@ import (
 func TestBufferedImage_Image(t *testing.T) {
 	is := is.New(t)
 
-	b := &BufferedImage{}
+	b := &eimage.BufferedImage{}
 	b.Width, b.Height = 100, 100
 	i := b.Image()
 	w, h := i.Bounds().Dx(), i.Bounds().Dy()
@@ -28,7 +30,7 @@ func TestBufferedImage_Image(t *testing.T) {
 func TestMaskedRenderBuffer_Draw(t *testing.T) {
 	is := is.New(t)
 
-	b := NewMaskedRenderBuffer()
+	b := eimage.NewMaskedRenderBuffer()
 	screen := newImageEmptySize(100, 100, t)
 
 	draw := false
@@ -51,7 +53,7 @@ func TestMaskedRenderBuffer_DrawIn(t *testing.T) {
 	is := is.New(t)
 
 	screen := ebiten.NewImage(200, 200)
-	m := NewMaskedRenderBuffer()
+	m := eimage.NewMaskedRenderBuffer()
 	var drawnOn, maskedOn *ebiten.Image
 	draw := func(rect img.Rectangle) {
 		m.DrawIn(screen, rect, func(buf *ebiten.Image) { drawnOn = buf }, func(buf *ebiten.Image) { maskedOn = buf })
@@ -75,27 +77,27 @@ func TestMaskedRenderBuffer_DrawInMovingArea(t *testing.T) {
 	is := is.New(t)
 
 	screen := ebiten.NewImage(800, 600)
-	m := NewMaskedRenderBuffer()
+	m := eimage.NewMaskedRenderBuffer()
 	draw := func(r img.Rectangle) {
 		m.DrawIn(screen, r, func(*ebiten.Image) {}, func(*ebiten.Image) {})
 	}
 
 	draw(img.Rect(100, 100, 300, 200))
-	is.Equal(m.renderIn.Bounds(), img.Rect(100, 100, 300, 200)) // the area alone while it stays
-	is.Equal(m.maskedIn.Bounds(), img.Rect(100, 100, 300, 200))
+	is.Equal(m.RenderIn().Bounds(), img.Rect(100, 100, 300, 200)) // the area alone while it stays
+	is.Equal(m.MaskedIn().Bounds(), img.Rect(100, 100, 300, 200))
 
 	draw(img.Rect(105, 100, 305, 200))
-	moved, movedMask := m.renderIn, m.maskedIn
+	moved, movedMask := m.RenderIn(), m.MaskedIn()
 	is.Equal(moved.Bounds(), img.Rect(41, 36, 369, 264)) // 64 px around it from then on
 
 	for x := 110; x <= 165; x += 5 {
 		draw(img.Rect(x, 100, x+200, 200))
 	}
-	is.True(m.renderIn == moved && m.maskedIn == movedMask) // kept while sliding inside them
+	is.True(m.RenderIn() == moved && m.MaskedIn() == movedMask) // kept while sliding inside them
 
 	draw(img.Rect(400, 300, 600, 400))
-	is.True(m.renderIn != moved) // past them: new images
+	is.True(m.RenderIn() != moved) // past them: new images
 
 	draw(img.Rect(650, 500, 850, 650))
-	is.Equal(m.renderIn.Bounds(), img.Rect(586, 436, 800, 600)) // the margin stops at the screen's edge
+	is.Equal(m.RenderIn().Bounds(), img.Rect(586, 436, 800, 600)) // the margin stops at the screen's edge
 }

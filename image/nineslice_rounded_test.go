@@ -1,8 +1,10 @@
-package image
+package image_test
 
 import (
 	"image/color"
 	"testing"
+
+	eimage "github.com/ebitenui/ebitenui/image"
 
 	"github.com/matryer/is"
 )
@@ -23,7 +25,7 @@ func TestRoundedPixels(t *testing.T) {
 	fill, edge := color.NRGBA{R: 40, G: 52, B: 80, A: 255}, color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 	const radius, width = 6, 2
 	side := 2*radius + 1
-	pix := roundedPixels(fill, radius, edge, width, side)
+	pix := eimage.RoundedPixels(fill, radius, edge, width, side)
 
 	is.Equal(pixelAt(pix, side, radius, radius), [4]byte{40, 52, 80, 255})    // the middle: fill
 	is.Equal(pixelAt(pix, side, 0, 0), [4]byte{})                             // the corner's tip: clear
@@ -32,10 +34,10 @@ func TestRoundedPixels(t *testing.T) {
 	a := pixelAt(pix, side, 1, 1)[3]
 	is.True(a > 0 && a < 255) // along the curve: partly covered
 
-	square := roundedPixels(fill, 0, nil, 0, 1)
+	square := eimage.RoundedPixels(fill, 0, nil, 0, 1)
 	is.Equal(pixelAt(square, 1, 0, 0), [4]byte{40, 52, 80, 255}) // no radius, no border: fill
 
-	edged := roundedPixels(fill, 0, edge, width, 2*width+1)
+	edged := eimage.RoundedPixels(fill, 0, edge, width, 2*width+1)
 	is.Equal(pixelAt(edged, 2*width+1, 0, 0), [4]byte{255, 255, 255, 255}) // a square corner: border to the tip
 	is.Equal(pixelAt(edged, 2*width+1, width, width), [4]byte{40, 52, 80, 255})
 }
@@ -44,9 +46,9 @@ func TestRoundedPixels(t *testing.T) {
 func TestNewNineSliceRounded(t *testing.T) {
 	is := is.New(t)
 
-	n := NewNineSliceRounded(color.White, 6, color.Black, 2)
-	is.Equal(n.widths, [3]int{6, 1, 6})
-	is.Equal(n.heights, [3]int{6, 1, 6})
+	n := eimage.NewNineSliceRounded(color.White, 6, color.Black, 2)
+	is.Equal(n.Widths(), [3]int{6, 1, 6})
+	is.Equal(n.Heights(), [3]int{6, 1, 6})
 	w, h := n.MinSize()
 	is.Equal(w, 12)
 	is.Equal(h, 12)
