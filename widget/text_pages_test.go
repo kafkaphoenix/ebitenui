@@ -2,6 +2,8 @@ package widget
 
 import (
 	img "image"
+	"runtime"
+	"runtime/debug"
 	"testing"
 
 	"github.com/matryer/is"
@@ -10,9 +12,9 @@ import (
 // emptyTextPages gives a test a pool of text pages of its own.
 func emptyTextPages(t *testing.T) {
 	t.Helper()
-	saved := textPages.pages
-	textPages.pages = nil
-	t.Cleanup(func() { textPages.pages = saved })
+	pages, kept := textPages.pages, textPages.kept
+	textPages.pages, textPages.kept = nil, nil
+	t.Cleanup(func() { textPages.pages, textPages.kept = pages, kept })
 }
 
 // Slots of one height share a shelf left to right, a pixel apart; a taller
@@ -113,4 +115,24 @@ func TestTextPages_Pool(t *testing.T) {
 		freeTextSlot(s)
 	}
 	is.Equal(len(textPages.pages), 1) // the first page stays
+}
+
+// Between collections the cache doesn't go over its slots: the slot of a
+// text already gone is freed by the first sweep after a collection, not
+// before. Automatic collections are off, so only the test's count.
+func TestTextPages_SweepOnlyAfterACollection(t *testing.T) {
+	emptyTextPages(t)
+	defer debug.SetGCPercent(debug.SetGCPercent(-1))
+	sweepTextSlots()
+	s := allocTextSlot(10, 10)
+	textPages.kept = append(textPages.kept, s) // its text already gone: a zero weak pointer
+	sweepTextSlots()
+	if s.freed {
+		t.Fatal("a slot was freed with no collection since the last sweep")
+	}
+	runtime.GC()
+	sweepTextSlots()
+	if !s.freed {
+		t.Error("the slot of a text gone wasn't freed after a collection")
+	}
 }

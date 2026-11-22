@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"math"
-	"runtime"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -34,16 +33,15 @@ func SetTextCache(on bool) {
 // textCache is a text drawn into an image, kept while what the text shows
 // stays the same.
 type textCache struct {
-	image       *ebiten.Image   // the slot's part of its page, or own; nil while the text has no glyphs
-	slot        *textSlot       // the text's room on a page
-	slotCleanup runtime.Cleanup // frees slot when the collector drops the text
-	own         *ebiten.Image   // a texture of its own, for a text too large for a page
-	at          image.Point     // where the image's top left goes, from the text's origin
-	key         textCacheKey
-	valid       bool // key describes image
-	tooLarge    bool // the text is drawn glyph by glyph
-	renders     int  // times the text was drawn into the image
-	op          ebiten.DrawImageOptions
+	image    *ebiten.Image // the slot's part of its page, or own; nil while the text has no glyphs
+	slot     *textSlot     // the text's room on a page
+	own      *ebiten.Image // a texture of its own, for a text too large for a page
+	at       image.Point   // where the image's top left goes, from the text's origin
+	key      textCacheKey
+	valid    bool // key describes image
+	tooLarge bool // the text is drawn glyph by glyph
+	renders  int  // times the text was drawn into the image
+	op       ebiten.DrawImageOptions
 }
 
 // textCacheKey is what a text's image depends on.
@@ -104,7 +102,7 @@ func (t *Text) drawCached(screen *ebiten.Image, origin image.Point) bool {
 	if t.cache == nil {
 		t.cache = &textCache{}
 	}
-	drainFreedTextSlots()
+	sweepTextSlots()
 	c := t.cache
 	w := t.widget.Rect.Dx()
 	if k := t.cacheKey(w); !c.valid || k != c.key {

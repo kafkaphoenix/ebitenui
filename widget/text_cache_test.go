@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -130,8 +129,9 @@ func TestText_CacheSharesPages(t *testing.T) {
 	is.True(tall.cache.slot != nil && tall.cache.own == nil)
 }
 
-// A text the collector drops gives its slot back, freed by the next draw of
-// a cached text; a slot it gave up before is not freed again.
+// A text the collector drops gives its slot back, freed by the first draw of
+// a cached text after the collection, and not before it; a slot it gave up
+// before is not freed again.
 func TestText_CacheSlotFreedWhenCollected(t *testing.T) {
 	is := is.New(t)
 	emptyTextPages(t)
@@ -145,11 +145,10 @@ func TestText_CacheSlotFreedWhenCollected(t *testing.T) {
 	}()
 	page := kept.cache.slot.page
 	is.Equal(page.used, 2)
-	for deadline := time.Now().Add(5 * time.Second); page.used > 1 && time.Now().Before(deadline); {
-		runtime.GC()
-		kept.Render(screen) // draws free what the collector found
-		time.Sleep(10 * time.Millisecond)
-	}
+	kept.Render(screen)
+	is.Equal(page.used, 2) // no collection yet
+	runtime.GC()
+	kept.Render(screen)
 	is.Equal(page.used, 1) // the kept text's slot alone; each other slot freed once
 }
 
