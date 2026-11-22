@@ -22,11 +22,13 @@ type listRows struct {
 	list   *List
 	widget *Widget
 
-	// Labeled entries' rows, their height, and the widest label bound yet:
-	// the content is as wide as that, so a wide entry scrolls the view.
-	labels []listLabelRow
-	rowH   int
-	widest int
+	// Labeled entries' rows, their height, and the widest label bound yet, or
+	// of all with MeasureLabels: the content is as wide as that, so a wide
+	// entry scrolls the view.
+	labels   []listLabelRow
+	rowH     int
+	widest   int
+	measurer *Text // the label measuring every entry's, with MeasureLabels
 
 	// Entries with widgets of their own: each entry's widget, the top of
 	// each row with the content's height last, and the widest widget.
@@ -85,6 +87,7 @@ func (r *listRows) changed() {
 		r.labels[i].entry = -1
 	}
 	if r.list.entryWidgetFunc == nil {
+		r.measureLabels()
 		r.relayout()
 		return
 	}
@@ -115,11 +118,16 @@ func (r *listRows) relayout() {
 	}
 }
 
-// remake makes entry e's widget again, as UpdateEntry asks.
+// remake makes entry e's widget again, as UpdateEntry asks; labels are
+// bound again, and measured again where the list measures them all.
 func (r *listRows) remake(e any) {
 	if r.list.entryWidgetFunc == nil {
 		for i := range r.labels {
 			r.labels[i].entry = -1
+		}
+		if r.list.measureLabels {
+			r.measureLabels()
+			r.relayout()
 		}
 		return
 	}
@@ -152,6 +160,26 @@ func (r *listRows) measure() {
 		r.width = max(r.width, w+pad.Left+pad.Right)
 	}
 	r.measured = true
+}
+
+// measureLabels finds the widest of all the labels, for a list that
+// measures them all (MeasureLabels), on a label of its own.
+func (r *listRows) measureLabels() {
+	l := r.list
+	if !l.measureLabels {
+		return
+	}
+	l.checkMeasuredLabels()
+	if r.measurer == nil {
+		r.measurer = r.labelRow()
+	}
+	r.widest = 0
+	for _, e := range l.entries {
+		r.measurer.Label = l.entryLabelFunc(e)
+		w, _ := r.measurer.PreferredSize()
+		r.widest = max(r.widest, w)
+	}
+	r.measurer.Label = ""
 }
 
 // styleLabels makes the first labeled row, to learn a row's height.
