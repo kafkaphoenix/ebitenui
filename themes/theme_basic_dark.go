@@ -192,6 +192,11 @@ func newBasicDarkTheme(s shape) *widget.Theme {
 				Hover:    s.upTo(smallRadius).box(color.NRGBA{77, 77, 77, 255}, color.NRGBA{177, 177, 177, 255}, 1),
 			},
 		},
+		LoadingTheme: &widget.LoadingParams{
+			TrackImage: s.upTo(smallRadius).box(color.NRGBA{77, 77, 77, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+			FillImage:  s.upTo(smallRadius).box(color.NRGBA{177, 177, 177, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+			Color:      color.White,
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(0),
 			FixedHandleSize: new(6),
