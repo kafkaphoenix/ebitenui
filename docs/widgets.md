@@ -116,7 +116,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 
 ## Lists and choosers
 
-- **`List`** shows entries to choose from, scrolled. It only keeps widgets for the rows in view, so it handles thousands of entries. Entries can be text, rows of any widget all the same height, or a widget each of its own height. Demos: `list`, `long_list`.
+- **`List`** shows entries to choose from, scrolled. It only keeps widgets for the rows in view, so it handles thousands of entries. Entries can be text, rows of any widget all the same height, or a widget each of its own height. A filter shows only the entries it keeps, as a search does (`SetFilter`). Demos: `list`, `long_list`.
 - **`ListComboButton`** shows the chosen entry on a button that opens a list to choose another. Demo: `combobox`.
 - **`ComboButton`** and **`SelectComboButton`** are buttons that open any content under them. Demo: `combobox`.
 

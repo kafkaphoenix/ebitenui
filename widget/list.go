@@ -54,7 +54,9 @@ type List struct {
 	dragToScroll         bool
 	measureLabels        bool
 
-	entries         []any
+	entries         []any // the entries shown: all, or those the filter keeps
+	all             []any // every entry, in order
+	filter          func(entry any) bool
 	entryLabelFunc  ListEntryLabelFunc
 	entryWidgetFunc ListEntryWidgetFunc
 	entryRowFunc    ListEntryRowFunc
@@ -152,6 +154,7 @@ func NewList(opts ...ListOpt) *List {
 	for _, o := range opts {
 		o(l)
 	}
+	l.refilter()
 	l.checkMeasuredLabels()
 
 	return l
@@ -416,7 +419,7 @@ func (o ListOptions) SlidersWhenNeeded() ListOpt {
 
 func (o ListOptions) Entries(e []any) ListOpt {
 	return func(l *List) {
-		l.entries = l.normalizeEntries(e)
+		l.all = l.normalizeEntries(e)
 	}
 }
 
@@ -456,6 +459,13 @@ func (l *List) labeled() bool {
 	return l.entryWidgetFunc == nil && l.entryRowFunc == nil
 }
 
+// EntryFilter shows only the entries f keeps, from the start (SetFilter).
+func (o ListOptions) EntryFilter(f func(entry any) bool) ListOpt {
+	return func(l *List) {
+		l.filter = f
+	}
+}
+
 // ListMeasureLabelsMax is the most entries a list measuring all its labels
 // (MeasureLabels) may have.
 const ListMeasureLabelsMax = 1000
@@ -481,8 +491,8 @@ func (o ListOptions) MeasureLabels() ListOpt {
 // checkMeasuredLabels panics if the list measures all its labels and has
 // more entries than it may.
 func (l *List) checkMeasuredLabels() {
-	if l.measureLabels && len(l.entries) > ListMeasureLabelsMax {
-		panic(fmt.Sprintf("List: MeasureLabels takes at most %d entries (ListMeasureLabelsMax), not %d", ListMeasureLabelsMax, len(l.entries)))
+	if l.measureLabels && len(l.all) > ListMeasureLabelsMax {
+		panic(fmt.Sprintf("List: MeasureLabels takes at most %d entries (ListMeasureLabelsMax), not %d", ListMeasureLabelsMax, len(l.all)))
 	}
 }
 
@@ -500,7 +510,7 @@ func (o ListOptions) EntryWidgetFunc(f ListEntryWidgetFunc) ListOpt {
 func (o ListOptions) EntrySortFunc(f ListEntrySortFunc) ListOpt {
 	return func(l *List) {
 		l.entrySortFunc = f
-		l.entries = l.normalizeEntries(l.entries)
+		l.all = l.normalizeEntries(l.all)
 	}
 }
 
@@ -905,7 +915,8 @@ func (l *List) initWidget() {
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
 func (l *List) SetEntries(newEntries []any) {
-	l.entries = l.normalizeEntries(newEntries)
+	l.all = l.normalizeEntries(newEntries)
+	l.refilter()
 	if l.validated {
 		l.rows.changed()
 	}
@@ -927,17 +938,18 @@ func (l *List) UpdateEntry(entry any) {
 func (l *List) RemoveEntry(entry any) {
 	l.init.Do()
 
-	if len(l.entries) > 0 && entry != nil {
-		for i, e := range l.entries {
+	if len(l.all) > 0 && entry != nil {
+		for i, e := range l.all {
 			if e == entry {
-				l.entries = append(l.entries[:i], l.entries[i+1:]...)
+				l.all = append(l.all[:i], l.all[i+1:]...)
+				l.refilter()
 				if l.validated {
 					l.rows.changed()
 				}
 
 				entryLen := len(l.entries)
 				if l.focusIndex >= entryLen {
-					l.focusIndex = i - 1
+					l.focusIndex = entryLen - 1
 				}
 
 				if l.focusIndex >= 0 && l.focusIndex < entryLen {
@@ -954,13 +966,14 @@ func (l *List) RemoveEntry(entry any) {
 // Note: Duplicates will not be added.
 func (l *List) AddEntry(entry any) {
 	l.init.Do()
-	if !l.checkForDuplicates(l.entries, entry) {
+	if !l.checkForDuplicates(l.all, entry) {
 		if l.entrySortFunc != nil {
-			index, _ := slices.BinarySearchFunc(l.entries, entry, l.entrySortFunc)
-			l.entries = slices.Insert(l.entries, index, entry)
+			index, _ := slices.BinarySearchFunc(l.all, entry, l.entrySortFunc)
+			l.all = slices.Insert(l.all, index, entry)
 		} else {
-			l.entries = append(l.entries, entry)
+			l.all = append(l.all, entry)
 		}
+		l.refilter()
 		if l.validated {
 			l.rows.changed()
 		}
@@ -968,10 +981,49 @@ func (l *List) AddEntry(entry any) {
 	l.resetFocusIndex()
 }
 
-// Return the current entries in the list.
+// Entries returns every entry in the list, those a filter hides too.
 func (l *List) Entries() []any {
 	l.init.Do()
+	return l.all
+}
+
+// ShownEntries returns the entries the list shows: all of them, or those
+// its filter keeps, in order. Indexes, as ScrollToIndex takes, are into
+// them.
+func (l *List) ShownEntries() []any {
+	l.init.Do()
 	return l.entries
+}
+
+// SetFilter shows only the entries f keeps, as a search does; nil shows
+// every entry. Entries added, removed or set later are filtered too. The
+// entry selected stays selected while hidden.
+func (l *List) SetFilter(f func(entry any) bool) {
+	l.init.Do()
+	l.filter = f
+	l.refilter()
+	if l.validated {
+		l.rows.changed()
+	}
+	if l.focusIndex >= len(l.entries) {
+		l.focusIndex = max(0, len(l.entries)-1)
+	}
+	l.resetFocusIndex()
+}
+
+// refilter makes the entries shown those of all the filter keeps.
+func (l *List) refilter() {
+	if l.filter == nil {
+		l.entries = l.all
+		return
+	}
+	shown := make([]any, 0, len(l.all))
+	for _, e := range l.all {
+		if l.filter(e) {
+			shown = append(shown, e)
+		}
+	}
+	l.entries = shown
 }
 
 // Return the currently selected entry in the list.
