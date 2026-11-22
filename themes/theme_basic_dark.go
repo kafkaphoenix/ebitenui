@@ -197,6 +197,16 @@ func newBasicDarkTheme(s shape) *widget.Theme {
 			FillImage:  s.upTo(smallRadius).box(color.NRGBA{177, 177, 177, 255}, color.NRGBA{177, 177, 177, 255}, 1),
 			Color:      color.White,
 		},
+		CarouselTheme: &widget.CarouselParams{
+			ArrowImage: &widget.ButtonImage{
+				Idle:     s.upTo(smallRadius).box(color.NRGBA{0, 0, 0, 96}, color.NRGBA{0, 0, 0, 96}, 0),
+				Hover:    s.upTo(smallRadius).box(color.NRGBA{0, 0, 0, 128}, color.NRGBA{0, 0, 0, 128}, 0),
+				Pressed:  s.upTo(smallRadius).box(color.NRGBA{0, 0, 0, 160}, color.NRGBA{0, 0, 0, 160}, 0),
+				Disabled: s.upTo(smallRadius).box(color.NRGBA{0, 0, 0, 0}, color.NRGBA{0, 0, 0, 0}, 0),
+			},
+			ArrowColor: color.White,
+			DotColor:   color.White,
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(0),
 			FixedHandleSize: new(6),
