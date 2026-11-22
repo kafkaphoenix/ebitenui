@@ -92,7 +92,7 @@ func (handler *DefaultInternalHandler) updateTouches() bool {
 		handler.isTouched = true
 		handler.TouchGesture = handler.TouchGesture || handler.TouchCount > 1
 		handler.LeftMouseButtonPressed = true
-		handler.CursorX, handler.CursorY = handler.Devices.TouchPosition(handler.touchIDs[0])
+		handler.CursorX, handler.CursorY = handler.toUI(handler.Devices.TouchPosition(handler.touchIDs[0]))
 		return true
 	case handler.isTouched: // lifted: released where it was
 		handler.isTouched = false
@@ -119,7 +119,7 @@ func (handler *DefaultInternalHandler) updatePair() {
 	ids := [2]ebiten.TouchID{handler.touchIDs[0], handler.touchIDs[1]}
 	var at [2]image.Point
 	for i, id := range ids {
-		at[i].X, at[i].Y = handler.Devices.TouchPosition(id)
+		at[i].X, at[i].Y = handler.toUI(handler.Devices.TouchPosition(id))
 	}
 	if handler.paired && ids == handler.pairIDs {
 		if before := spread(handler.pair); before > 0 {

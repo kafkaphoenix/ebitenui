@@ -2,6 +2,7 @@ package input
 
 import (
 	"image"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -73,6 +74,11 @@ type DefaultInternalHandler struct {
 	cursorOffset map[string]image.Point
 
 	touchIDs []ebiten.TouchID
+
+	// screen is the transform the interface's image is drawn to the screen
+	// with, inverse its inverse, which mapped says positions go through.
+	screen, inverse ebiten.GeoM
+	mapped          bool
 }
 
 var InternalUIHovered = false
@@ -97,7 +103,7 @@ func (handler *DefaultInternalHandler) Update() {
 		handler.LeftMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 		handler.MiddleMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
 		handler.RightMouseButtonPressed = handler.Devices.IsMouseButtonPressed(ebiten.MouseButtonRight)
-		handler.CursorX, handler.CursorY = handler.Devices.CursorPosition()
+		handler.CursorX, handler.CursorY = handler.toUI(handler.Devices.CursorPosition())
 	}
 
 	wx, wy := handler.Devices.Wheel()
@@ -121,6 +127,31 @@ func (handler *DefaultInternalHandler) Update() {
 	handler.LastLeftMouseButtonPressed = handler.LeftMouseButtonPressed
 	handler.LastMiddleMouseButtonPressed = handler.MiddleMouseButtonPressed
 	handler.LastRightMouseButtonPressed = handler.RightMouseButtonPressed
+}
+
+// SetScreenTransform has the positions read from the devices, in the
+// screen's pixels, mapped back through g, the transform the interface's
+// image is drawn to the screen with, into the interface's pixels; the
+// identity, or a transform that can't be undone, maps nothing.
+func (handler *DefaultInternalHandler) SetScreenTransform(g ebiten.GeoM) {
+	if g == handler.screen {
+		return
+	}
+	handler.screen, handler.inverse = g, g
+	handler.mapped = g != (ebiten.GeoM{}) && g.IsInvertible()
+	if handler.mapped {
+		handler.inverse.Invert()
+	}
+}
+
+// toUI maps x, y, a position read from the devices, into the interface's
+// pixels.
+func (handler *DefaultInternalHandler) toUI(x, y int) (int, int) {
+	if !handler.mapped {
+		return x, y
+	}
+	fx, fy := handler.inverse.Apply(float64(x), float64(y))
+	return int(math.Floor(fx)), int(math.Floor(fy))
 }
 
 func (handler *DefaultInternalHandler) AfterUpdate() {

@@ -8,6 +8,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	eimage "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -174,4 +175,41 @@ func TestUseStartsOver(t *testing.T) {
 	if input.UIHovered || left.Valid() {
 		t.Errorf("as a test starts, hovered %v and an earlier layer valid %v, want neither", input.UIHovered, left.Valid())
 	}
+}
+
+// Use starts over the transform an interface is drawn to the screen with,
+// so a test's scaled interface leaves the next one's pointer as it is.
+func TestUseStartsTheScreenTransformOver(t *testing.T) {
+	is := is.New(t)
+
+	t.Run("scaled", func(t *testing.T) {
+		uitest.Use(t)
+		var g ebiten.GeoM
+		g.Scale(2, 2)
+		internalinput.InputHandler.SetScreenTransform(g)
+	})
+	d := uitest.Use(t)
+	d.Cursor = image.Pt(10, 10)
+	input.Update()
+	x, y := input.CursorPosition()
+	input.AfterUpdate()
+	is.Equal([]int{x, y}, []int{10, 10})
+}
+
+// Two fingers' pan is in the interface's pixels too: half the screen's
+// on an interface drawn twice its size.
+func TestScreenTransformScalesThePan(t *testing.T) {
+	is := is.New(t)
+
+	d := uitest.Use(t)
+	var g ebiten.GeoM
+	g.Scale(2, 2)
+	internalinput.InputHandler.SetScreenTransform(g)
+	for _, dx := range []int{0, 20} {
+		d.Touches = append(d.Touches[:0], image.Pt(100+dx, 100), image.Pt(200+dx, 100))
+		input.Update()
+		input.AfterUpdate()
+	}
+	x, _ := input.TouchPan()
+	is.Equal(x, 10.0)
 }
