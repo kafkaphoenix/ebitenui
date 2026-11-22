@@ -33,6 +33,7 @@ type TextInputParams struct {
 	SubmitOnEnter        *bool
 	ScrollSensitivity    *int
 	CaretWidth           *int
+	Multiline            *bool
 }
 
 type TextInput struct {
@@ -72,6 +73,8 @@ type TextInput struct {
 	heldUpdates           int
 	repeating             bool
 	scrollOffset          int
+	scrollOffsetY         int  // how far a multiline input's text is scrolled up
+	wrap                  wrap // a multiline input's text in lines
 	lastInputText         string
 	previousSubmittedText *string
 	dragStartIndex        int
@@ -149,6 +152,8 @@ const (
 	textInputDelete
 	textInputEnter
 	textInputEscape
+	textInputGoUp
+	textInputGoDown
 )
 
 // textInputKeys are the keys that run commands, in the order they are
@@ -166,6 +171,8 @@ var textInputKeys = [...]struct {
 	{ebiten.KeyEnter, textInputEnter},
 	{ebiten.KeyNumpadEnter, textInputEnter},
 	{ebiten.KeyEscape, textInputEscape},
+	{ebiten.KeyUp, textInputGoUp},
+	{ebiten.KeyDown, textInputGoDown},
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -196,6 +203,8 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputDelete] = t.Delete
 	t.commandToFunc[textInputEnter] = t.submitWithEnter
 	t.commandToFunc[textInputEscape] = t.DeselectText
+	t.commandToFunc[textInputGoUp] = t.selectingMove(t.moveUp, true)
+	t.commandToFunc[textInputGoDown] = t.selectingMove(t.moveDown, false)
 
 	t.init.Append(t.createWidget)
 
@@ -268,6 +277,7 @@ func (t *TextInput) populateComputedParams() {
 			params.Secure = theme.TextInputTheme.Secure
 			params.SubmitOnEnter = theme.TextInputTheme.SubmitOnEnter
 			params.CaretWidth = theme.TextInputTheme.CaretWidth
+			params.Multiline = theme.TextInputTheme.Multiline
 		}
 	}
 
@@ -321,6 +331,9 @@ func (t *TextInput) populateComputedParams() {
 	}
 	if t.definedParams.CaretWidth != nil {
 		params.CaretWidth = t.definedParams.CaretWidth
+	}
+	if t.definedParams.Multiline != nil {
+		params.Multiline = t.definedParams.Multiline
 	}
 
 	// Set Default values
@@ -773,6 +786,9 @@ func (t *TextInput) dragTo(x, idx int) {
 		t.dragStartIndex = idx
 	}
 	t.cursorPosition = idx
+	if t.multiline() {
+		return
+	}
 	tr := t.computedParams.Padding.Apply(t.widget.Rect)
 	textSize := tr.Dx() - fontAdvanceAt(t.inputText, utf8.RuneCountInString(t.inputText), t.computedParams.Face)
 	if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+*t.computedParams.ScrollSensitivity {
@@ -791,6 +807,8 @@ func (t *TextInput) pointerIndex() (x, idx int) {
 	tr := t.computedParams.Padding.Apply(t.widget.Rect)
 	x = min(max(x, tr.Min.X), tr.Max.X)
 	switch {
+	case p.In(t.widget.Rect) && t.multiline():
+		idx = t.lineIndex(x, y, tr)
 	case p.In(t.widget.Rect):
 		idx = fontStringIndex([]rune(t.inputText), t.computedParams.Face, x-t.scrollOffset-tr.Min.X)
 	case y < tr.Min.Y:
@@ -841,15 +859,27 @@ func (t *TextInput) CursorMoveRight() {
 	t.caret.ResetBlinking()
 }
 
+// CursorMoveStart moves the caret to the start of the text, or of its
+// line in a multiline input.
 func (t *TextInput) CursorMoveStart() {
 	t.init.Do()
-	t.cursorPosition = 0
+	if t.multiline() {
+		t.cursorPosition, _ = t.lineEnds()
+	} else {
+		t.cursorPosition = 0
+	}
 	t.caret.ResetBlinking()
 }
 
+// CursorMoveEnd moves the caret to the end of the text, or of its line in
+// a multiline input.
 func (t *TextInput) CursorMoveEnd() {
 	t.init.Do()
-	t.cursorPosition = len([]rune(t.inputText))
+	if t.multiline() {
+		_, t.cursorPosition = t.lineEnds()
+	} else {
+		t.cursorPosition = len([]rune(t.inputText))
+	}
 	t.caret.ResetBlinking()
 }
 
@@ -881,6 +911,12 @@ func (t *TextInput) Delete() {
 }
 
 func (t *TextInput) submitWithEnter() {
+	if t.multiline() {
+		if !t.widget.Disabled {
+			t.Insert("\n")
+		}
+		return
+	}
 	if *t.computedParams.SubmitOnEnter {
 		t.Submit()
 	}
@@ -899,8 +935,9 @@ func (t *TextInput) Submit() {
 		}
 	}
 	if *t.computedParams.ClearOnSubmit {
-		t.CursorMoveStart()
+		t.cursorPosition = 0
 		t.inputText = ""
+		t.caret.ResetBlinking()
 	}
 
 	t.DeselectText()
@@ -995,6 +1032,10 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 }
 
 func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
+	if t.multiline() {
+		t.drawLines(screen)
+		return
+	}
 	rect := t.widget.Rect
 	tr := rect
 	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
@@ -1043,32 +1084,44 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	} else {
 		t.text.Label = t.placeholderText
 	}
-	if (t.widget.Disabled || len([]rune(t.inputText)) == 0) && t.computedParams.Color.Disabled != nil {
-		t.text.SetColor(t.computedParams.Color.Disabled)
-	} else {
-		switch c := t.computedParams.Color; {
-		case t.pressing && c.Pressed != nil:
-			t.text.SetColor(c.Pressed)
-		case t.hovering && c.Hover != nil:
-			t.text.SetColor(c.Hover)
-		default:
-			t.text.SetColor(c.Idle)
-		}
-	}
+	t.setTextColor()
 	t.text.Render(screen)
 
 	if t.focused {
-		if t.widget.Disabled && t.computedParams.Color.DisabledCaret != nil {
-			t.caret.Color = t.computedParams.Color.DisabledCaret
-		} else {
-			t.caret.Color = t.computedParams.Color.Caret
-		}
+		t.setCaretColor()
 
 		tr = tr.Add(img.Point{cx, 0})
 		t.caret.SetLocation(tr)
 		t.caretRect = img.Rect(tr.Min.X, tr.Min.Y, tr.Min.X+max(1, t.caret.Width), tr.Min.Y+t.caret.Height)
 
 		t.caret.Render(screen)
+	}
+}
+
+// setTextColor colors the text for the input's state: Disabled while
+// disabled or empty, showing the placeholder, otherwise Pressed, Hover or
+// Idle.
+func (t *TextInput) setTextColor() {
+	c := t.computedParams.Color
+	switch {
+	case (t.widget.Disabled || t.inputText == "") && c.Disabled != nil:
+		t.text.SetColor(c.Disabled)
+	case t.pressing && c.Pressed != nil:
+		t.text.SetColor(c.Pressed)
+	case t.hovering && c.Hover != nil:
+		t.text.SetColor(c.Hover)
+	default:
+		t.text.SetColor(c.Idle)
+	}
+}
+
+// setCaretColor colors the caret DisabledCaret while the input is
+// disabled, and otherwise Caret.
+func (t *TextInput) setCaretColor() {
+	if t.widget.Disabled && t.computedParams.Color.DisabledCaret != nil {
+		t.caret.Color = t.computedParams.Color.DisabledCaret
+	} else {
+		t.caret.Color = t.computedParams.Color.Caret
 	}
 }
 
