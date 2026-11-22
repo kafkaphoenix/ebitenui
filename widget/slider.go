@@ -23,6 +23,7 @@ type SliderParams struct {
 }
 
 type Slider struct {
+	inverted       bool // Max at the track's start (Inverted)
 	definedParams  SliderParams
 	computedParams SliderParams
 
@@ -192,6 +193,16 @@ func (o SliderOptions) Orientation(d Direction) SliderOpt {
 }
 
 // Deprecated: Use Orientation(o *Direction) instead.
+// Inverted puts the slider's Max at the start of its track, its top or
+// left, and Min at the end: a vertical volume control, its largest values
+// at the top. Up and Left, the wheel and clicks on the track move it the
+// way its handle moves. For ebitenui/ebitenui#313.
+func (o SliderOptions) Inverted() SliderOpt {
+	return func(s *Slider) {
+		s.inverted = true
+	}
+}
+
 func (o SliderOptions) Direction(d Direction) SliderOpt {
 	return func(s *Slider) {
 		s.definedParams.Orientation = &d
@@ -428,10 +439,10 @@ func (s *Slider) handleActions(actions *Actions) {
 		less, more = ActionUp, ActionDown
 	}
 	if actions.Take(less) {
-		s.Current -= s.computedParams.PageSizeFunc()
+		s.moveAlong(-s.computedParams.PageSizeFunc())
 	}
 	if actions.Take(more) {
-		s.Current += s.computedParams.PageSizeFunc()
+		s.moveAlong(s.computedParams.PageSizeFunc())
 	}
 	s.clampCurrentMinMax()
 }
@@ -530,16 +541,34 @@ func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 	return handleLength, trackLength
 }
 
+// currentToInternal returns where along the track, from 0 at its start to
+// 1 at its end, the handle shows c.
 func (s *Slider) currentToInternal(c int) float64 {
 	if s.Max <= s.Min {
 		return 0
 	}
-
-	return float64(c-s.Min) / float64(s.Max-s.Min)
+	i := float64(c-s.Min) / float64(s.Max-s.Min)
+	if s.inverted {
+		i = 1 - i
+	}
+	return i
 }
 
+// internalToCurrent returns the value the handle shows i along the track.
 func (s *Slider) internalToCurrent(i float64) int {
+	if s.inverted {
+		i = 1 - i
+	}
 	return int(math.Round(float64(s.Min)*(1-i) + float64(s.Max)*i))
+}
+
+// moveAlong moves the handle steps toward the track's end, or back with a
+// negative count, whichever way the values run.
+func (s *Slider) moveAlong(steps int) {
+	if s.inverted {
+		steps = -steps
+	}
+	s.Current += steps
 }
 
 func (s *Slider) clampCurrentMinMax() {
@@ -566,9 +595,9 @@ func (s *Slider) createWidget() {
 			if !s.widget.Disabled {
 				ps := s.computedParams.PageSizeFunc()
 				if *s.computedParams.Orientation == DirectionHorizontal {
-					s.Current += ps * int(args.Y)
+					s.moveAlong(ps * int(args.Y))
 				} else {
-					s.Current -= ps * int(args.Y)
+					s.moveAlong(-ps * int(args.Y))
 				}
 				s.clampCurrentMinMax()
 			}
@@ -582,15 +611,15 @@ func (s *Slider) createWidget() {
 				rect := s.handle.GetWidget().Rect
 				if *s.computedParams.Orientation == DirectionHorizontal {
 					if x < rect.Min.X {
-						s.Current -= ps
+						s.moveAlong(-ps)
 					} else if x >= rect.Max.X {
-						s.Current += ps
+						s.moveAlong(ps)
 					}
 				} else {
 					if y < rect.Min.Y {
-						s.Current -= ps
+						s.moveAlong(-ps)
 					} else if y >= rect.Max.Y {
-						s.Current += ps
+						s.moveAlong(ps)
 					}
 				}
 
@@ -621,9 +650,9 @@ func (s *Slider) createWidget() {
 			if !s.widget.Disabled {
 				ps := s.computedParams.PageSizeFunc()
 				if *s.computedParams.Orientation == DirectionHorizontal {
-					s.Current += ps * int(args.Y)
+					s.moveAlong(ps * int(args.Y))
 				} else {
-					s.Current -= ps * int(args.Y)
+					s.moveAlong(-ps * int(args.Y))
 				}
 				s.clampCurrentMinMax()
 			}
