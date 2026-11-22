@@ -175,6 +175,16 @@ func TestUseStartsOver(t *testing.T) {
 	if input.UIHovered || left.Valid() {
 		t.Errorf("as a test starts, hovered %v and an earlier layer valid %v, want neither", input.UIHovered, left.Valid())
 	}
+
+	t.Run("a test that ends in a gesture", func(t *testing.T) {
+		d := uitest.Use(t)
+		d.Touches = []image.Point{{10, 10}, {50, 10}}
+		input.Update()
+		input.AfterUpdate()
+	})
+	if input.TouchGesture() {
+		t.Error("after a test, its two fingers' gesture goes on")
+	}
 }
 
 // Use starts over the transform an interface is drawn to the screen with,

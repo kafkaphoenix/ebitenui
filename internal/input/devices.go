@@ -78,8 +78,9 @@ func (Ebitengine) StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.Standar
 // updateTouches makes the first finger on the screen the pointer, its left
 // button down while the finger is. It reports whether touches placed the
 // pointer this update, the update a touch lifts in included. The update
-// after a touch lifts, the pointer leaves the screen, unless KeepTouchHover;
-// on a platform with a mouse, the mouse then places it.
+// after a touch lifts, its gesture ends, and the pointer leaves the screen,
+// unless KeepTouchHover; on a platform with a mouse, the mouse then places
+// it.
 func (handler *DefaultInternalHandler) updateTouches() bool {
 	handler.touchIDs = handler.Devices.AppendTouchIDs(handler.touchIDs[:0])
 	handler.TouchCount = len(handler.touchIDs)
@@ -100,8 +101,11 @@ func (handler *DefaultInternalHandler) updateTouches() bool {
 		handler.lifted = true
 		return true
 	}
-	if handler.lifted && !handler.KeepTouchHover {
-		handler.CursorX, handler.CursorY = -1, -1 // with a mouse, the mouse puts it back
+	if handler.lifted {
+		handler.TouchGesture = false // the touch is over: the mouse clicks again
+		if !handler.KeepTouchHover {
+			handler.CursorX, handler.CursorY = -1, -1 // with a mouse, the mouse puts it back
+		}
 	}
 	handler.lifted = false
 	return false
