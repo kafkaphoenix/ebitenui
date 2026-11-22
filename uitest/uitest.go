@@ -71,11 +71,13 @@ func Use(t testing.TB) *Devices {
 }
 
 // startOver clears what an interface leaves in the input's package state
-// between frames: whether it was hovered, and its input layers and those
-// deferred. Each update starts the cursor's shape over itself.
+// between frames: whether it was hovered, its input layers and those
+// deferred, and the transform it is drawn to the screen with. Each update
+// starts the cursor's shape over itself.
 func startOver() {
 	input.UIHovered = false
 	input.SetupInputLayersWithDeferred(nil)
+	internalinput.InputHandler.SetScreenTransform(ebiten.GeoM{})
 }
 
 func (d *Devices) IsMouseButtonPressed(b ebiten.MouseButton) bool { return d.Mouse[b] }

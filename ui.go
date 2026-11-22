@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ebitenui/ebitenui/internal/changes"
+	internalinput "github.com/ebitenui/ebitenui/internal/input"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -47,6 +48,25 @@ type UI struct {
 	// 60 a second when the TPS follows the display.
 	NavigationRepeatDelay    time.Duration
 	NavigationRepeatInterval time.Duration
+
+	// ScreenTransform is the transform a game draws the interface with onto
+	// the screen, when it draws the interface on an image of its own and
+	// draws that image enlarged or moved: a pixel-art interface drawn small
+	// and scaled up, or one drawn into a part of the screen. The pointer and
+	// the fingers, read in the screen's pixels, are mapped back through it
+	// to the interface's, so the widgets take them where they show. The
+	// zero GeoM, the identity, for an interface drawn straight on the
+	// screen; one that can't be undone, a scale of 0, maps nothing.
+	//
+	//	small := ebiten.NewImage(w/3, h/3)
+	//	ui.Draw(small)
+	//	var op ebiten.DrawImageOptions
+	//	op.GeoM.Scale(3, 3)
+	//	screen.DrawImage(small, &op)
+	//	ui.ScreenTransform = op.GeoM
+	//
+	// For ebitenui/ebitenui#14, #285 and #66.
+	ScreenTransform ebiten.GeoM
 
 	// BackHandler, when set, is called for a Back action no widget takes:
 	// Escape, or with GamepadFocus on a gamepad's right face button, B on an
@@ -111,6 +131,7 @@ func (u *UI) Changed() bool {
 
 // Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
+	internalinput.InputHandler.SetScreenTransform(u.ScreenTransform)
 	input.Update()
 	defer input.AfterUpdate()
 
