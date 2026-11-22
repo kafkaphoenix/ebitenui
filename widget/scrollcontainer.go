@@ -4,6 +4,8 @@ import (
 	img "image"
 	"math"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
+
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
@@ -464,6 +466,7 @@ func (s *ScrollContainer) updateDrag() {
 		d.vx, d.vy = 0, 0 // at an end
 		return
 	}
+	changes.Mark()
 	d.vx, d.vy = d.vx*dragFriction, d.vy*dragFriction
 	if math.Abs(d.vx) < dragStop {
 		d.vx = 0
