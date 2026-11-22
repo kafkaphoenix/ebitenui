@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
@@ -15,10 +17,10 @@ import (
 func TestButton_PressedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *ButtonPressedEventArgs
+	var eventArgs *widget.ButtonPressedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
+		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -30,10 +32,10 @@ func TestButton_PressedEvent_User(t *testing.T) {
 func TestButton_ReleasedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *ButtonReleasedEventArgs
+	var eventArgs *widget.ButtonReleasedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
+		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -46,10 +48,10 @@ func TestButton_ReleasedEvent_User(t *testing.T) {
 func TestButton_ClickedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *ButtonClickedEventArgs
+	var eventArgs *widget.ButtonClickedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -61,10 +63,10 @@ func TestButton_ClickedEvent_User(t *testing.T) {
 func TestButton_ManualClick(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *ButtonClickedEventArgs
+	var eventArgs *widget.ButtonClickedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -77,15 +79,15 @@ func TestButton_ManualClick(t *testing.T) {
 func TestButton_PreferredSizeBeforeValidation(t *testing.T) {
 	is := is.New(t)
 
-	buttonImage := &ButtonImage{
+	buttonImage := &widget.ButtonImage{
 		Idle:    newNineSliceEmpty(t),
 		Pressed: newNineSliceEmpty(t),
 	}
-	b := NewButton(
-		ButtonOpts.Image(buttonImage),
-		ButtonOpts.WidgetOpts(WidgetOpts.MinSize(60, 70)),
+	b := widget.NewButton(
+		widget.ButtonOpts.Image(buttonImage),
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(60, 70)),
 	)
-	c := NewContainer()
+	c := widget.NewContainer()
 	c.AddChild(b)
 
 	w, h := b.PreferredSize()
@@ -101,45 +103,45 @@ func TestButton_PreferredSizeBeforeValidation(t *testing.T) {
 func TestButton_PreferredSizeBeforeItsTheme(t *testing.T) {
 	is := is.New(t)
 
-	b := NewButton(ButtonOpts.WidgetOpts(WidgetOpts.MinSize(20, 10)))
+	b := widget.NewButton(widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(20, 10)))
 	w, h := b.PreferredSize()
 	is.Equal([]int{w, h}, []int{50, 50}) // no image yet: the size of a button with no content
 
 	big := image.NewBorderedNineSliceColor(color.White, color.Black, 40)
-	c := NewContainer()
-	c.GetWidget().SetTheme(&Theme{ButtonTheme: &ButtonParams{Image: &ButtonImage{Idle: big, Pressed: big}}})
+	c := widget.NewContainer()
+	c.GetWidget().SetTheme(&widget.Theme{ButtonTheme: &widget.ButtonParams{Image: &widget.ButtonImage{Idle: big, Pressed: big}}})
 	c.AddChild(b)
 	w, h = b.PreferredSize()
 	is.Equal([]int{w, h}, []int{80, 80}) // the theme's image's corners
 
-	labeled := NewButton(ButtonOpts.Image(&ButtonImage{Idle: big, Pressed: big}),
-		ButtonOpts.Text("A label much wider than eighty pixels", loadFont(t), &ButtonTextColor{Idle: color.White}))
+	labeled := widget.NewButton(widget.ButtonOpts.Image(&widget.ButtonImage{Idle: big, Pressed: big}),
+		widget.ButtonOpts.Text("A label much wider than eighty pixels", loadFont(t), &widget.ButtonTextColor{Idle: color.White}))
 	w, _ = labeled.PreferredSize()
 	is.True(w > 200) // all it needs given: validated, so sized by its label
 
 	ns := newNineSliceEmpty(t)
 	for _, c := range []struct {
-		opts []ButtonOpt
+		opts []widget.ButtonOpt
 		want string
 	}{
 		{nil, "Image is required."},
-		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Pressed: ns})}, "Image.Idle is required."},
-		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns})}, "Image.Pressed is required."},
-		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x")}, "TextFace is required if TextLabel is set."},
-		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x"), ButtonOpts.TextFace(loadFont(t))}, "TextColor is required if TextLabel is set."},
-		{[]ButtonOpt{ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}), ButtonOpts.TextLabel("x"), ButtonOpts.TextFace(loadFont(t)), ButtonOpts.TextColor(&ButtonTextColor{})}, "TextColor.Idle is required if TextLabel is set."},
+		{[]widget.ButtonOpt{widget.ButtonOpts.Image(&widget.ButtonImage{Pressed: ns})}, "Image.Idle is required."},
+		{[]widget.ButtonOpt{widget.ButtonOpts.Image(&widget.ButtonImage{Idle: ns})}, "Image.Pressed is required."},
+		{[]widget.ButtonOpt{widget.ButtonOpts.Image(&widget.ButtonImage{Idle: ns, Pressed: ns}), widget.ButtonOpts.TextLabel("x")}, "TextFace is required if TextLabel is set."},
+		{[]widget.ButtonOpt{widget.ButtonOpts.Image(&widget.ButtonImage{Idle: ns, Pressed: ns}), widget.ButtonOpts.TextLabel("x"), widget.ButtonOpts.TextFace(loadFont(t))}, "TextColor is required if TextLabel is set."},
+		{[]widget.ButtonOpt{widget.ButtonOpts.Image(&widget.ButtonImage{Idle: ns, Pressed: ns}), widget.ButtonOpts.TextLabel("x"), widget.ButtonOpts.TextFace(loadFont(t)), widget.ButtonOpts.TextColor(&widget.ButtonTextColor{})}, "TextColor.Idle is required if TextLabel is set."},
 	} {
 		func() {
 			defer func() { is.Equal(recover(), "Button: "+c.want) }()
-			NewButton(c.opts...).Validate()
+			widget.NewButton(c.opts...).Validate()
 		}()
 	}
 }
 
-func newButton(t *testing.T, opts ...ButtonOpt) *Button {
+func newButton(t *testing.T, opts ...widget.ButtonOpt) *widget.Button {
 	t.Helper()
 
-	b := NewButton(append(opts, ButtonOpts.Image(&ButtonImage{
+	b := widget.NewButton(append(opts, widget.ButtonOpts.Image(&widget.ButtonImage{
 		Idle:    newNineSliceEmpty(t),
 		Pressed: newNineSliceEmpty(t),
 	}))...)
@@ -153,10 +155,10 @@ func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 func TestButton_ContentUnderTheButton(t *testing.T) {
 	is := is.New(t)
 
-	inner := NewButton(ButtonOpts.Image(&ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}))
-	b := NewButton(ButtonOpts.Image(&ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}), ButtonOpts.Content(inner))
-	theme := &Theme{}
-	holder := NewContainer()
+	inner := widget.NewButton(widget.ButtonOpts.Image(&widget.ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}))
+	b := widget.NewButton(widget.ButtonOpts.Image(&widget.ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}), widget.ButtonOpts.Content(inner))
+	theme := &widget.Theme{}
+	holder := widget.NewContainer()
 	holder.GetWidget().SetTheme(theme)
 	holder.AddChild(b)
 	holder.Validate()
@@ -170,11 +172,11 @@ func TestButton_ContentUnderTheButton(t *testing.T) {
 
 // placedWidget counts the times a layout places it.
 type placedWidget struct {
-	widget *Widget
+	widget *widget.Widget
 	placed int
 }
 
-func (p *placedWidget) GetWidget() *Widget        { return p.widget }
+func (p *placedWidget) GetWidget() *widget.Widget { return p.widget }
 func (p *placedWidget) PreferredSize() (int, int) { return 10, 10 }
 func (p *placedWidget) Validate()                 {}
 
@@ -188,8 +190,8 @@ func (p *placedWidget) SetLocation(rect img.Rectangle) {
 func TestButton_ContentLaidOutWhenNeeded(t *testing.T) {
 	is := is.New(t)
 
-	content := &placedWidget{widget: NewWidget()}
-	b := newButton(t, ButtonOpts.Content(content))
+	content := &placedWidget{widget: widget.NewWidget()}
+	b := newButton(t, widget.ButtonOpts.Content(content))
 	screen := ebiten.NewImage(100, 100)
 	b.SetLocation(img.Rect(0, 0, 40, 20))
 	b.Render(screen)

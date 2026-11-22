@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -10,10 +12,10 @@ import (
 func TestSlider_Current_Initial(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *SliderChangedEventArgs
+	var eventArgs *widget.SliderChangedEventArgs
 	s := newSlider(t,
-		SliderOpts.MinMax(10, 20),
-		SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
+		widget.SliderOpts.MinMax(10, 20),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -21,10 +23,10 @@ func TestSlider_Current_Initial(t *testing.T) {
 	is.Equal(eventArgs.Current, 10)
 }
 
-func newSlider(t *testing.T, opts ...SliderOpt) *Slider {
-	s := NewSlider(append(opts, SliderOpts.Images(&SliderTrackImage{
+func newSlider(t *testing.T, opts ...widget.SliderOpt) *widget.Slider {
+	s := widget.NewSlider(append(opts, widget.SliderOpts.Images(&widget.SliderTrackImage{
 		Idle: newNineSliceEmpty(t),
-	}, &ButtonImage{
+	}, &widget.ButtonImage{
 		Idle:    newNineSliceEmpty(t),
 		Pressed: newNineSliceEmpty(t),
 	}))...)

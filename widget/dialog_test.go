@@ -1,32 +1,34 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"image/color"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/widget"
+
 	"github.com/matryer/is"
 )
 
-func newDialog(t *testing.T, opts ...DialogOpt) (*Dialog, *[]DialogChoiceEventArgs, *bool) {
+func newDialog(t *testing.T, opts ...widget.DialogOpt) (*widget.Dialog, *[]widget.DialogChoiceEventArgs, *bool) {
 	t.Helper()
 
-	var choices []DialogChoiceEventArgs
+	var choices []widget.DialogChoiceEventArgs
 	closed := false
 	ns := newNineSliceEmpty(t)
-	d := NewDialog(append([]DialogOpt{
-		DialogOpts.Title("Dust storm"),
-		DialogOpts.Message("A storm is coming over the landing site. Recall the rover?"),
-		DialogOpts.Choices("Recall", "Keep going"),
-		DialogOpts.MaxWidth(200),
-		DialogOpts.TitleText(loadFont(t), color.White),
-		DialogOpts.MessageText(loadFont(t), color.White),
-		DialogOpts.ButtonParams(&ButtonParams{
-			Image:     &ButtonImage{Idle: ns, Pressed: ns},
+	d := widget.NewDialog(append([]widget.DialogOpt{
+		widget.DialogOpts.Title("Dust storm"),
+		widget.DialogOpts.Message("A storm is coming over the landing site. Recall the rover?"),
+		widget.DialogOpts.Choices("Recall", "Keep going"),
+		widget.DialogOpts.MaxWidth(200),
+		widget.DialogOpts.TitleText(loadFont(t), color.White),
+		widget.DialogOpts.MessageText(loadFont(t), color.White),
+		widget.DialogOpts.ButtonParams(&widget.ButtonParams{
+			Image:     &widget.ButtonImage{Idle: ns, Pressed: ns},
 			TextFace:  loadFont(t),
-			TextColor: &ButtonTextColor{Idle: color.White},
+			TextColor: &widget.ButtonTextColor{Idle: color.White},
 		}),
-		DialogOpts.ChoiceHandler(func(args *DialogChoiceEventArgs) { choices = append(choices, *args) }),
+		widget.DialogOpts.ChoiceHandler(func(args *widget.DialogChoiceEventArgs) { choices = append(choices, *args) }),
 	}, opts...)...)
 	d.Window().SetCloseFunction(func() { closed = true })
 	return d, &choices, &closed
@@ -38,13 +40,13 @@ func TestDialog_Contents(t *testing.T) {
 	is := is.New(t)
 
 	d, _, _ := newDialog(t)
-	render(d.contents, t)
+	render(d.Contents(), t)
 
-	is.Equal(len(d.contents.children), 4)
-	message, ok := d.contents.children[1].(*Text)
+	is.Equal(len(d.Contents().ChildrenForTest()), 4)
+	message, ok := d.Contents().ChildrenForTest()[1].(*widget.Text)
 	is.True(ok)
-	is.True(len(message.measurements.processedLines) > 1) // wrapped
-	_, ok = d.contents.children[3].(*Button)
+	is.True(len(message.Measurements().ProcessedLines()) > 1) // wrapped
+	_, ok = d.Contents().ChildrenForTest()[3].(*widget.Button)
 	is.True(ok)
 }
 
@@ -53,8 +55,8 @@ func TestDialog_Choice(t *testing.T) {
 	is := is.New(t)
 
 	d, choices, closed := newDialog(t)
-	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[3].(*Button), t)
+	render(d.Contents(), t)
+	leftMouseButtonClick(d.Contents().ChildrenForTest()[3].(*widget.Button), t)
 
 	is.Equal(len(*choices), 1)
 	is.Equal((*choices)[0].Choice, 1)
@@ -66,9 +68,9 @@ func TestDialog_Choice(t *testing.T) {
 func TestDialog_KeepOpen(t *testing.T) {
 	is := is.New(t)
 
-	d, choices, closed := newDialog(t, DialogOpts.KeepOpen())
-	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[2].(*Button), t)
+	d, choices, closed := newDialog(t, widget.DialogOpts.KeepOpen())
+	render(d.Contents(), t)
+	leftMouseButtonClick(d.Contents().ChildrenForTest()[2].(*widget.Button), t)
 
 	is.Equal(len(*choices), 1)
 	is.True(!*closed)
@@ -79,11 +81,11 @@ func TestDialog_KeepOpen(t *testing.T) {
 func TestDialog_WindowOpts(t *testing.T) {
 	is := is.New(t)
 
-	d, _, closed := newDialog(t, DialogOpts.WindowOpts(
-		WindowOpts.Transition(WindowTransition{Duration: 4, Out: WindowMotion{Offset: img.Pt(0, 20)}}),
+	d, _, closed := newDialog(t, widget.DialogOpts.WindowOpts(
+		widget.WindowOpts.Transition(widget.WindowTransition{Duration: 4, Out: widget.WindowMotion{Offset: img.Pt(0, 20)}}),
 	))
-	render(d.contents, t)
-	leftMouseButtonClick(d.contents.children[2].(*Button), t)
+	render(d.Contents(), t)
+	leftMouseButtonClick(d.Contents().ChildrenForTest()[2].(*widget.Button), t)
 
 	is.True(d.Window().Closing()) // easing out
 	is.True(!*closed)             // not yet removed
@@ -96,7 +98,7 @@ func TestDialog_CenterIn(t *testing.T) {
 	d, _, _ := newDialog(t)
 	d.CenterIn(img.Rect(100, 50, 500, 450))
 
-	w, h := d.contents.PreferredSize()
+	w, h := d.Contents().PreferredSize()
 	r := d.Window().GetContainer().GetWidget().Rect
 	is.Equal(r.Size(), img.Pt(w, h))
 	is.Equal(r.Min.Add(r.Max), img.Pt(600, 500)) // centered: twice the area's middle
@@ -107,13 +109,13 @@ func TestDialog_CenterIn(t *testing.T) {
 func TestDialog_ThemeBackground(t *testing.T) {
 	is := is.New(t)
 
-	dark := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
-	light := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
-	background := func(d *Dialog, theme *Theme) any { // validated through its window, as the UI does
+	dark := &widget.Theme{PanelTheme: &widget.PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	light := &widget.Theme{PanelTheme: &widget.PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	background := func(d *widget.Dialog, theme *widget.Theme) any { // validated through its window, as the UI does
 		w := d.Window().GetContainer()
 		w.GetWidget().SetTheme(theme)
 		w.Validate()
-		return d.contents.computedParams.BackgroundImage
+		return d.Contents().ComputedParams().BackgroundImage
 	}
 
 	d, _, _ := newDialog(t)
@@ -121,6 +123,6 @@ func TestDialog_ThemeBackground(t *testing.T) {
 	is.True(background(d, light) == light.PanelTheme.BackgroundImage)
 
 	own := newNineSliceEmpty(t)
-	d, _, _ = newDialog(t, DialogOpts.BackgroundImage(own))
+	d, _, _ = newDialog(t, widget.DialogOpts.BackgroundImage(own))
 	is.True(background(d, dark) == own)
 }

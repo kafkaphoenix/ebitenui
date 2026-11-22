@@ -1,5 +1,5 @@
 //go:build !race
 
-package widget
+package widget_test
 
 const raceEnabled = false

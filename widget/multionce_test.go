@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/matryer/is"
 )
@@ -9,7 +11,7 @@ import (
 func TestMultiOnce_Do(t *testing.T) {
 	is := is.New(t)
 
-	m := MultiOnce{}
+	m := widget.MultiOnce{}
 
 	count := 0
 	f := func() {

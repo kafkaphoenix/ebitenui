@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -10,20 +12,20 @@ import (
 
 // recordingWidget remembers the image it was last drawn onto.
 type recordingWidget struct {
-	widget  *Widget
+	widget  *widget.Widget
 	drawnOn *ebiten.Image
 }
 
-func (r *recordingWidget) GetWidget() *Widget             { return r.widget }
+func (r *recordingWidget) GetWidget() *widget.Widget      { return r.widget }
 func (r *recordingWidget) PreferredSize() (int, int)      { return 10, 10 }
 func (r *recordingWidget) SetLocation(rect img.Rectangle) { r.widget.Rect = rect }
 func (r *recordingWidget) Validate()                      {}
 func (r *recordingWidget) Render(screen *ebiten.Image)    { r.drawnOn = screen }
 
-func newRecordingContainer(t *testing.T) (*Container, *recordingWidget) {
+func newRecordingContainer(t *testing.T) (*widget.Container, *recordingWidget) {
 	t.Helper()
-	child := &recordingWidget{widget: NewWidget()}
-	c := NewContainer(ContainerOpts.Layout(NewAnchorLayout()))
+	child := &recordingWidget{widget: widget.NewWidget()}
+	c := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
 	c.AddChild(child)
 	c.Validate()
 	c.SetLocation(img.Rect(10, 10, 60, 40))
@@ -39,7 +41,7 @@ func TestContainer_DrawsDirectlyWhenOpaque(t *testing.T) {
 
 	is.Equal(c.Opacity(), float32(1))
 	is.Equal(child.drawnOn, screen) // drawn onto the screen
-	is.Equal(c.effectBuffer, nil)   // no off-screen image
+	is.Equal(c.EffectBuffer(), nil) // no off-screen image
 }
 
 func TestContainer_OpacityDrawsOffScreen(t *testing.T) {
@@ -53,14 +55,14 @@ func TestContainer_OpacityDrawsOffScreen(t *testing.T) {
 	is.True(child.drawnOn != screen)                           // drawn off screen
 	is.Equal(child.drawnOn.Bounds(), img.Rect(10, 10, 60, 40)) // covering the container
 
-	buffer := c.effectBuffer
+	buffer := c.EffectBuffer()
 	c.SetLocation(img.Rect(30, 20, 80, 50)) // sliding, as a window opening
 	c.Render(screen)
-	is.True(c.effectBuffer == buffer)                          // the same off-screen image
+	is.True(c.EffectBuffer() == buffer)                        // the same off-screen image
 	is.Equal(child.drawnOn.Bounds(), img.Rect(30, 20, 80, 50)) // at the new place
 
 	c.SetOpacity(1)
-	is.Equal(c.effectBuffer, nil) // released
+	is.Equal(c.EffectBuffer(), nil) // released
 }
 
 // The off-screen image covers the container and a margin around it, within
@@ -73,21 +75,21 @@ func TestContainer_EffectBufferFitsTheContainer(t *testing.T) {
 	c.SetLocation(img.Rect(300, 200, 500, 300))
 	c.SetOpacity(0.5)
 	c.Render(screen)
-	is.Equal(c.effectBuffer.Bounds(), img.Rect(236, 136, 564, 364)) // 64 px around it, not the screen
+	is.Equal(c.EffectBuffer().Bounds(), img.Rect(236, 136, 564, 364)) // 64 px around it, not the screen
 
-	buffer := c.effectBuffer
+	buffer := c.EffectBuffer()
 	c.SetLocation(img.Rect(340, 200, 540, 300)) // 40 px along, as a popup easing in
 	c.Render(screen)
-	is.True(c.effectBuffer == buffer) // kept
+	is.True(c.EffectBuffer() == buffer) // kept
 
 	c.SetLocation(img.Rect(700, 200, 900, 300))
 	c.Render(screen)
-	is.True(c.effectBuffer != buffer) // made again around it
-	is.Equal(c.effectBuffer.Bounds(), img.Rect(636, 136, 964, 364))
+	is.True(c.EffectBuffer() != buffer) // made again around it
+	is.Equal(c.EffectBuffer().Bounds(), img.Rect(636, 136, 964, 364))
 
 	c.SetLocation(img.Rect(950, 550, 1050, 650)) // partly off the screen
 	c.Render(screen)
-	is.Equal(c.effectBuffer.Bounds(), img.Rect(886, 486, 1000, 600)) // up to its edge
+	is.Equal(c.EffectBuffer().Bounds(), img.Rect(886, 486, 1000, 600)) // up to its edge
 }
 
 // A fading container keeps its off-screen image; an invisible one, such as
@@ -99,25 +101,25 @@ func TestContainer_InvisibleKeepsNoBuffer(t *testing.T) {
 	c, _ := newRecordingContainer(t)
 	c.SetOpacity(0.5)
 	c.Render(screen)
-	buffer := c.effectBuffer
+	buffer := c.EffectBuffer()
 	is.True(buffer != nil)
 	c.SetOpacity(0.25) // fading
 	c.Render(screen)
-	is.True(c.effectBuffer == buffer) // kept through the fade
+	is.True(c.EffectBuffer() == buffer) // kept through the fade
 
 	c.SetOpacity(0)
-	is.Equal(c.effectBuffer, nil) // released
+	is.Equal(c.EffectBuffer(), nil) // released
 	c.Render(screen)
-	is.Equal(c.effectBuffer, nil) // and none made
+	is.Equal(c.EffectBuffer(), nil) // and none made
 }
 
 func TestWindow_SetOpacity(t *testing.T) {
 	is := is.New(t)
 
-	w := NewWindow(WindowOpts.Contents(NewContainer()))
+	w := widget.NewWindow(widget.WindowOpts.Contents(widget.NewContainer()))
 	w.SetOpacity(0.25)
 
-	c, ok := w.GetContainer().(*Container)
+	c, ok := w.GetContainer().(*widget.Container)
 	is.True(ok)
 	is.Equal(c.Opacity(), float32(0.25))
 }
@@ -129,13 +131,13 @@ func TestContainer_EmbeddedDrawsDirectly(t *testing.T) {
 
 	ns := newNineSliceEmpty(t)
 	for _, c := range []interface {
-		Containerer
-		Renderer
+		widget.Containerer
+		widget.Renderer
 	}{
-		NewPanel(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.BackgroundImage(ns)),
-		NewTabBookTab(TabBookTabOpts.ContainerOpts(ContainerOpts.Layout(NewAnchorLayout()))),
+		widget.NewPanel(widget.ContainerOpts.Layout(widget.NewAnchorLayout()), widget.ContainerOpts.BackgroundImage(ns)),
+		widget.NewTabBookTab(widget.TabBookTabOpts.ContainerOpts(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))),
 	} {
-		child := &recordingWidget{widget: NewWidget()}
+		child := &recordingWidget{widget: widget.NewWidget()}
 		c.AddChild(child)
 		c.Validate()
 		c.SetLocation(img.Rect(10, 10, 60, 40))
@@ -157,23 +159,23 @@ func Fragment(dst vec4, src vec2, color vec4) vec4 {
 	return imageSrc0At(src) * color
 }`))
 	is.NoErr(err)
-	p := NewPanel(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.BackgroundImage(newNineSliceEmpty(t)),
-		ContainerOpts.Shader(&ContainerShader{Shader: s}))
-	child := &recordingWidget{widget: NewWidget()}
+	p := widget.NewPanel(widget.ContainerOpts.Layout(widget.NewAnchorLayout()), widget.ContainerOpts.BackgroundImage(newNineSliceEmpty(t)),
+		widget.ContainerOpts.Shader(&widget.ContainerShader{Shader: s}))
+	child := &recordingWidget{widget: widget.NewWidget()}
 	p.AddChild(child)
 	p.Validate()
 	p.SetLocation(img.Rect(10, 10, 60, 40))
 	p.Render(ebiten.NewImage(100, 100))
 	is.True(child.drawnOn != nil) // drawn, off screen
-	is.Equal(p.effectShaderOp.ColorScale.A(), float32(1))
+	is.Equal(p.EffectShaderOp().ColorScale.A(), float32(1))
 }
 
 // A container made with an opacity below 1 draws off screen.
 func TestContainer_OpacityOptionDrawsOffScreen(t *testing.T) {
 	is := is.New(t)
 
-	child := &recordingWidget{widget: NewWidget()}
-	c := NewContainer(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.Opacity(0.5))
+	child := &recordingWidget{widget: widget.NewWidget()}
+	c := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()), widget.ContainerOpts.Opacity(0.5))
 	c.AddChild(child)
 	c.Validate()
 	c.SetLocation(img.Rect(10, 10, 60, 40))

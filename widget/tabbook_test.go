@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -12,12 +14,12 @@ import (
 func TestTabBook_Tab_Initial(t *testing.T) {
 	is := is.New(t)
 
-	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 1"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 2"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
-		TabBookOpts.Tabs(tab1, tab2),
-		TabBookOpts.TabSelectedHandler(func(e *TabBookTabSelectedEventArgs) {
+		widget.TabBookOpts.Tabs(tab1, tab2),
+		widget.TabBookOpts.TabSelectedHandler(func(e *widget.TabBookTabSelectedEventArgs) {
 			is.Equal(e.Tab, tab1)
 			is.Equal(e.PreviousTab, nil)
 		}))
@@ -28,15 +30,15 @@ func TestTabBook_Tab_Initial(t *testing.T) {
 func TestTabBook_SetTab(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *TabBookTabSelectedEventArgs
+	var eventArgs *widget.TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 1"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 2"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
-		TabBookOpts.Tabs(tab1, tab2),
-		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		widget.TabBookOpts.Tabs(tab1, tab2),
+		widget.TabBookOpts.TabSelectedHandler(func(args *widget.TabBookTabSelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -56,15 +58,15 @@ func TestTabBook_SetTab(t *testing.T) {
 func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *TabBookTabSelectedEventArgs
+	var eventArgs *widget.TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 1"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 2"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
-		TabBookOpts.Tabs(tab1, tab2),
-		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		widget.TabBookOpts.Tabs(tab1, tab2),
+		widget.TabBookOpts.TabSelectedHandler(func(args *widget.TabBookTabSelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -82,12 +84,12 @@ func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 func TestTabBook_GetTabButton(t *testing.T) {
 	is := is.New(t)
 
-	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab3 := NewTabBookTab(TabBookTabOpts.Label("Tab 3"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 1"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 2"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab3 := widget.NewTabBookTab(widget.TabBookTabOpts.Label("Tab 3"), widget.TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
-		TabBookOpts.Tabs(tab1, tab2),
+		widget.TabBookOpts.Tabs(tab1, tab2),
 	)
 	// Test Nil Pointer
 	is.True(tb.GetTabButton(nil) == nil)
@@ -106,15 +108,15 @@ func TestTabBook_GetTabButton(t *testing.T) {
 	is.True(tb.GetTabButton(tab3) == nil)
 }
 
-func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
+func newTabBook(t *testing.T, opts ...widget.TabBookOpt) *widget.TabBook {
 	t.Helper()
 
-	tb := NewTabBook(append(opts, []TabBookOpt{
-		TabBookOpts.TabButtonImage(&ButtonImage{
+	tb := widget.NewTabBook(append(opts, []widget.TabBookOpt{
+		widget.TabBookOpts.TabButtonImage(&widget.ButtonImage{
 			Idle:    newNineSliceEmpty(t),
 			Pressed: newNineSliceEmpty(t),
 		}),
-		TabBookOpts.TabButtonText(loadFont(t), &ButtonTextColor{
+		widget.TabBookOpts.TabButtonText(loadFont(t), &widget.ButtonTextColor{
 			Idle:     color.Transparent,
 			Disabled: color.Transparent,
 		}),
@@ -125,16 +127,16 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 	return tb
 }
 
-func tabBookButtons(t *TabBook) []*Button {
-	buttons := make([]*Button, 0, len(t.tabs))
-	for _, tab := range t.tabs {
-		buttons = append(buttons, t.tabToButton[tab])
+func tabBookButtons(t *widget.TabBook) []*widget.Button {
+	buttons := make([]*widget.Button, 0, len(t.Tabs()))
+	for _, tab := range t.Tabs() {
+		buttons = append(buttons, t.TabToButton()[tab])
 	}
 	return buttons
 }
 
-func newTabContainerOpts() []ContainerOpt {
-	result := []ContainerOpt{}
+func newTabContainerOpts() []widget.ContainerOpt {
+	result := []widget.ContainerOpt{}
 
 	return result
 }
@@ -142,12 +144,12 @@ func newTabContainerOpts() []ContainerOpt {
 // newPlacedTabBook returns a tab book of two tabs, "A" and "Longer", whose
 // pages ask for 60 by 80 and 100 by 120 px, so that the one not shown is the
 // larger, with opts, laid out in 300 by 200 px.
-func newPlacedTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
+func newPlacedTabBook(t *testing.T, opts ...widget.TabBookOpt) *widget.TabBook {
 	t.Helper()
-	page := func(label string, w, h int) *TabBookTab {
-		return NewTabBookTab(TabBookTabOpts.Label(label), TabBookTabOpts.ContainerOpts(ContainerOpts.WidgetOpts(WidgetOpts.MinSize(w, h))))
+	page := func(label string, w, h int) *widget.TabBookTab {
+		return widget.NewTabBookTab(widget.TabBookTabOpts.Label(label), widget.TabBookTabOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.MinSize(w, h))))
 	}
-	tb := newTabBook(t, append([]TabBookOpt{TabBookOpts.Tabs(page("A", 60, 80), page("Longer", 100, 120)), TabBookOpts.ContentSpacing(5)}, opts...)...)
+	tb := newTabBook(t, append([]widget.TabBookOpt{widget.TabBookOpts.Tabs(page("A", 60, 80), page("Longer", 100, 120)), widget.TabBookOpts.ContentSpacing(5)}, opts...)...)
 	tb.SetLocation(img.Rect(0, 0, 300, 200))
 	render(tb, t)
 	return tb
@@ -160,22 +162,22 @@ func newPlacedTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 func TestTabBook_TabPosition(t *testing.T) {
 	is := is.New(t)
 
-	for _, pos := range []TabPosition{TabPositionTop, TabPositionBottom, TabPositionLeft, TabPositionRight} {
-		tb := newPlacedTabBook(t, TabBookOpts.TabPosition(pos))
+	for _, pos := range []widget.TabPosition{widget.TabPositionTop, widget.TabPositionBottom, widget.TabPositionLeft, widget.TabPositionRight} {
+		tb := newPlacedTabBook(t, widget.TabBookOpts.TabPosition(pos))
 		b := tabBookButtons(tb)
-		b0, b1, page := b[0].GetWidget().Rect, b[1].GetWidget().Rect, tb.flipBook.GetWidget().Rect
+		b0, b1, page := b[0].GetWidget().Rect, b[1].GetWidget().Rect, tb.FlipBook().GetWidget().Rect
 		switch pos {
-		case TabPositionTop:
+		case widget.TabPositionTop:
 			is.True(b0.Min.Y == 0 && b1.Min.Y == 0 && b1.Min.X >= b0.Max.X) // a row at the top
 			is.Equal(page, img.Rect(0, b0.Max.Y+5, 300, 200))
-		case TabPositionBottom:
+		case widget.TabPositionBottom:
 			is.True(b0.Max.Y == 200 && b1.Max.Y == 200 && b1.Min.X >= b0.Max.X) // a row at the bottom
 			is.Equal(page, img.Rect(0, 0, 300, b0.Min.Y-5))
-		case TabPositionLeft:
+		case widget.TabPositionLeft:
 			is.True(b0.Min.X == 0 && b1.Min.Y >= b0.Max.Y) // a column on the left
 			is.Equal(b0.Dx(), b1.Dx())                     // as wide as the widest
 			is.Equal(page, img.Rect(b0.Max.X+5, 0, 300, 200))
-		case TabPositionRight:
+		case widget.TabPositionRight:
 			is.True(b0.Max.X == 300 && b1.Min.Y >= b0.Max.Y) // a column on the right
 			is.Equal(b0.Dx(), b1.Dx())
 			is.Equal(page, img.Rect(0, 0, b0.Min.X-5, 200))
@@ -188,11 +190,11 @@ func TestTabBook_TabPosition(t *testing.T) {
 func TestTabBook_PreferredSizeByPosition(t *testing.T) {
 	is := is.New(t)
 
-	for _, pos := range []TabPosition{TabPositionTop, TabPositionLeft} {
-		tb := newPlacedTabBook(t, TabBookOpts.TabPosition(pos))
-		bw, bh := tb.btnContainer.PreferredSize()
+	for _, pos := range []widget.TabPosition{widget.TabPositionTop, widget.TabPositionLeft} {
+		tb := newPlacedTabBook(t, widget.TabBookOpts.TabPosition(pos))
+		bw, bh := tb.BtnContainer().PreferredSize()
 		w, h := tb.PreferredSize()
-		if pos == TabPositionTop {
+		if pos == widget.TabPositionTop {
 			is.Equal([]int{w, h}, []int{max(100, bw), bh + 5 + 120})
 		} else {
 			is.Equal([]int{w, h}, []int{bw + 5 + 100, max(120, bh)})

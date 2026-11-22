@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/matryer/is"
 )
@@ -10,7 +12,7 @@ import (
 func TestNewInsetsSimple(t *testing.T) {
 	is := is.New(t)
 
-	i := NewInsetsSimple(15)
+	i := widget.NewInsetsSimple(15)
 
 	is.Equal(i.Left, 15)
 	is.Equal(i.Right, 15)
@@ -21,7 +23,7 @@ func TestNewInsetsSimple(t *testing.T) {
 func TestInsets_Apply(t *testing.T) {
 	is := is.New(t)
 
-	i := Insets{
+	i := widget.Insets{
 		Left:   10,
 		Right:  20,
 		Top:    30,
@@ -35,7 +37,7 @@ func TestInsets_Apply(t *testing.T) {
 func TestInsets_Dx(t *testing.T) {
 	is := is.New(t)
 
-	i := Insets{
+	i := widget.Insets{
 		Left:  10,
 		Right: 20,
 	}
@@ -46,7 +48,7 @@ func TestInsets_Dx(t *testing.T) {
 func TestInsets_Dy(t *testing.T) {
 	is := is.New(t)
 
-	i := Insets{
+	i := widget.Insets{
 		Top:    30,
 		Bottom: 40,
 	}

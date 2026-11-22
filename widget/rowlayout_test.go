@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/matryer/is"
 )
@@ -12,7 +14,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 
 	spacing := 7
 
-	padding := &Insets{
+	padding := &widget.Insets{
 		Top:    10,
 		Left:   20,
 		Right:  30,
@@ -20,29 +22,29 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 	}
 
 	l := newRowLayout(t,
-		RowLayoutOpts.Padding(padding),
-		RowLayoutOpts.Spacing(spacing))
+		widget.RowLayoutOpts.Padding(padding),
+		widget.RowLayoutOpts.Spacing(spacing))
 
-	widgets := []PreferredSizeLocateableWidget{
+	widgets := []widget.PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
-		newSimpleWidget(20, 20, RowLayoutData{
-			Position: RowLayoutPositionCenter,
+		newSimpleWidget(20, 20, widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
 		}),
-		newSimpleWidget(30, 30, RowLayoutData{
-			Position: RowLayoutPositionEnd,
+		newSimpleWidget(30, 30, widget.RowLayoutData{
+			Position: widget.RowLayoutPositionEnd,
 		}),
-		newSimpleWidget(40, 40, RowLayoutData{
+		newSimpleWidget(40, 40, widget.RowLayoutData{
 			Stretch: true,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
+		newSimpleWidget(200, 200, widget.RowLayoutData{
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
-			Position:  RowLayoutPositionCenter,
+		newSimpleWidget(200, 200, widget.RowLayoutData{
+			Position:  widget.RowLayoutPositionCenter,
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
-			Position:  RowLayoutPositionEnd,
+		newSimpleWidget(200, 200, widget.RowLayoutData{
+			Position:  widget.RowLayoutPositionEnd,
 			MaxHeight: 45,
 		}),
 	}
@@ -58,7 +60,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 			expectedWidth += spacing
 		}
 
-		if rld, ok := s.GetWidget().LayoutData.(RowLayoutData); ok {
+		if rld, ok := s.GetWidget().LayoutData.(widget.RowLayoutData); ok {
 			if rld.MaxHeight > 0 && h > rld.MaxHeight {
 				h = rld.MaxHeight
 			}
@@ -81,34 +83,34 @@ func TestRowLayout_Layout(t *testing.T) {
 	is := is.New(t)
 
 	l := newRowLayout(t,
-		RowLayoutOpts.Padding(&Insets{
+		widget.RowLayoutOpts.Padding(&widget.Insets{
 			Top:    10,
 			Left:   20,
 			Right:  30,
 			Bottom: 40,
 		}),
-		RowLayoutOpts.Spacing(7))
+		widget.RowLayoutOpts.Spacing(7))
 
-	widgets := []PreferredSizeLocateableWidget{
+	widgets := []widget.PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
-		newSimpleWidget(20, 20, RowLayoutData{
-			Position: RowLayoutPositionCenter,
+		newSimpleWidget(20, 20, widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
 		}),
-		newSimpleWidget(30, 30, RowLayoutData{
-			Position: RowLayoutPositionEnd,
+		newSimpleWidget(30, 30, widget.RowLayoutData{
+			Position: widget.RowLayoutPositionEnd,
 		}),
-		newSimpleWidget(40, 40, RowLayoutData{
+		newSimpleWidget(40, 40, widget.RowLayoutData{
 			Stretch: true,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
+		newSimpleWidget(200, 200, widget.RowLayoutData{
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
-			Position:  RowLayoutPositionCenter,
+		newSimpleWidget(200, 200, widget.RowLayoutData{
+			Position:  widget.RowLayoutPositionCenter,
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, RowLayoutData{
-			Position:  RowLayoutPositionEnd,
+		newSimpleWidget(200, 200, widget.RowLayoutData{
+			Position:  widget.RowLayoutPositionEnd,
 			MaxHeight: 45,
 		}),
 	}
@@ -130,8 +132,8 @@ func TestRowLayout_Layout(t *testing.T) {
 	}
 }
 
-func newRowLayout(t *testing.T, opts ...RowLayoutOpt) Layouter {
+func newRowLayout(t *testing.T, opts ...widget.RowLayoutOpt) widget.Layouter {
 	t.Helper()
-	l := NewRowLayout(opts...)
+	l := widget.NewRowLayout(opts...)
 	return l
 }

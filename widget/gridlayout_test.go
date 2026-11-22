@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/matryer/is"
 )
@@ -10,16 +12,16 @@ import (
 func TestGridLayout_PositionsInCell(t *testing.T) {
 	is := is.New(t)
 
-	l := NewGridLayout(GridLayoutOpts.Columns(2), GridLayoutOpts.Spacing(10, 10), GridLayoutOpts.DefaultStretch(true, true))
-	at := func(h, v GridLayoutPosition) *simpleWidget {
-		return newSimpleWidget(10, 10, GridLayoutData{MaxWidth: 10, MaxHeight: 10, HorizontalPosition: h, VerticalPosition: v})
+	l := widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.Spacing(10, 10), widget.GridLayoutOpts.DefaultStretch(true, true))
+	at := func(h, v widget.GridLayoutPosition) *simpleWidget {
+		return newSimpleWidget(10, 10, widget.GridLayoutData{MaxWidth: 10, MaxHeight: 10, HorizontalPosition: h, VerticalPosition: v})
 	}
 	// Cells are 50x30; the second column starts at 60, the second row at 40.
-	cells := []PreferredSizeLocateableWidget{
+	cells := []widget.PreferredSizeLocateableWidget{
 		newSimpleWidget(50, 30, nil),
-		at(GridLayoutPositionCenter, GridLayoutPositionCenter),
-		at(GridLayoutPositionEnd, GridLayoutPositionEnd),
-		at(GridLayoutPositionStart, GridLayoutPositionStart),
+		at(widget.GridLayoutPositionCenter, widget.GridLayoutPositionCenter),
+		at(widget.GridLayoutPositionEnd, widget.GridLayoutPositionEnd),
+		at(widget.GridLayoutPositionStart, widget.GridLayoutPositionStart),
 	}
 
 	l.Layout(cells, image.Rect(0, 0, 110, 70))
@@ -35,8 +37,8 @@ func TestGridLayout_PositionsInCell(t *testing.T) {
 func TestGridLayout_StretchedCellsFill(t *testing.T) {
 	is := is.New(t)
 
-	l := NewGridLayout(GridLayoutOpts.Columns(3), GridLayoutOpts.DefaultStretch(true, true))
-	cells := make([]PreferredSizeLocateableWidget, 9)
+	l := widget.NewGridLayout(widget.GridLayoutOpts.Columns(3), widget.GridLayoutOpts.DefaultStretch(true, true))
+	cells := make([]widget.PreferredSizeLocateableWidget, 9)
 	for i := range cells {
 		cells[i] = newSimpleWidget(10, 10, nil)
 	}
@@ -55,12 +57,12 @@ func TestGridLayout_StretchedCellsFill(t *testing.T) {
 func TestGridLayout_RowAfterHiddenWidget(t *testing.T) {
 	is := is.New(t)
 
-	l := NewGridLayout(GridLayoutOpts.Columns(2), GridLayoutOpts.DefaultStretch(false, true))
-	cells := make([]PreferredSizeLocateableWidget, 4)
+	l := widget.NewGridLayout(widget.GridLayoutOpts.Columns(2), widget.GridLayoutOpts.DefaultStretch(false, true))
+	cells := make([]widget.PreferredSizeLocateableWidget, 4)
 	for i := range cells {
 		cells[i] = newSimpleWidget(10, 10, nil)
 	}
-	cells[1].GetWidget().SetVisibility(VisibilityHide)
+	cells[1].GetWidget().SetVisibility(widget.VisibilityHide)
 
 	l.Layout(cells, image.Rect(0, 0, 100, 100))
 
@@ -73,8 +75,8 @@ func TestGridLayout_RowAfterHiddenWidget(t *testing.T) {
 func TestGridLayout_StretchedColumnsShareTheRest(t *testing.T) {
 	is := is.New(t)
 
-	l := NewGridLayout(GridLayoutOpts.Columns(3), GridLayoutOpts.Spacing(5, 0), GridLayoutOpts.Stretch([]bool{false, true, true}, nil))
-	cells := []PreferredSizeLocateableWidget{
+	l := widget.NewGridLayout(widget.GridLayoutOpts.Columns(3), widget.GridLayoutOpts.Spacing(5, 0), widget.GridLayoutOpts.Stretch([]bool{false, true, true}, nil))
+	cells := []widget.PreferredSizeLocateableWidget{
 		newSimpleWidget(20, 10, nil),
 		newSimpleWidget(10, 10, nil),
 		newSimpleWidget(10, 10, nil),
@@ -92,8 +94,8 @@ func TestGridLayout_StretchedColumnsShareTheRest(t *testing.T) {
 func TestGridLayout_MeasuresWithoutAllocating(t *testing.T) {
 	is := is.New(t)
 
-	l := NewGridLayout(GridLayoutOpts.Columns(2))
-	cells := []PreferredSizeLocateableWidget{
+	l := widget.NewGridLayout(widget.GridLayoutOpts.Columns(2))
+	cells := []widget.PreferredSizeLocateableWidget{
 		newSimpleWidget(20, 10, nil),
 		newSimpleWidget(10, 10, nil),
 		newSimpleWidget(10, 30, nil),
@@ -104,9 +106,9 @@ func TestGridLayout_MeasuresWithoutAllocating(t *testing.T) {
 	is.Equal(testing.AllocsPerRun(10, func() { l.PreferredSize(cells) }), 0.0)
 	is.Equal(testing.AllocsPerRun(10, func() { l.Layout(cells, image.Rect(0, 0, 30, 40)) }), 0.0)
 
-	inner := NewContainer(ContainerOpts.Layout(l))
+	inner := widget.NewContainer(widget.ContainerOpts.Layout(l))
 	inner.AddChild(newSimpleWidget(10, 10, nil), newSimpleWidget(10, 10, nil))
-	outer := NewContainer(ContainerOpts.Layout(l))
+	outer := widget.NewContainer(widget.ContainerOpts.Layout(l))
 	outer.AddChild(newSimpleWidget(40, 10, nil), inner)
 	w, h = outer.PreferredSize()
 	is.Equal(w, 60) // 40, and the inner container's 20 measured with the same layout

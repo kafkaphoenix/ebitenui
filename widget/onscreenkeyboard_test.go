@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
@@ -12,16 +14,16 @@ import (
 
 // newKeyboard returns a keyboard whose keys and preview have images and a
 // face of their own, with opts, laid out.
-func newKeyboard(t *testing.T, opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
+func newKeyboard(t *testing.T, opts ...widget.OnScreenKeyboardOpt) *widget.OnScreenKeyboard {
 	t.Helper()
 	ns := newNineSliceEmpty(t)
-	k := NewOnScreenKeyboard(append([]OnScreenKeyboardOpt{
-		OnScreenKeyboardOpts.KeyOpts(
-			ButtonOpts.Image(&ButtonImage{Idle: ns, Pressed: ns}),
-			ButtonOpts.TextFace(loadFont(t)),
-			ButtonOpts.TextColor(&ButtonTextColor{Idle: color.White}),
+	k := widget.NewOnScreenKeyboard(append([]widget.OnScreenKeyboardOpt{
+		widget.OnScreenKeyboardOpts.KeyOpts(
+			widget.ButtonOpts.Image(&widget.ButtonImage{Idle: ns, Pressed: ns}),
+			widget.ButtonOpts.TextFace(loadFont(t)),
+			widget.ButtonOpts.TextColor(&widget.ButtonTextColor{Idle: color.White}),
 		),
-		OnScreenKeyboardOpts.PreviewOpts(TextOpts.Text("", loadFont(t), color.White)),
+		widget.OnScreenKeyboardOpts.PreviewOpts(widget.TextOpts.Text("", loadFont(t), color.White)),
 	}, opts...)...)
 	render(k.GetContainer(), t)
 	return k
@@ -33,28 +35,28 @@ func TestOnScreenKeyboard_KeyOptsWin(t *testing.T) {
 	is := is.New(t)
 
 	narrow, _ := key(t, newKeyboard(t), "1").PreferredSize()
-	wide, _ := key(t, newKeyboard(t, OnScreenKeyboardOpts.KeyOpts(ButtonOpts.TextPadding(&Insets{Left: 30, Right: 30}))), "1").PreferredSize()
+	wide, _ := key(t, newKeyboard(t, widget.OnScreenKeyboardOpts.KeyOpts(widget.ButtonOpts.TextPadding(&widget.Insets{Left: 30, Right: 30}))), "1").PreferredSize()
 	is.True(wide >= narrow+40)
 }
 
 // withChildren is a container of any type.
 type withChildren interface {
-	Children() []PreferredSizeLocateableWidget
+	Children() []widget.PreferredSizeLocateableWidget
 }
 
 // key returns the keyboard's key labeled label.
-func key(t *testing.T, k *OnScreenKeyboard, label string) *Button {
+func key(t *testing.T, k *widget.OnScreenKeyboard, label string) *widget.Button {
 	t.Helper()
-	var found *Button
+	var found *widget.Button
 	var walk func(c withChildren)
 	walk = func(c withChildren) {
 		for _, ch := range c.Children() {
 			switch w := ch.(type) {
-			case *Button:
-				if w.textLabel == label {
+			case *widget.Button:
+				if w.TextLabel() == label {
 					found = w
 				}
-			case *Container:
+			case *widget.Container:
 				walk(w)
 			}
 		}
@@ -67,7 +69,7 @@ func key(t *testing.T, k *OnScreenKeyboard, label string) *Button {
 }
 
 // press clicks the keys labeled labels, one after the other.
-func press(t *testing.T, k *OnScreenKeyboard, labels ...string) {
+func press(t *testing.T, k *widget.OnScreenKeyboard, labels ...string) {
 	t.Helper()
 	for _, l := range labels {
 		key(t, k, l).Click()
@@ -86,17 +88,17 @@ func TestOnScreenKeyboard_Types(t *testing.T) {
 	ti := newTextInput(t)
 	ti.SetText("z")
 	k.Open(ti, func() {})
-	is.Equal(k.preview.Label, "z")
+	is.Equal(k.Preview().Label, "z")
 	press(t, k, "a", "Shift", "B", "1", "Space", "Shift", "c", "Erase")
 	is.Equal(ti.GetText(), "zaB1 ")
-	is.Equal(k.preview.Label, "zaB1 ")
-	is.Equal(key(t, k, "q").textLabel, "q") // lower case again
+	is.Equal(k.Preview().Label, "zaB1 ")
+	is.Equal(key(t, k, "q").TextLabel(), "q") // lower case again
 
-	secure := newTextInput(t, TextInputOpts.Secure(true))
+	secure := newTextInput(t, widget.TextInputOpts.Secure(true))
 	k.Open(secure, func() {})
 	_, empty := k.GetContainer().PreferredSize()
 	press(t, k, "x", "y")
-	is.Equal(k.preview.Label, "**")
+	is.Equal(k.Preview().Label, "**")
 	_, typed := k.GetContainer().PreferredSize()
 	is.Equal(typed, empty) // as tall empty as typed in, so its window stays right
 }
@@ -108,7 +110,7 @@ func TestOnScreenKeyboard_DoneAndClose(t *testing.T) {
 
 	k := newKeyboard(t)
 	submits := 0
-	ti := newTextInput(t, TextInputOpts.SubmitHandler(func(*TextInputChangedEventArgs) { submits++ }))
+	ti := newTextInput(t, widget.TextInputOpts.SubmitHandler(func(*widget.TextInputChangedEventArgs) { submits++ }))
 	closes := 0
 	k.Open(ti, func() { closes++ })
 	press(t, k, "a", "Done")
@@ -132,11 +134,11 @@ func TestOnScreenKeyboard_DoneAndClose(t *testing.T) {
 func TestOnScreenKeyboard_ThemeBackground(t *testing.T) {
 	is := is.New(t)
 
-	dark := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
-	light := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
-	background := func(k *OnScreenKeyboard) any {
+	dark := &widget.Theme{PanelTheme: &widget.PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	light := &widget.Theme{PanelTheme: &widget.PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	background := func(k *widget.OnScreenKeyboard) any {
 		k.GetContainer().Validate()
-		return k.container.computedParams.BackgroundImage
+		return k.Container().ComputedParams().BackgroundImage
 	}
 
 	k := newKeyboard(t)
@@ -146,7 +148,7 @@ func TestOnScreenKeyboard_ThemeBackground(t *testing.T) {
 	is.True(background(k) == light.PanelTheme.BackgroundImage)
 
 	own := newNineSliceEmpty(t)
-	k = newKeyboard(t, OnScreenKeyboardOpts.ContainerOpts(ContainerOpts.BackgroundImage(own)))
+	k = newKeyboard(t, widget.OnScreenKeyboardOpts.ContainerOpts(widget.ContainerOpts.BackgroundImage(own)))
 	k.GetContainer().GetWidget().SetTheme(dark)
 	is.True(background(k) == own)
 
@@ -163,12 +165,12 @@ func TestOnScreenKeyboard_ThemeBackground(t *testing.T) {
 func TestOnScreenKeyboard_Rows(t *testing.T) {
 	is := is.New(t)
 
-	k := newKeyboard(t, OnScreenKeyboardOpts.Rows("¿b", "ñáß")) // the shorter row first
+	k := newKeyboard(t, widget.OnScreenKeyboardOpts.Rows("¿b", "ñáß")) // the shorter row first
 	ti := newTextInput(t)
 	k.Open(ti, func() {})
 	press(t, k, "ñ", "Shift", "Á", "Ñ", "ß", "¿", "B")
 	is.Equal(ti.GetText(), "ñÁÑß¿B")
-	is.True(k.FirstKey() == Focuser(key(t, k, "¿")))
+	is.True(k.FirstKey() == widget.Focuser(key(t, k, "¿")))
 
 	c := k.GetContainer()
 	c.SetLocation(img.Rect(0, 0, 300, 200))
@@ -180,7 +182,7 @@ func TestOnScreenKeyboard_Rows(t *testing.T) {
 	is.True(rect("Ñ").Min.Y > rect("¿").Min.Y)                                               // a row down
 	is.True(300-8-rect("ß").Max.X < 3)                                                       // the longest row spans the keyboard, inside its padding
 
-	is.Equal(key(t, newKeyboard(t, OnScreenKeyboardOpts.Rows()), "q").textLabel, "q")
+	is.Equal(key(t, newKeyboard(t, widget.OnScreenKeyboardOpts.Rows()), "q").TextLabel(), "q")
 }
 
 // Each layout's rows hold every letter of the Latin alphabet and every
@@ -192,10 +194,10 @@ func TestOnScreenKeyboard_Layouts(t *testing.T) {
 		rows  []string
 		extra string
 	}{
-		"QWERTY":  {KeyboardQWERTY, ""},
-		"AZERTY":  {KeyboardAZERTY, "éèêàçù"},
-		"QWERTZ":  {KeyboardQWERTZ, "üöäß"},
-		"Spanish": {KeyboardSpanish, "ñáéíóúü¿¡"},
+		"QWERTY":  {widget.KeyboardQWERTY, ""},
+		"AZERTY":  {widget.KeyboardAZERTY, "éèêàçù"},
+		"QWERTZ":  {widget.KeyboardQWERTZ, "üöäß"},
+		"Spanish": {widget.KeyboardSpanish, "ñáéíóúü¿¡"},
 	} {
 		seen := map[rune]bool{}
 		for _, row := range l.rows {
@@ -208,6 +210,6 @@ func TestOnScreenKeyboard_Layouts(t *testing.T) {
 			is.Equal([]any{name, string(r), seen[r]}, []any{name, string(r), true})
 		}
 	}
-	is.Equal(key(t, newKeyboard(t), "q").textLabel, "q") // QWERTY by default
-	is.Equal(len(NewOnScreenKeyboard().letters), 26)
+	is.Equal(key(t, newKeyboard(t), "q").TextLabel(), "q") // QWERTY by default
+	is.Equal(len(widget.NewOnScreenKeyboard().Letters()), 26)
 }

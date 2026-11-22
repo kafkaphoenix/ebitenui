@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -14,9 +16,9 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntryLabelFunc(
+		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
@@ -34,18 +36,18 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 
 	entries := []any{"first", "second", "third"}
 
-	var eventArgs *ListComboButtonEntrySelectedEventArgs
+	var eventArgs *widget.ListComboButtonEntrySelectedEventArgs
 	numEvents := 0
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		widget.ListComboButtonOpts.EntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}),
 
-		ListComboButtonOpts.EntryLabelFunc(
+		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
@@ -72,18 +74,18 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 
 	entries := []any{"first", "second", "third"}
 
-	var eventArgs *ListComboButtonEntrySelectedEventArgs
+	var eventArgs *widget.ListComboButtonEntrySelectedEventArgs
 	numEvents := 0
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		widget.ListComboButtonOpts.EntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}),
 
-		ListComboButtonOpts.EntryLabelFunc(
+		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
 				result, _ := e.(string)
 				return "label " + result
@@ -114,9 +116,9 @@ func TestListComboButton_ContentVisible_Click(t *testing.T) {
 	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntryLabelFunc(
+		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
 				result, _ := e.(string)
 				return result
@@ -126,10 +128,10 @@ func TestListComboButton_ContentVisible_Click(t *testing.T) {
 			}))
 
 	render(l, t)
-	leftMouseButtonClick(l.button, t)
+	leftMouseButtonClick(l.Button(), t)
 	is.True(l.ContentVisible())
 
-	leftMouseButtonClick(l.button, t)
+	leftMouseButtonClick(l.Button(), t)
 	is.True(!l.ContentVisible())
 }
 
@@ -139,9 +141,9 @@ func TestListComboButton_ContentVisible_Programmatic(t *testing.T) {
 	entries := []any{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntryLabelFunc(
+		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
 				result, _ := e.(string)
 				return result
@@ -157,30 +159,30 @@ func TestListComboButton_ContentVisible_Programmatic(t *testing.T) {
 	is.True(!l.ContentVisible())
 }
 
-func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButton {
+func newListComboButton(t *testing.T, opts ...widget.ListComboButtonOpt) *widget.ListComboButton {
 	t.Helper()
 
-	l := NewListComboButton(append(opts, []ListComboButtonOpt{
-		ListComboButtonOpts.ButtonParams(&ButtonParams{
-			Image: &ButtonImage{
+	l := widget.NewListComboButton(append(opts, []widget.ListComboButtonOpt{
+		widget.ListComboButtonOpts.ButtonParams(&widget.ButtonParams{
+			Image: &widget.ButtonImage{
 				Idle:    newNineSliceEmpty(t),
 				Pressed: newNineSliceEmpty(t),
 			}},
 		),
-		ListComboButtonOpts.ListParams(&ListParams{
-			ScrollContainerImage: &ScrollContainerImage{
+		widget.ListComboButtonOpts.ListParams(&widget.ListParams{
+			ScrollContainerImage: &widget.ScrollContainerImage{
 				Idle:     newNineSliceEmpty(t),
 				Disabled: newNineSliceEmpty(t),
 				Mask:     newNineSliceEmpty(t),
 			},
-			Slider: &SliderParams{
-				TrackImage: &SliderTrackImage{},
-				HandleImage: &ButtonImage{
+			Slider: &widget.SliderParams{
+				TrackImage: &widget.SliderTrackImage{},
+				HandleImage: &widget.ButtonImage{
 					Idle:    newNineSliceEmpty(t),
 					Pressed: newNineSliceEmpty(t),
 				},
 			},
-			EntryColor: &ListEntryColor{
+			EntryColor: &widget.ListEntryColor{
 				Unselected:                 color.Transparent,
 				Selected:                   color.Transparent,
 				DisabledUnselected:         color.Transparent,
@@ -190,10 +192,10 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 			},
 			EntryFace: loadFont(t),
 		}),
-		ListComboButtonOpts.Text(loadFont(t), &GraphicImage{
+		widget.ListComboButtonOpts.Text(loadFont(t), &widget.GraphicImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),
-		}, &ButtonTextColor{
+		}, &widget.ButtonTextColor{
 			Idle:     color.Transparent,
 			Disabled: color.Transparent,
 		}),
@@ -204,8 +206,8 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 	return l
 }
 
-func listComboButtonContentList(l *ListComboButton) *List {
-	result, _ := l.button.button.content.(*List)
+func listComboButtonContentList(l *widget.ListComboButton) *widget.List {
+	result, _ := l.Button().Button().Content().(*widget.List)
 	return result
 }
 
@@ -216,14 +218,14 @@ func TestListComboButton_EntryWidgets(t *testing.T) {
 
 	var built []any
 	l := newListComboButton(t,
-		ListComboButtonOpts.Entries([]any{"a", "b"}),
-		ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, nil),
-		ListComboButtonOpts.EntryWidgetFunc(func(e any) PreferredSizeLocateableWidget {
+		widget.ListComboButtonOpts.Entries([]any{"a", "b"}),
+		widget.ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, nil),
+		widget.ListComboButtonOpts.EntryWidgetFunc(func(e any) widget.PreferredSizeLocateableWidget {
 			built = append(built, e)
 			return newSimpleWidget(30, 15, nil)
 		}),
 	)
 
 	is.Equal(built, []any{"a", "b"})
-	is.Equal(len(l.list.rows.widgets), 2) // widgets in place of labels
+	is.Equal(len(l.List().Rows().Widgets()), 2) // widgets in place of labels
 }

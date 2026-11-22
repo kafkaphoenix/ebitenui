@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/uitest"
@@ -18,7 +20,7 @@ func TestColorPicker_HSVRoundTrip(t *testing.T) {
 		{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {128, 128, 128, 255},
 		{255, 255, 255, 255}, {0, 0, 0, 255}, {12, 200, 90, 255}, {255, 128, 0, 255},
 	} {
-		is.Equal(hsvToRGB(rgbToHSV(c)), c) // the color back from its hue, saturation and value
+		is.Equal(widget.HsvToRGB(widget.RgbToHSV(c)), c) // the color back from its hue, saturation and value
 	}
 }
 
@@ -27,7 +29,7 @@ func TestColorPicker_HSVRoundTrip(t *testing.T) {
 func TestColorPicker_PickOnWheel(t *testing.T) {
 	is := is.New(t)
 
-	p, changes := newColorPicker(t, ColorPickerOpts.InitialColor(color.Black))
+	p, changes := newColorPicker(t, widget.ColorPickerOpts.InitialColor(color.Black))
 	for _, c := range []struct {
 		x, y int
 		want color.NRGBA
@@ -46,8 +48,8 @@ func TestColorPicker_PickOnWheel(t *testing.T) {
 func TestColorPicker_Brightness(t *testing.T) {
 	is := is.New(t)
 
-	p, changes := newColorPicker(t, ColorPickerOpts.InitialColor(color.NRGBA{255, 128, 0, 255}))
-	p.slider.Current = 128
+	p, changes := newColorPicker(t, widget.ColorPickerOpts.InitialColor(color.NRGBA{255, 128, 0, 255}))
+	p.Slider().Current = 128
 	render(p, t)
 
 	is.Equal(p.Color(), color.NRGBA{128, 64, 0, 255}) // half as bright, the same hue
@@ -64,7 +66,7 @@ func TestColorPicker_SetColor(t *testing.T) {
 	render(p, t)
 
 	is.Equal(p.Color(), color.NRGBA{0, 0, 200, 255})
-	is.Equal(p.slider.Current, 200)
+	is.Equal(p.Slider().Current, 200)
 	is.Equal(len(*changes), 0)
 }
 
@@ -78,13 +80,13 @@ func TestColorPicker_Drag(t *testing.T) {
 
 	d := uitest.Use(t)
 	point(d, 99, 50, true)
-	p.Update(&UpdateObject{})
+	p.Update(&widget.UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{255, 0, 0, 255})) // followed to the rim
 	is.True((*changes)[len(*changes)-1].Dragging)         // still held
 
 	point(d, 99, 50, false)
-	p.Update(&UpdateObject{})
+	p.Update(&widget.UpdateObject{})
 	event.ExecuteDeferred()
 	last := (*changes)[len(*changes)-1]
 	is.True(!last.Dragging) // released
@@ -97,30 +99,30 @@ func TestColorPicker_Swatches(t *testing.T) {
 	is := is.New(t)
 
 	red, green := color.NRGBA{255, 0, 0, 255}, color.NRGBA{0, 255, 0, 255}
-	p, changes := newColorPicker(t, ColorPickerOpts.InitialColor(red), ColorPickerOpts.Swatches(20, red, green))
-	swatches := p.container.children[2].(*Container).children
-	redSwatch, greenSwatch := swatches[0].(*colorSwatch), swatches[1].(*colorSwatch)
-	is.True(redSwatch.chosen())
+	p, changes := newColorPicker(t, widget.ColorPickerOpts.InitialColor(red), widget.ColorPickerOpts.Swatches(20, red, green))
+	swatches := p.Container().ChildrenForTest()[2].(*widget.Container).ChildrenForTest()
+	redSwatch, greenSwatch := swatches[0].(*widget.ColorSwatch), swatches[1].(*widget.ColorSwatch)
+	is.True(redSwatch.Chosen())
 
-	greenSwatch.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{Widget: greenSwatch.widget, Button: ebiten.MouseButtonLeft})
+	greenSwatch.Widget().MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{Widget: greenSwatch.Widget(), Button: ebiten.MouseButtonLeft})
 	event.ExecuteDeferred()
 	render(p, t)
 
 	is.Equal(p.Color(), green)
 	is.Equal(len(*changes), 1)       // reported once, the slider's move included
 	is.True(!(*changes)[0].Dragging) // done at once
-	is.True(greenSwatch.chosen() && !redSwatch.chosen())
+	is.True(greenSwatch.Chosen() && !redSwatch.Chosen())
 }
 
-func newColorPicker(t *testing.T, opts ...ColorPickerOpt) (*ColorPicker, *[]ColorPickerChangedEventArgs) {
+func newColorPicker(t *testing.T, opts ...widget.ColorPickerOpt) (*widget.ColorPicker, *[]widget.ColorPickerChangedEventArgs) {
 	t.Helper()
 
-	var changes []ColorPickerChangedEventArgs
+	var changes []widget.ColorPickerChangedEventArgs
 	ns := newNineSliceEmpty(t)
-	p := NewColorPicker(append([]ColorPickerOpt{
-		ColorPickerOpts.WheelSize(100),
-		ColorPickerOpts.SliderHandle(&ButtonImage{Idle: ns, Pressed: ns}, 10),
-		ColorPickerOpts.ChangedHandler(func(args *ColorPickerChangedEventArgs) { changes = append(changes, *args) }),
+	p := widget.NewColorPicker(append([]widget.ColorPickerOpt{
+		widget.ColorPickerOpts.WheelSize(100),
+		widget.ColorPickerOpts.SliderHandle(&widget.ButtonImage{Idle: ns, Pressed: ns}, 10),
+		widget.ColorPickerOpts.ChangedHandler(func(args *widget.ColorPickerChangedEventArgs) { changes = append(changes, *args) }),
 	}, opts...)...)
 	p.Validate()
 	p.SetLocation(image.Rect(0, 0, 100, 130))
@@ -129,9 +131,9 @@ func newColorPicker(t *testing.T, opts ...ColorPickerOpt) (*ColorPicker, *[]Colo
 }
 
 // pressWheel presses the left button on the wheel, x and y from its top left.
-func pressWheel(p *ColorPicker, x, y int) {
-	p.wheel.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
-		Widget: p.wheel.widget, Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
+func pressWheel(p *widget.ColorPicker, x, y int) {
+	p.Wheel().Widget().MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{
+		Widget: p.Wheel().Widget(), Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
 	})
 	event.ExecuteDeferred()
 }
@@ -148,26 +150,26 @@ func near(a, b color.NRGBA) bool {
 func TestColorPicker_SwatchRadius(t *testing.T) {
 	is := is.New(t)
 
-	rounded, _ := newColorPicker(t, ColorPickerOpts.Swatches(24, color.White), ColorPickerOpts.SwatchRadius(6))
-	w, _ := rounded.swatchFrames[0][0].MinSize()
+	rounded, _ := newColorPicker(t, widget.ColorPickerOpts.Swatches(24, color.White), widget.ColorPickerOpts.SwatchRadius(6))
+	w, _ := rounded.SwatchFrames()[0][0].MinSize()
 	is.Equal(w, 12) // the outer frame: radius 6
-	w, _ = rounded.swatchFrames[1][1].MinSize()
+	w, _ = rounded.SwatchFrames()[1][1].MinSize()
 	is.Equal(w, 8) // the inner frame: radius 4
 	sw := swatchesOf(rounded)
-	w, _ = sw[0].fill.MinSize()
+	w, _ = sw[0].Fill().MinSize()
 	is.Equal(w, 4) // the color: radius 2
 
-	square, _ := newColorPicker(t, ColorPickerOpts.Swatches(24, color.White))
-	is.True(swatchesOf(square)[0].fill == nil)
+	square, _ := newColorPicker(t, widget.ColorPickerOpts.Swatches(24, color.White))
+	is.True(swatchesOf(square)[0].Fill() == nil)
 }
 
 // swatchesOf returns a picker's swatches.
-func swatchesOf(p *ColorPicker) []*colorSwatch {
-	var out []*colorSwatch
-	for _, ch := range p.container.Children() {
-		if row, ok := ch.(*Container); ok {
+func swatchesOf(p *widget.ColorPicker) []*widget.ColorSwatch {
+	var out []*widget.ColorSwatch
+	for _, ch := range p.Container().Children() {
+		if row, ok := ch.(*widget.Container); ok {
 			for _, s := range row.Children() {
-				if s, ok := s.(*colorSwatch); ok {
+				if s, ok := s.(*widget.ColorSwatch); ok {
 					out = append(out, s)
 				}
 			}
@@ -182,7 +184,7 @@ func swatchesOf(p *ColorPicker) []*colorSwatch {
 func TestColorPicker_RingPixels(t *testing.T) {
 	is := is.New(t)
 
-	pix, size := ringPixels(6)
+	pix, size := widget.RingPixels(6)
 	is.Equal(size, 17)          // the ring, 1.5 px of black and a pixel of smoothing each side
 	at := func(x int) [4]byte { // along the middle row; the center lies at 8.5, the radius at 14.5
 		i := 4 * (8*size + x)
@@ -198,9 +200,9 @@ func TestColorPicker_RingPixels(t *testing.T) {
 
 // pressSquare presses the left button on the square, x and y from its top
 // left.
-func pressSquare(p *ColorPicker, x, y int) {
-	p.square.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
-		Widget: p.square.widget, Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
+func pressSquare(p *widget.ColorPicker, x, y int) {
+	p.Square().Widget().MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{
+		Widget: p.Square().Widget(), Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
 	})
 	event.ExecuteDeferred()
 }
@@ -211,8 +213,8 @@ func pressSquare(p *ColorPicker, x, y int) {
 func TestColorPicker_SquarePick(t *testing.T) {
 	is := is.New(t)
 
-	p, changes := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.NRGBA{0, 0, 255, 255}))
-	is.True(p.wheel == nil) // a square in its place
+	p, changes := newColorPicker(t, widget.ColorPickerOpts.Square(), widget.ColorPickerOpts.InitialColor(color.NRGBA{0, 0, 255, 255}))
+	is.True(p.Wheel() == nil) // a square in its place
 	for _, c := range []struct {
 		x, y int
 		want color.NRGBA
@@ -230,10 +232,10 @@ func TestColorPicker_SquarePick(t *testing.T) {
 
 	d := uitest.Use(t)
 	point(d, 99, 0, true) // dragged to the top right
-	p.Update(&UpdateObject{})
+	p.Update(&widget.UpdateObject{})
 	event.ExecuteDeferred()
 	point(d, 99, 0, false)
-	p.Update(&UpdateObject{})
+	p.Update(&widget.UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{0, 0, 255, 255}))
 	is.True(!(*changes)[len(*changes)-1].Dragging) // released
@@ -246,17 +248,17 @@ func TestColorPicker_SquarePick(t *testing.T) {
 func TestColorPicker_SquareHue(t *testing.T) {
 	is := is.New(t)
 
-	p, changes := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.NRGBA{255, 0, 0, 255}))
-	is.Equal(p.slider.Current, 0) // red
-	p.slider.Current = 120
+	p, changes := newColorPicker(t, widget.ColorPickerOpts.Square(), widget.ColorPickerOpts.InitialColor(color.NRGBA{255, 0, 0, 255}))
+	is.Equal(p.Slider().Current, 0) // red
+	p.Slider().Current = 120
 	render(p, t)
 	is.Equal(p.Color(), color.NRGBA{0, 255, 0, 255}) // green, as saturated and bright
 	is.Equal(len(*changes), 1)
 
 	p.SetColor(color.NRGBA{0, 0, 255, 255})
-	is.Equal(p.slider.Current, 240) // blue's hue
+	is.Equal(p.Slider().Current, 240) // blue's hue
 	p.SetColor(color.NRGBA{128, 128, 128, 255})
-	is.Equal(p.slider.Current, 240) // a gray keeps it
+	is.Equal(p.Slider().Current, 240) // a gray keeps it
 	pressSquare(p, 99, 0)
 	is.True(near(p.Color(), color.NRGBA{0, 0, 255, 255})) // the square still blue's
 	pressSquare(p, 150, -20)
@@ -265,7 +267,7 @@ func TestColorPicker_SquareHue(t *testing.T) {
 	magenta := color.NRGBA{255, 0, 255, 255}
 	p.SetColor(magenta)
 	render(p, t)
-	is.Equal(p.slider.Current, 300) // every degree on the slider
+	is.Equal(p.Slider().Current, 300) // every degree on the slider
 	is.Equal(p.Color(), magenta)
 }
 
@@ -274,7 +276,7 @@ func TestColorPicker_SquareHue(t *testing.T) {
 func TestColorPicker_HueTrack(t *testing.T) {
 	is := is.New(t)
 
-	pix := hueTrack()
+	pix := widget.HueTrack()
 	is.Equal(len(pix), 4*360)
 	at := func(x int) color.NRGBA { return color.NRGBA{pix[4*x], pix[4*x+1], pix[4*x+2], pix[4*x+3]} }
 	is.Equal(at(0), color.NRGBA{255, 0, 0, 255})
@@ -286,13 +288,13 @@ func TestColorPicker_HueTrack(t *testing.T) {
 func TestColorPicker_DisabledFieldIgnoresPresses(t *testing.T) {
 	is := is.New(t)
 
-	wheel, _ := newColorPicker(t, ColorPickerOpts.InitialColor(color.Black))
-	wheel.wheel.widget.Disabled = true
+	wheel, _ := newColorPicker(t, widget.ColorPickerOpts.InitialColor(color.Black))
+	wheel.Wheel().Widget().Disabled = true
 	pressWheel(wheel, 99, 50)
 	is.Equal(wheel.Color(), color.NRGBA{0, 0, 0, 255})
 
-	square, _ := newColorPicker(t, ColorPickerOpts.Square(), ColorPickerOpts.InitialColor(color.Black))
-	square.square.widget.Disabled = true
+	square, _ := newColorPicker(t, widget.ColorPickerOpts.Square(), widget.ColorPickerOpts.InitialColor(color.Black))
+	square.Square().Widget().Disabled = true
 	pressSquare(square, 99, 0)
 	is.Equal(square.Color(), color.NRGBA{0, 0, 0, 255})
 }

@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/matryer/is"
@@ -15,10 +17,10 @@ import (
 func TestInputLayers_SetUpWithoutAllocating(t *testing.T) {
 	is := is.New(t)
 
-	list := newList(t, ListOpts.Entries([]any{"a", "b"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
-	raised := NewContainer()
-	raised.AddChild(newButton(t, ButtonOpts.WidgetOpts(WidgetOpts.ElevateLayer(true))))
-	window := NewWindow(WindowOpts.Contents(NewContainer()))
+	list := newList(t, widget.ListOpts.Entries([]any{"a", "b"}), widget.ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
+	raised := widget.NewContainer()
+	raised.AddChild(newButton(t, widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ElevateLayer(true))))
+	window := widget.NewWindow(widget.WindowOpts.Contents(widget.NewContainer()))
 	window.SetLocation(img.Rect(0, 0, 100, 100))
 	combo := newComboButton(t)
 	combo.ContentVisible = true
@@ -36,15 +38,15 @@ func TestWindow_LayerFollowsTheWindow(t *testing.T) {
 	is := is.New(t)
 	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) })
 
-	w := NewWindow(WindowOpts.Contents(NewContainer()))
+	w := widget.NewWindow(widget.WindowOpts.Contents(widget.NewContainer()))
 	w.SetLocation(img.Rect(0, 0, 100, 100))
 	setUp := func() { input.SetupInputLayersWithDeferred([]input.Layerer{w}) }
 	setUp()
-	is.True(!w.layer.FullScreen && w.layer.BlockLower)
+	is.True(!w.Layer().FullScreen && w.Layer().BlockLower)
 	w.Modal = true
 	setUp()
-	is.True(w.layer.FullScreen)
+	is.True(w.Layer().FullScreen)
 	w.Ephemeral = true
 	setUp()
-	is.True(!w.layer.BlockLower)
+	is.True(!w.Layer().BlockLower)
 }

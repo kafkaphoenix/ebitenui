@@ -4,7 +4,7 @@ version: "2"
 # decorder, dupl, durationcheck, errorlint, exhaustive, forcetypeassert,
 # gochecknoinits, gocognit, goconst, gocritic, godot, gosec, iface,
 # inamedparam, misspell, nilerr, nolintlint, perfsprint, prealloc,
-# predeclared, reassign, revive, unconvert, unparam, usestdlibvars,
+# predeclared, reassign, revive, testpackage, unconvert, unparam, usestdlibvars,
 # whitespace and wrapcheck.
 # The exclusions say why each is there; the last ones list what was over
 # gocognit's limit or duplicated when they were set, so new code meets
@@ -36,6 +36,7 @@ linters:
     - predeclared
     - reassign
     - revive
+    - testpackage
     - unconvert
     - unparam
     - usestdlibvars
@@ -61,6 +62,10 @@ linters:
     nolintlint:
       require-explanation: true
       require-specific: true
+    # Tests are external packages; what they reach inside a package is in
+    # its export_test.go.
+    testpackage:
+      skip-regexp: export_test\.go
   exclusions:
     generated: lax
     rules:

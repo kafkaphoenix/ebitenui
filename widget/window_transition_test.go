@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -84,12 +86,12 @@ func TestWindow_TransitionReopen(t *testing.T) {
 func TestWindow_TransitionMotions(t *testing.T) {
 	is := is.New(t)
 
-	w := NewWindow(
-		WindowOpts.Contents(NewContainer()),
-		WindowOpts.Transition(WindowTransition{
+	w := widget.NewWindow(
+		widget.WindowOpts.Contents(widget.NewContainer()),
+		widget.WindowOpts.Transition(widget.WindowTransition{
 			Duration: 4,
-			In:       WindowMotion{Offset: image.Pt(0, 40), Fade: true},
-			Out:      WindowMotion{Offset: image.Pt(-60, 0)},
+			In:       widget.WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+			Out:      widget.WindowMotion{Offset: image.Pt(-60, 0)},
 		}),
 	)
 	w.SetLocation(transitionPlace)
@@ -112,21 +114,21 @@ func TestWindow_TransitionMotions(t *testing.T) {
 func TestWindow_TransitionStill(t *testing.T) {
 	is := is.New(t)
 
-	w := NewWindow(WindowOpts.Contents(NewContainer()), WindowOpts.Transition(WindowTransition{Duration: 4}))
+	w := widget.NewWindow(widget.WindowOpts.Contents(widget.NewContainer()), widget.WindowOpts.Transition(widget.WindowTransition{Duration: 4}))
 	w.SetLocation(transitionPlace)
 	w.SetCloseFunction(func() {})
 	is.Equal(shownRect(w), transitionPlace)
 	is.Equal(shownOpacity(w), float32(1))
 }
 
-func newTransitionWindow(t *testing.T) *Window {
+func newTransitionWindow(t *testing.T) *widget.Window {
 	t.Helper()
-	w := NewWindow(
-		WindowOpts.Contents(NewContainer()),
-		WindowOpts.Transition(WindowTransition{
+	w := widget.NewWindow(
+		widget.WindowOpts.Contents(widget.NewContainer()),
+		widget.WindowOpts.Transition(widget.WindowTransition{
 			Duration: 4,
-			In:       WindowMotion{Offset: image.Pt(0, 40), Fade: true},
-			Out:      WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+			In:       widget.WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+			Out:      widget.WindowMotion{Offset: image.Pt(0, 40), Fade: true},
 		}),
 	)
 	w.SetLocation(transitionPlace)
@@ -134,16 +136,16 @@ func newTransitionWindow(t *testing.T) *Window {
 }
 
 // stepWindow updates w n times, running the events each fires.
-func stepWindow(w *Window, n int) {
+func stepWindow(w *widget.Window, n int) {
 	for range n {
-		w.Update(&UpdateObject{})
+		w.Update(&widget.UpdateObject{})
 		event.ExecuteDeferred()
 	}
 }
 
-func shownRect(w *Window) image.Rectangle { return w.GetContainer().GetWidget().Rect }
+func shownRect(w *widget.Window) image.Rectangle { return w.GetContainer().GetWidget().Rect }
 
-func shownOpacity(w *Window) float32 {
-	c, _ := w.GetContainer().(*Container)
+func shownOpacity(w *widget.Window) float32 {
+	c, _ := w.GetContainer().(*widget.Container)
 	return c.Opacity()
 }
