@@ -39,7 +39,8 @@ type listRows struct {
 
 	hovering bool
 	hoverY   int // the pointer's y while it is over the rows
-	pressed  int // the entry the left button went down on, -1 for none
+	pressed  int // the entry the left button is down on, -1 for none
+	downOn   int // the entry the left button last went down on: a click selects it only
 
 	// Where the next background goes, and the placement that puts it
 	// there, made once.
@@ -53,7 +54,7 @@ type listLabelRow struct {
 }
 
 func newListRows(l *List) *listRows {
-	r := &listRows{list: l, widget: NewWidget(), pressed: -1}
+	r := &listRows{list: l, widget: NewWidget(), pressed: -1, downOn: -1}
 	r.place = func(opts *ebiten.DrawImageOptions) { opts.GeoM.Translate(float64(r.at.X), float64(r.at.Y)) }
 	r.watchPointer()
 	return r
@@ -187,6 +188,17 @@ func (r *listRows) rowSpan(i int) (top, bottom int) {
 	}
 	r.styleLabels()
 	return i * r.rowH, (i + 1) * r.rowH
+}
+
+// rowStep returns a row's height, or for rows of their own heights their
+// mean: what the wheel moves the rows by, three a notch.
+func (r *listRows) rowStep() int {
+	if n := len(r.list.entries); r.list.entryWidgetFunc != nil && n > 0 {
+		r.measure()
+		return max(1, r.tops[n]/n)
+	}
+	r.styleLabels()
+	return r.rowH
 }
 
 // rowRect returns entry i's row where it is laid out now.
@@ -372,6 +384,7 @@ func (r *listRows) watchPointer() {
 	w.MouseButtonPressedEvent.AddHandler(func(args any) {
 		if a, ok := args.(*MouseButtonPressedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
 			r.pressed = r.entryAt(w.Rect.Min.Y + a.OffsetY)
+			r.downOn = r.pressed
 			if *r.list.computedParams.SelectPressed {
 				r.selectAt(w.Rect.Min.Y + a.OffsetY)
 			}
@@ -383,7 +396,8 @@ func (r *listRows) watchPointer() {
 		}
 	})
 	w.MouseButtonClickedEvent.AddHandler(func(args any) {
-		if a, ok := args.(*MouseButtonClickedEventArgs); ok && a.Button == ebiten.MouseButtonLeft && !*r.list.computedParams.SelectPressed {
+		if a, ok := args.(*MouseButtonClickedEventArgs); ok && a.Button == ebiten.MouseButtonLeft && !*r.list.computedParams.SelectPressed &&
+			r.entryAt(w.Rect.Min.Y+a.OffsetY) == r.downOn {
 			r.selectAt(w.Rect.Min.Y + a.OffsetY)
 		}
 	})

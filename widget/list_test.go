@@ -3,9 +3,12 @@ package widget_test
 import (
 	img "image"
 	"image/color"
+	"math"
 	"strconv"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/uitest"
 	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -329,12 +332,16 @@ func shownLabel(l *widget.List, i int) string {
 	return ""
 }
 
-// clickListEntry clicks the middle of entry i's row.
+// clickListEntry clicks the middle of entry i's row: presses, lets go
+// and clicks there.
 func clickListEntry(t *testing.T, l *widget.List, i int) {
 	t.Helper()
 	top, bottom := l.Rows().RowSpan(i)
 	w := l.Rows().Widget()
-	w.MouseButtonClickedEvent.Fire(&widget.MouseButtonClickedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: (top + bottom) / 2})
+	y := (top + bottom) / 2
+	w.MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: y})
+	w.MouseButtonReleasedEvent.Fire(&widget.MouseButtonReleasedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: y, Inside: true})
+	w.MouseButtonClickedEvent.Fire(&widget.MouseButtonClickedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: y})
 	event.ExecuteDeferred()
 }
 
@@ -613,4 +620,67 @@ func TestList_RowsFollowTheEntries(t *testing.T) {
 	l.SetScrollTop(1)
 	frames()
 	is.Equal(shownLabel(l, 59), "entry 59")
+}
+
+// Enter and Space choose the focused entry, as a click on it would.
+func TestList_EnterAndSpaceChooseTheFocusedEntry(t *testing.T) {
+	for _, key := range []ebiten.Key{ebiten.KeyEnter, ebiten.KeySpace} {
+		t.Run(key.String(), func(t *testing.T) {
+			d := uitest.Use(t)
+			var chosen []any
+			l := newList(t, widget.ListOpts.Entries([]any{"a", "b", "c"}), widget.ListOpts.EntryLabelFunc(label),
+				widget.ListOpts.EntrySelectedHandler(func(a *widget.ListEntrySelectedEventArgs) { chosen = append(chosen, a.Entry) }))
+			l.Focus(true)
+			l.Update(&widget.UpdateObject{Actions: given(widget.ActionDown)})
+			d.Keys[key] = true
+			input.Update()
+			l.Update(&widget.UpdateObject{Actions: given()})
+			input.AfterUpdate()
+			event.ExecuteDeferred()
+			if len(chosen) != 1 || chosen[0] != "b" {
+				t.Errorf("%v on the focused entry b chose %v", key, chosen)
+			}
+		})
+	}
+}
+
+// A press that moves off its entry before it lets go chooses nothing.
+func TestList_APressMovedOffChoosesNothing(t *testing.T) {
+	var chosen []any
+	l := newList(t, widget.ListOpts.Entries([]any{"a", "b", "c"}), widget.ListOpts.EntryLabelFunc(label),
+		widget.ListOpts.EntrySelectedHandler(func(a *widget.ListEntrySelectedEventArgs) { chosen = append(chosen, a.Entry) }))
+	t0, b0 := l.Rows().RowSpan(0)
+	t1, b1 := l.Rows().RowSpan(1)
+	w := l.Rows().Widget()
+	w.MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: (t0 + b0) / 2})
+	w.MouseButtonReleasedEvent.Fire(&widget.MouseButtonReleasedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: (t1 + b1) / 2, Inside: true})
+	w.MouseButtonClickedEvent.Fire(&widget.MouseButtonClickedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: (t1 + b1) / 2})
+	event.ExecuteDeferred()
+	if len(chosen) != 0 {
+		t.Errorf("a press on a, let go on b, chose %v", chosen)
+	}
+}
+
+// On a long list a wheel notch scrolls three rows, not a share of the
+// whole list, and the vertical slider counts the pixels.
+func TestList_AWheelNotchScrollsThreeRows(t *testing.T) {
+	entries := make([]any, 10_000)
+	for i := range entries {
+		entries[i] = strconv.Itoa(i)
+	}
+	l := newList(t, widget.ListOpts.Entries(entries), widget.ListOpts.EntryLabelFunc(label))
+	screen := ebiten.NewImage(200, 300)
+	sc := l.ScrollContainer()
+	sc.GetWidget().ScrolledEvent.Fire(&widget.ScrolledEventArgs{Widget: sc.GetWidget(), Y: -1})
+	event.ExecuteDeferred()
+	for range 2 {
+		l.Render(screen)
+	}
+	row, _ := l.Rows().RowSpan(1)
+	if got := l.VSlider().Current; got != 3*row {
+		t.Errorf("a notch scrolled %d pixels, want three rows, %d", got, 3*row)
+	}
+	if got := int(math.Round(sc.ScrollTop * float64(l.VSlider().Max))); got != 3*row {
+		t.Errorf("the view is %d pixels down, want three rows, %d", got, 3*row)
+	}
 }

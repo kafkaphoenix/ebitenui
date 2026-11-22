@@ -556,6 +556,7 @@ func (l *List) Render(screen *ebiten.Image) {
 	if l.slidersWhenNeeded {
 		l.showSlidersWhenNeeded()
 	}
+	l.syncVerticalSlider()
 
 	l.container.Render(screen)
 }
@@ -629,8 +630,9 @@ func (l *List) handleInput(actions *Actions) {
 		if l.focusIndex > 0 && actions.Take(ActionUp) {
 			l.FocusPrevious()
 		}
-		if actions.Take(ActionActivate) {
-			l.SelectFocused()
+		// The player chooses the focused entry, as a click on it would.
+		if actions.Take(ActionActivate) || input.KeyJustPressed(ebiten.KeyEnter) || input.KeyJustPressed(ebiten.KeySpace) {
+			l.setSelectedEntry(l.entries[l.focusIndex], true)
 		}
 	}
 }
@@ -721,7 +723,7 @@ func (l *List) initWidget() {
 		l.scrollContainer.ScrollMovedEvent.AddHandler(func(args any) {
 			if a, ok := args.(*ScrollContainerScrollMovedEventArgs); ok {
 				if l.vSlider != nil {
-					l.vSlider.Current = int(math.Round(a.Top * 1000))
+					l.vSlider.Current = int(math.Round(a.Top * float64(l.verticalSpan())))
 				}
 				if l.hSlider != nil {
 					l.hSlider.Current = int(math.Round(a.Left * 1000))
@@ -760,20 +762,28 @@ func (l *List) initWidget() {
 	}
 
 	if !l.hideVerticalSlider {
+		// The vertical slider counts pixels from the top, so it reaches every
+		// row of a long list; a page is the view's height in its steps,
+		// scaled so the handle is to the track what the view is to the list.
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(max(1, l.rows.GetWidget().Rect.Dy())) * 1000))
+			_, total := l.rows.PreferredSize()
+			if total <= 0 {
+				return 1
+			}
+			view := float64(l.scrollContainer.ViewRect().Dy())
+			return max(1, int(math.Round(view*float64(l.vSlider.Max+1)/float64(total))))
 		}
 
 		l.vSlider = NewSlider(append(sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionVertical),
-			SliderOpts.MinMax(0, 1000),
+			SliderOpts.MinMax(0, 0), // the span, set as the list draws
+			SliderOpts.InitialCurrent(0),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-				current := args.Slider.Current
-				if pageSizeFunc() >= 1000 {
-					current = 0
+				l.scrollContainer.ScrollTop = 0
+				if span := l.verticalSpan(); span > 0 {
+					l.scrollContainer.ScrollTop = float64(args.Slider.Current) / float64(span)
 				}
-				l.scrollContainer.ScrollTop = float64(current) / 1000
 			}),
 		}...)...)
 		l.container.AddChild(l.vSlider)
@@ -781,10 +791,10 @@ func (l *List) initWidget() {
 			l.vSlider.GetWidget().SetVisibility(VisibilityHideBlocking)
 		}
 
+		// The wheel moves three rows a notch.
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*ScrolledEventArgs); ok {
-				p := max(pageSizeFunc()/3, 1)
-				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
+				l.vSlider.Current -= int(math.Round(a.Y * float64(3*l.rows.rowStep())))
 			}
 		})
 	}
@@ -938,9 +948,31 @@ func (l *List) normalizeEntries(entries []any) []any {
 func (l *List) setScrollTop(t float64) {
 	l.init.Do()
 	if l.vSlider != nil {
-		l.vSlider.Current = int(math.Round(t * 1000))
+		l.vSlider.Current = int(math.Round(t * float64(l.verticalSpan())))
 	}
 	l.scrollContainer.ScrollTop = t
+}
+
+// verticalSpan returns how many pixels the rows scroll: their height less
+// the view's.
+func (l *List) verticalSpan() int {
+	_, h := l.rows.PreferredSize()
+	return max(0, h-l.scrollContainer.ViewRect().Dy())
+}
+
+// syncVerticalSlider gives the vertical slider the rows' span, as entries
+// come and go or the view changes size, keeping the pixel it is at, so the
+// entry at the top stays in place; the slider clamps as it draws.
+func (l *List) syncVerticalSlider() {
+	if l.vSlider == nil {
+		return
+	}
+	span := l.verticalSpan()
+	l.vSlider.Max = span
+	l.scrollContainer.ScrollTop = 0
+	if span > 0 {
+		l.scrollContainer.ScrollTop = float64(min(l.vSlider.Current, span)) / float64(span)
+	}
 }
 
 func (l *List) setScrollLeft(left float64) {
