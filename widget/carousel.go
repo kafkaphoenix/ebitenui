@@ -14,16 +14,21 @@ import (
 )
 
 // CarouselParams is a carousel's look: its arrows' buttons, the arrows
-// drawn on them and their size, and its dots' color, a done step's color,
-// size and spacing.
+// drawn on them and their size, or icons of the game's in their place
+// (PrevGraphic, NextGraphic), and its dots' color, a done step's color,
+// size and spacing, or an image of the game's for a dot (DotImage), tinted
+// by those colors.
 type CarouselParams struct {
 	ArrowImage   *ButtonImage
 	ArrowColor   color.Color
 	ArrowSize    *img.Point
+	PrevGraphic  *GraphicImage
+	NextGraphic  *GraphicImage
 	DotColor     color.Color
 	DotDoneColor color.Color
 	DotSize      *int
 	DotSpacing   *int
+	DotImage     *ebiten.Image
 }
 
 // Carousel shows pages one at a time, any widgets: the screens of a
@@ -182,6 +187,20 @@ func (o CarouselOptions) ArrowSize(w, h int) CarouselOpt {
 	return func(c *Carousel) { c.definedParams.ArrowSize = &img.Point{w, h} }
 }
 
+// ArrowGraphics sets the arrows' icons, in place of the arrows the
+// carousel draws: each with its Idle image, and its Disabled one for an
+// arrow that can't move the carousel.
+func (o CarouselOptions) ArrowGraphics(prev, next *GraphicImage) CarouselOpt {
+	return func(c *Carousel) { c.definedParams.PrevGraphic, c.definedParams.NextGraphic = prev, next }
+}
+
+// DotImage sets the image drawn for each dot, in place of a circle, tinted
+// by DotColor, or DotDoneColor for a done step; white keeps its colors. A
+// dot is as wide as the image unless DotSize sets it.
+func (o CarouselOptions) DotImage(i *ebiten.Image) CarouselOpt {
+	return func(c *Carousel) { c.definedParams.DotImage = i }
+}
+
 func (o CarouselOptions) DotColor(col color.Color) CarouselOpt {
 	return func(c *Carousel) { c.definedParams.DotColor = col }
 }
@@ -328,16 +347,25 @@ func (c *Carousel) Validate() {
 	p.ArrowSize = first(d.ArrowSize, p.ArrowSize, &img.Point{24, 32})
 	p.DotColor = first(d.DotColor, p.DotColor, color.Color(color.White))
 	p.DotDoneColor = first(d.DotDoneColor, p.DotDoneColor, color.Color(color.NRGBA{120, 200, 120, 255}))
-	p.DotSize = first(d.DotSize, p.DotSize, new(8))
+	p.PrevGraphic = first(d.PrevGraphic, p.PrevGraphic)
+	p.NextGraphic = first(d.NextGraphic, p.NextGraphic)
+	p.DotImage = first(d.DotImage, p.DotImage)
+	dotSize := 8
+	if p.DotImage != nil {
+		dotSize = p.DotImage.Bounds().Dx()
+	}
+	p.DotSize = first(d.DotSize, p.DotSize, &dotSize)
 	p.DotSpacing = first(d.DotSpacing, p.DotSpacing, new(6))
 	c.computedParams = p
 
-	r := float32(*p.DotSize) / 2
-	c.dot = ebiten.NewImage(*p.DotSize, *p.DotSize)
-	vector.FillCircle(c.dot, r, r, r, color.White, true)
+	if c.dot = p.DotImage; c.dot == nil {
+		r := float32(*p.DotSize) / 2
+		c.dot = ebiten.NewImage(*p.DotSize, *p.DotSize)
+		vector.FillCircle(c.dot, r, r, r, color.White, true)
+	}
 	if !c.noArrows && c.prev == nil {
-		c.prev = c.arrowButton(true, c.Previous)
-		c.next = c.arrowButton(false, c.Next)
+		c.prev = c.arrowButton(true, p.PrevGraphic, c.Previous)
+		c.next = c.arrowButton(false, p.NextGraphic, c.Next)
 		c.updateArrows()
 	}
 	for _, pg := range c.pages {
@@ -346,9 +374,27 @@ func (c *Carousel) Validate() {
 	}
 }
 
-// arrowButton returns an arrow's button, pointing left or right, calling
-// move as it is clicked.
-func (c *Carousel) arrowButton(left bool, move func()) *Button {
+// arrowButton returns an arrow's button, showing icon or else an arrow
+// pointing left or right, calling move as it is clicked.
+func (c *Carousel) arrowButton(left bool, icon *GraphicImage, move func()) *Button {
+	s := *c.computedParams.ArrowSize
+	if icon == nil {
+		icon = c.arrow(left)
+	}
+	b := NewButton(
+		ButtonOpts.Image(c.computedParams.ArrowImage),
+		ButtonOpts.Graphic(icon),
+		ButtonOpts.WidgetOpts(WidgetOpts.MinSize(s.X, s.Y)),
+		ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { move() }),
+	)
+	b.GetWidget().parent = c.widget
+	b.Validate()
+	return b
+}
+
+// arrow draws an arrow pointing left or right once, in ArrowColor, and
+// faded for an arrow that can't move the carousel.
+func (c *Carousel) arrow(left bool) *GraphicImage {
 	s := *c.computedParams.ArrowSize
 	w, h := s.X/2, s.Y/2
 	arrow := func(alpha float32) *ebiten.Image {
@@ -368,15 +414,7 @@ func (c *Carousel) arrowButton(left bool, move func()) *Button {
 		vector.FillPath(i, &path, &vector.FillOptions{}, op)
 		return i
 	}
-	b := NewButton(
-		ButtonOpts.Image(c.computedParams.ArrowImage),
-		ButtonOpts.Graphic(&GraphicImage{Idle: arrow(1), Disabled: arrow(0.35)}),
-		ButtonOpts.WidgetOpts(WidgetOpts.MinSize(s.X, s.Y)),
-		ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { move() }),
-	)
-	b.GetWidget().parent = c.widget
-	b.Validate()
-	return b
+	return &GraphicImage{Idle: arrow(1), Disabled: arrow(0.35)}
 }
 
 // dotRow returns the height of the dots' row, 0 without dots.

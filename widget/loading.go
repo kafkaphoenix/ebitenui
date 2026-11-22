@@ -14,13 +14,17 @@ import (
 )
 
 // LoadingParams is a loading indicator's look: a bar's track and the band
-// sweeping along it, a spinner's dots, and the tips' face and color.
+// sweeping along it, a spinner's dots' color, or an image of the game's for
+// a dot (DotImage), tinted by it, or one image turning in their place
+// (SpinnerImage), and the tips' face and color.
 type LoadingParams struct {
-	TrackImage *image.NineSlice
-	FillImage  *image.NineSlice
-	Color      color.Color
-	TipFace    *text.Face
-	TipColor   color.Color
+	TrackImage   *image.NineSlice
+	FillImage    *image.NineSlice
+	Color        color.Color
+	DotImage     *ebiten.Image
+	SpinnerImage *ebiten.Image
+	TipFace      *text.Face
+	TipColor     color.Color
 }
 
 // Loading shows that something is loading, for as long as it is in the
@@ -61,8 +65,12 @@ type Loading struct {
 	widget     *Widget
 }
 
-// loadingDots is the number of a spinner's dots.
-const loadingDots = 8
+// loadingDots is the number of a spinner's dots, loadingTurnSteps the
+// steps a SpinnerImage turns by in a turn.
+const (
+	loadingDots      = 8
+	loadingTurnSteps = 24
+)
 
 // loadingTipGap is the space between the indicator and its tips.
 const loadingTipGap = 4
@@ -143,6 +151,19 @@ func (o LoadingOptions) Color(c color.Color) LoadingOpt {
 	return func(l *Loading) { l.definedParams.Color = c }
 }
 
+// DotImage sets the image drawn for each of a spinner's dots, in place of
+// a circle, tinted by Color; white keeps its colors.
+func (o LoadingOptions) DotImage(i *ebiten.Image) LoadingOpt {
+	return func(l *Loading) { l.definedParams.DotImage = i }
+}
+
+// SpinnerImage has a spinner turn this image, an icon of the game's, scaled
+// to the spinner's size, in place of the ring of dots: 24 steps a turn,
+// UI.Changed told at each.
+func (o LoadingOptions) SpinnerImage(i *ebiten.Image) LoadingOpt {
+	return func(l *Loading) { l.definedParams.SpinnerImage = i }
+}
+
 func (o LoadingOptions) TipFace(f *text.Face) LoadingOpt {
 	return func(l *Loading) { l.definedParams.TipFace = f }
 }
@@ -181,6 +202,8 @@ func (l *Loading) Validate() {
 	p.TrackImage = first(d.TrackImage, p.TrackImage, image.NewNineSliceColor(color.NRGBA{255, 255, 255, 40}))
 	p.FillImage = first(d.FillImage, p.FillImage, image.NewNineSliceColor(color.White))
 	p.Color = first(d.Color, p.Color, color.Color(color.White))
+	p.DotImage = first(d.DotImage, p.DotImage)
+	p.SpinnerImage = first(d.SpinnerImage, p.SpinnerImage)
 	p.TipFace = first(d.TipFace, p.TipFace)
 	p.TipColor = first(d.TipColor, p.TipColor, color.Color(color.White))
 	l.computedParams = p
@@ -212,8 +235,12 @@ func first[T comparable](vs ...T) T {
 // its center, the first at the top and the rest clockwise.
 func (l *Loading) makeDot() {
 	r := max(1, l.diameter/10)
-	l.dot = ebiten.NewImage(2*r, 2*r)
-	vector.FillCircle(l.dot, float32(r), float32(r), float32(r), color.White, true)
+	if l.dot = l.computedParams.DotImage; l.dot != nil {
+		r = max(1, l.dot.Bounds().Dx()/2)
+	} else {
+		l.dot = ebiten.NewImage(2*r, 2*r)
+		vector.FillCircle(l.dot, float32(r), float32(r), float32(r), color.White, true)
+	}
 	ring := float64(l.diameter)/2 - float64(r)
 	for i := range l.dots {
 		a := 2*math.Pi*float64(i)/loadingDots - math.Pi/2
@@ -265,9 +292,14 @@ func (l *Loading) indicatorRect() img.Rectangle {
 
 func (l *Loading) periodUpdates() int { return updatesIn(l.period) }
 
-// step returns the spinner's brightest dot.
+// step returns the spinner's brightest dot, or with SpinnerImage the step
+// of its turn.
 func (l *Loading) step() int {
-	return l.updates * loadingDots / l.periodUpdates() % loadingDots
+	n := loadingDots
+	if l.computedParams.SpinnerImage != nil {
+		n = loadingTurnSteps
+	}
+	return l.updates * n / l.periodUpdates() % n
 }
 
 // bandX returns where the bar's band starts along its track: a band of 30 %
@@ -335,6 +367,19 @@ func (l *Loading) drawBar(screen *ebiten.Image, ir img.Rectangle) {
 
 func (l *Loading) drawSpinner(screen *ebiten.Image, ir img.Rectangle) {
 	c := ir.Min.Add(img.Pt(ir.Dx()/2, ir.Dy()/2))
+	if i := l.computedParams.SpinnerImage; i != nil {
+		b := i.Bounds()
+		o := &l.dotOpts
+		o.GeoM.Reset()
+		o.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
+		o.GeoM.Rotate(2 * math.Pi * float64(l.step()) / loadingTurnSteps)
+		o.GeoM.Scale(float64(ir.Dx())/float64(max(1, b.Dx())), float64(ir.Dy())/float64(max(1, b.Dy())))
+		o.GeoM.Translate(float64(c.X), float64(c.Y))
+		o.ColorScale.Reset()
+		o.Filter = ebiten.FilterLinear
+		screen.DrawImage(i, o)
+		return
+	}
 	head := l.step()
 	for i, at := range l.dots {
 		behind := (head - i + loadingDots) % loadingDots
