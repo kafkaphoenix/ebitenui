@@ -42,7 +42,7 @@ func CreateUpdater() *cursor_updater {
 	cu.currentPosition = image.Point{X, Y}
 
 	cu.cursorImages = make(map[string]*ebiten.Image)
-	cu.cursorImages[input.CURSOR_DEFAULT] = loadNormalCursorImage()
+	cu.cursorImages[input.CursorDefault] = loadNormalCursorImage()
 	cu.cursorImages["buttonHover"] = loadHoverCursorImage()
 	cu.cursorImages["buttonPressed"] = loadPressedCursorImage()
 	return &cu

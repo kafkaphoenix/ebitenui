@@ -34,7 +34,7 @@ func NewCheckboxTab() *widget.TabBookTab {
 		widget.CheckboxOpts.TextLabel("Labeled Checkbox1"),
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				fmt.Println("Checkbox1 is Checked")
 			} else {
 				fmt.Println("Checkbox1 is Unchecked")
@@ -62,7 +62,7 @@ func NewCheckboxTab() *widget.TabBookTab {
 
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				fmt.Println("Checkbox2 is Checked")
 			} else {
 				fmt.Println("Checkbox2 is Unchecked")
@@ -70,7 +70,7 @@ func NewCheckboxTab() *widget.TabBookTab {
 		}),
 	)
 	// Set this checkbox as Checked by default
-	labeledCheckBox2.SetState(widget.WidgetChecked)
+	labeledCheckBox2.SetState(widget.Checked)
 
 	result.AddChild(labeledCheckBox2)
 
@@ -95,9 +95,9 @@ func NewCheckboxTab() *widget.TabBookTab {
 
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				fmt.Println("Checkbox3 is Checked")
-			} else if args.State == widget.WidgetGreyed {
+			} else if args.State == widget.Greyed {
 				fmt.Println("Checkbox3 is Greyed")
 			} else {
 				fmt.Println("Checkbox3 is Unchecked")
@@ -105,7 +105,7 @@ func NewCheckboxTab() *widget.TabBookTab {
 		}),
 	)
 	// Set this checkbox as Checked by default
-	labeledCheckBox3.SetState(widget.WidgetGreyed)
+	labeledCheckBox3.SetState(widget.Greyed)
 
 	result.AddChild(labeledCheckBox3)
 	return result

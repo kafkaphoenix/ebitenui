@@ -69,13 +69,13 @@ func main() {
 				widget.ToolTipOpts.Content(tooltipContainer),
 				//widget.WidgetToolTipOpts.Delay(1*time.Second),
 				widget.ToolTipOpts.Offset(img.Point{-5, 5}),
-				widget.ToolTipOpts.Position(widget.TOOLTIP_POS_WIDGET),
-				// When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
+				widget.ToolTipOpts.Position(widget.ToolTipPositionWidget),
+				// When the Position is set to ToolTipPositionWidget, you can configure where it opens with the optional parameters below
 				// They will default to what you see below if you do not provide them
-				widget.ToolTipOpts.AnchorOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
-				widget.ToolTipOpts.AnchorOriginVertical(widget.TOOLTIP_ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginVertical(widget.TOOLTIP_ANCHOR_START),
+				widget.ToolTipOpts.AnchorOriginHorizontal(widget.ToolTipAnchorEnd),
+				widget.ToolTipOpts.AnchorOriginVertical(widget.ToolTipAnchorEnd),
+				widget.ToolTipOpts.ContentOriginHorizontal(widget.ToolTipAnchorEnd),
+				widget.ToolTipOpts.ContentOriginVertical(widget.ToolTipAnchorStart),
 			)),
 		),
 
@@ -110,7 +110,7 @@ func main() {
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn2ToolTip.Position = widget.TOOLTIP_POS_CURSOR_STICKY
+	btn2ToolTip.Position = widget.ToolTipPositionCursorSticky
 
 	// construct a button
 	button2 := widget.NewButton(
@@ -148,17 +148,17 @@ func main() {
 	rootContainer.AddChild(button2)
 
 	// Use the NewTextToolTip convenience method to create the tooltip
-	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_ABSOLUTE'\nto always appear at X: 200 / Y: 100!",
+	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.ToolTipPositionAbsolute'\nto always appear at X: 200 / Y: 100!",
 		&face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn3ToolTip.Position = widget.TOOLTIP_POS_ABSOLUTE
+	btn3ToolTip.Position = widget.ToolTipPositionAbsolute
 	btn3ToolTip.Offset.X = 200
 	btn3ToolTip.Offset.Y = 100
-	btn3ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn3ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn3ToolTip.ContentOriginHorizontal = widget.ToolTipAnchorMiddle
+	btn3ToolTip.ContentOriginVertical = widget.ToolTipAnchorMiddle
 	btn3ToolTip.Delay = 0
 
 	// construct a button
@@ -197,19 +197,19 @@ func main() {
 	rootContainer.AddChild(button3)
 
 	// Use the NewTextToolTip convenience method to create the tooltip
-	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_SCREEN'\nto always appear center screen!",
+	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.ToolTipPositionScreen'\nto always appear center screen!",
 		&face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn4ToolTip.Position = widget.TOOLTIP_POS_SCREEN
+	btn4ToolTip.Position = widget.ToolTipPositionScreen
 	btn4ToolTip.Offset.X = 0
 	btn4ToolTip.Offset.Y = 0
-	btn4ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.AnchorOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.AnchorOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.ContentOriginHorizontal = widget.ToolTipAnchorMiddle
+	btn4ToolTip.ContentOriginVertical = widget.ToolTipAnchorMiddle
+	btn4ToolTip.AnchorOriginHorizontal = widget.ToolTipAnchorMiddle
+	btn4ToolTip.AnchorOriginVertical = widget.ToolTipAnchorMiddle
 	btn4ToolTip.Delay = 0
 
 	// construct a button
@@ -251,12 +251,12 @@ func main() {
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn5_1ToolTip.Position = widget.TOOLTIP_POS_WIDGET
+	btn5_1ToolTip.Position = widget.ToolTipPositionWidget
 	btn5_1ToolTip.Offset = img.Point{15, -45}
-	btn5_1ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_END
-	btn5_1ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_START
-	btn5_1ToolTip.AnchorOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn5_1ToolTip.AnchorOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn5_1ToolTip.ContentOriginHorizontal = widget.ToolTipAnchorEnd
+	btn5_1ToolTip.ContentOriginVertical = widget.ToolTipAnchorStart
+	btn5_1ToolTip.AnchorOriginHorizontal = widget.ToolTipAnchorMiddle
+	btn5_1ToolTip.AnchorOriginVertical = widget.ToolTipAnchorMiddle
 	btn5_1ToolTip.Delay = 0
 
 	btn5_2ToolTip := widget.NewTextToolTip("M(2)-Hover me!",
@@ -265,12 +265,12 @@ func main() {
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn5_2ToolTip.Position = widget.TOOLTIP_POS_WIDGET
+	btn5_2ToolTip.Position = widget.ToolTipPositionWidget
 	btn5_2ToolTip.Offset = img.Point{15, 15}
-	btn5_2ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_END
-	btn5_2ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_START
-	btn5_2ToolTip.AnchorOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn5_2ToolTip.AnchorOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn5_2ToolTip.ContentOriginHorizontal = widget.ToolTipAnchorEnd
+	btn5_2ToolTip.ContentOriginVertical = widget.ToolTipAnchorStart
+	btn5_2ToolTip.AnchorOriginHorizontal = widget.ToolTipAnchorMiddle
+	btn5_2ToolTip.AnchorOriginVertical = widget.ToolTipAnchorMiddle
 	btn5_2ToolTip.Delay = 0
 	btn5_2ToolTip.KeepOnHover = true
 

@@ -102,7 +102,7 @@ func TestColorPicker_Swatches(t *testing.T) {
 	redSwatch, greenSwatch := swatches[0].(*colorSwatch), swatches[1].(*colorSwatch)
 	is.True(redSwatch.chosen())
 
-	greenSwatch.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{Widget: greenSwatch.widget, Button: ebiten.MouseButtonLeft})
+	greenSwatch.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{Widget: greenSwatch.widget, Button: ebiten.MouseButtonLeft})
 	event.ExecuteDeferred()
 	render(p, t)
 
@@ -130,7 +130,7 @@ func newColorPicker(t *testing.T, opts ...ColorPickerOpt) (*ColorPicker, *[]Colo
 
 // pressWheel presses the left button on the wheel, x and y from its top left.
 func pressWheel(p *ColorPicker, x, y int) {
-	p.wheel.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+	p.wheel.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
 		Widget: p.wheel.widget, Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
 	})
 	event.ExecuteDeferred()
@@ -199,7 +199,7 @@ func TestColorPicker_RingPixels(t *testing.T) {
 // pressSquare presses the left button on the square, x and y from its top
 // left.
 func pressSquare(p *ColorPicker, x, y int) {
-	p.square.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+	p.square.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
 		Widget: p.square.widget, Button: ebiten.MouseButtonLeft, OffsetX: x, OffsetY: y,
 	})
 	event.ExecuteDeferred()

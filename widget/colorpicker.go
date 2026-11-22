@@ -371,7 +371,7 @@ type colorField struct {
 func newColorField(p *ColorPicker, pickAt func(x, y int, dragging bool)) *colorField {
 	f := &colorField{widget: NewWidget(), picker: p, pickAt: pickAt}
 	f.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
-		a, ok := args.(*WidgetMouseButtonPressedEventArgs)
+		a, ok := args.(*MouseButtonPressedEventArgs)
 		if !ok || a.Button != ebiten.MouseButtonLeft || f.widget.Disabled {
 			return
 		}
@@ -575,7 +575,7 @@ func newColorSwatch(p *ColorPicker, c color.NRGBA) *colorSwatch {
 		s.fill = eimage.NewNineSliceRounded(c, max(p.swatchRadius-4, 0), nil, 0)
 	}
 	s.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
-		a, ok := args.(*WidgetMouseButtonPressedEventArgs)
+		a, ok := args.(*MouseButtonPressedEventArgs)
 		if !ok || a.Button != ebiten.MouseButtonLeft || s.widget.Disabled {
 			return
 		}

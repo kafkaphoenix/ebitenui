@@ -130,7 +130,7 @@ func main() {
 	)
 	// Set the slider's position if the scrollContainer is scrolled by other means than the slider
 	scrollContainer.GetWidget().ScrolledEvent.AddHandler(func(args any) {
-		if a, ok := args.(*widget.WidgetScrolledEventArgs); ok {
+		if a, ok := args.(*widget.ScrolledEventArgs); ok {
 			vSlider.Current -= int(math.Round(a.Y * float64(pageSizeFunc())))
 		}
 	})

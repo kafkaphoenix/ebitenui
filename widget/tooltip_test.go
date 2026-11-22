@@ -55,7 +55,7 @@ func TestListComboButton_ToolTip(t *testing.T) {
 	l.SetLocation(img.Rect(0, 0, 100, 30))
 	shown := 0
 	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
-		if a.(*WidgetToolTipEventArgs).Show {
+		if a.(*ToolTipEventArgs).Show {
 			shown++
 		}
 	})
@@ -80,7 +80,7 @@ func TestToolTip_DelayInUpdates(t *testing.T) {
 	l.SetLocation(img.Rect(0, 0, 100, 30))
 	shown := 0
 	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
-		if a.(*WidgetToolTipEventArgs).Show {
+		if a.(*ToolTipEventArgs).Show {
 			shown++
 		}
 	})

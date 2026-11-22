@@ -78,10 +78,10 @@ func main() {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
 			btnIconG.GetWidget().Disabled = !btnIconG.GetWidget().Disabled
-			if btnTxt.GetWidget().GetVisibility() == widget.Visibility_Show {
-				btnTxt.GetWidget().SetVisibility(widget.Visibility_Hide)
+			if btnTxt.GetWidget().GetVisibility() == widget.VisibilityShow {
+				btnTxt.GetWidget().SetVisibility(widget.VisibilityHide)
 			} else {
-				btnTxt.GetWidget().SetVisibility(widget.Visibility_Show)
+				btnTxt.GetWidget().SetVisibility(widget.VisibilityShow)
 			}
 		}),
 	)

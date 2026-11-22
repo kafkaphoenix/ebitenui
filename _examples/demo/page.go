@@ -66,7 +66,7 @@ func buttonPage(res *uiResources) *page {
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		for _, b := range bs {
-			b.GetWidget().Disabled = args.State == widget.WidgetChecked
+			b.GetWidget().Disabled = args.State == widget.Checked
 		}
 	}, res))
 
@@ -95,8 +95,8 @@ func checkboxPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		cb1.GetWidget().Disabled = args.State == widget.WidgetChecked
-		cb2.GetWidget().Disabled = args.State == widget.WidgetChecked
+		cb1.GetWidget().Disabled = args.State == widget.Checked
+		cb2.GetWidget().Disabled = args.State == widget.Checked
 	}, res))
 
 	return &page{
@@ -155,10 +155,10 @@ func listPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		list1.GetWidget().Disabled = args.State == widget.WidgetChecked
-		list2.GetWidget().Disabled = args.State == widget.WidgetChecked
+		list1.GetWidget().Disabled = args.State == widget.Checked
+		list2.GetWidget().Disabled = args.State == widget.Checked
 		for _, b := range bs {
-			b.GetWidget().Disabled = args.State == widget.WidgetChecked
+			b.GetWidget().Disabled = args.State == widget.Checked
 		}
 	}, res))
 
@@ -290,7 +290,7 @@ func comboButtonPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		cb.GetWidget().Disabled = args.State == widget.WidgetChecked
+		cb.GetWidget().Disabled = args.State == widget.Checked
 	}, res))
 
 	return &page{
@@ -341,7 +341,7 @@ func tabBookPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		t.GetWidget().Disabled = args.State == widget.WidgetChecked
+		t.GetWidget().Disabled = args.State == widget.Checked
 	}, res))
 
 	return &page{
@@ -477,7 +477,7 @@ func sliderPage(res *uiResources) *page {
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		for _, s := range sliders {
-			s.GetWidget().Parent().Disabled = args.State == widget.WidgetChecked
+			s.GetWidget().Parent().Disabled = args.State == widget.Checked
 		}
 	}, res))
 
@@ -596,7 +596,7 @@ func toolTipPage(res *uiResources) *page {
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
 				widget.ToolTipOpts.Content(tt),
 				widget.ToolTipOpts.ToolTipUpdater(func(c widget.Containerer) {
-					if showTimeCheckbox.State() == widget.WidgetChecked {
+					if showTimeCheckbox.State() == widget.Checked {
 						c.Children()[1].(*widget.Text).Label = time.Now().Local().Format("2006-01-02 15:04:05")
 					} else {
 						c.Children()[1].(*widget.Text).Label = ""
@@ -622,12 +622,12 @@ func toolTipPage(res *uiResources) *page {
 	stickyDelayedCheckbox := newCheckbox("Tool tips are sticky and delayed", func(args *widget.CheckboxChangedEventArgs) {
 		children := bc.Children()
 		for i := range children {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				children[i].GetWidget().ToolTips[0].Delay = 800 * time.Millisecond
-				children[i].GetWidget().ToolTips[0].Position = widget.TOOLTIP_POS_CURSOR_STICKY
+				children[i].GetWidget().ToolTips[0].Position = widget.ToolTipPositionCursorSticky
 			} else {
 				children[i].GetWidget().ToolTips[0].Delay = 0
-				children[i].GetWidget().ToolTips[0].Position = widget.TOOLTIP_POS_CURSOR_FOLLOW
+				children[i].GetWidget().ToolTips[0].Position = widget.ToolTipPositionCursorFollow
 			}
 		}
 	}, res)
@@ -762,8 +762,8 @@ func textInputPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		t.GetWidget().Disabled = args.State == widget.WidgetChecked
-		tSecure.GetWidget().Disabled = args.State == widget.WidgetChecked
+		t.GetWidget().Disabled = args.State == widget.Checked
+		tSecure.GetWidget().Disabled = args.State == widget.Checked
 	}, res))
 
 	return &page{
@@ -969,7 +969,7 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 	w := widget.NewWindow(
 		widget.WindowOpts.Modal(),
 		widget.WindowOpts.Contents(c),
-		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
+		widget.WindowOpts.CloseMode(widget.WindowCloseClickOut),
 	)
 
 	windowSize := input.GetWindowSize()
@@ -1085,21 +1085,21 @@ func anchorLayoutPage(res *uiResources) *page {
 
 	stretchHorizontalCheckbox := newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
 		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
-		ald.StretchHorizontal = args.State == widget.WidgetChecked
+		ald.StretchHorizontal = args.State == widget.Checked
 		sp.GetWidget().LayoutData = ald
 		p.RequestRelayout()
 
-		hPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
+		hPosC.GetWidget().Disabled = args.State == widget.Checked
 	}, res)
 	stretchC.AddChild(stretchHorizontalCheckbox)
 
 	stretchVerticalCheckbox := newCheckbox("Vertical", func(args *widget.CheckboxChangedEventArgs) {
 		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
-		ald.StretchVertical = args.State == widget.WidgetChecked
+		ald.StretchVertical = args.State == widget.Checked
 		sp.GetWidget().LayoutData = ald
 		p.RequestRelayout()
 
-		vPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
+		vPosC.GetWidget().Disabled = args.State == widget.Checked
 	}, res)
 	stretchC.AddChild(stretchVerticalCheckbox)
 

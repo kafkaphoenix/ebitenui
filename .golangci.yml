@@ -77,16 +77,11 @@ linters:
       - linters:
           - revive
         text: (comment on exported|should have( a package)? comment|comment should be of the form)
-      # Exported names callers use (input.CURSOR_DEFAULT, Visibility_Hide,
-      # LinkEventArgs.Id, NewBorder's type, widget.WidgetOpt): renaming
-      # them changes the API, which waits for a branch of its own.
+      # Every widget's options are named XOpt, XOptions and XOpts, the
+      # Widget's too.
       - linters:
           - revive
-        text: "exported: .* that stutters"
-      - linters:
-          - revive
-        path: (input.input|widget.(checkbox|dnd|text|tooltip|widget|window)|image.nineslice)\.go$
-        text: "(var-naming: don't use (ALL_CAPS|underscores)|var-naming: struct field Id|unexported-return)"
+        text: "exported: type name will be used as widget\\.(WidgetOpt|WidgetOptions) by other packages, and that stutters"
       # Functions over gocognit's limit when it was set, each to be
       # reworked; a function's name goes from its rule as it is.
       - linters: [gocognit]

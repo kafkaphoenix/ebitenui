@@ -552,7 +552,7 @@ func (t *TextInput) handleInput() {
 		if t.updateIME() {
 			return
 		}
-	} else if chars := input.InputChars(); len(chars) > 0 {
+	} else if chars := input.Chars(); len(chars) > 0 {
 		if !input.KeyPressed(ebiten.KeyControl) { // either Control key
 			t.DeleteSelectedText()
 			if !t.widget.Disabled {

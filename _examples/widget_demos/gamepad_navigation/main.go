@@ -71,7 +71,7 @@ func main() {
 	subtitles := widget.NewCheckbox(
 		widget.CheckboxOpts.TextLabel("Subtitles"),
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			status.Label = fmt.Sprintf("Subtitles %v", args.State == widget.WidgetChecked)
+			status.Label = fmt.Sprintf("Subtitles %v", args.State == widget.Checked)
 		}),
 	)
 	buttons := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Spacing(12))))

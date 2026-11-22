@@ -562,7 +562,7 @@ func (l *VirtualList) createWidget() {
 	)
 	// The wheel moves three rows a notch.
 	l.scroll.GetWidget().ScrolledEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetScrolledEventArgs); ok {
+		if a, ok := args.(*ScrolledEventArgs); ok {
 			l.slider.Current -= int(math.Round(a.Y * float64(3*l.rowHeight)))
 		}
 	})
@@ -582,28 +582,28 @@ func (l *VirtualList) createWidget() {
 func (l *VirtualList) watchPointer() {
 	w := l.content.widget
 	w.CursorEnterEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetCursorEnterEventArgs); ok {
+		if a, ok := args.(*CursorEnterEventArgs); ok {
 			l.hovering, l.hoverY = true, w.Rect.Min.Y+a.OffsetY
 		}
 	})
 	w.CursorMoveEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetCursorMoveEventArgs); ok {
+		if a, ok := args.(*CursorMoveEventArgs); ok {
 			l.hoverY = w.Rect.Min.Y + a.OffsetY
 		}
 	})
 	w.CursorExitEvent.AddHandler(func(any) { l.hovering = false })
 	w.MouseButtonPressedEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetMouseButtonPressedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
+		if a, ok := args.(*MouseButtonPressedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
 			l.pressed = l.entryAt(w.Rect.Min.Y + a.OffsetY)
 		}
 	})
 	w.MouseButtonReleasedEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
+		if a, ok := args.(*MouseButtonReleasedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
 			l.pressed = -1
 		}
 	})
 	w.MouseButtonClickedEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetMouseButtonClickedEventArgs); ok && a.Button == ebiten.MouseButtonLeft && !l.GetWidget().Disabled {
+		if a, ok := args.(*MouseButtonClickedEventArgs); ok && a.Button == ebiten.MouseButtonLeft && !l.GetWidget().Disabled {
 			if i := l.entryAt(w.Rect.Min.Y + a.OffsetY); i >= 0 {
 				l.SetSelected(i)
 			}

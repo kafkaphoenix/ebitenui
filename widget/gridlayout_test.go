@@ -60,7 +60,7 @@ func TestGridLayout_RowAfterHiddenWidget(t *testing.T) {
 	for i := range cells {
 		cells[i] = newSimpleWidget(10, 10, nil)
 	}
-	cells[1].GetWidget().SetVisibility(Visibility_Hide)
+	cells[1].GetWidget().SetVisibility(VisibilityHide)
 
 	l.Layout(cells, image.Rect(0, 0, 100, 100))
 

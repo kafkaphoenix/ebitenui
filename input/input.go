@@ -55,12 +55,12 @@ var windowSize image.Point
 //
 // EbitenUI by default will look for the following cursors:
 //
-//	CURSOR_EWRESIZE  : "Cursor_EWResize"
-//	CURSOR_NSRESIZE  : "Cursor_NSResize"
-//	CURSOR_DEFAULT   : "Cursor_Default"
-//	CURSOR_POINTER   : "Cursor_Pointer"
-//	CURSOR_TEXT      : "Cursor_Text"
-//	CURSOR_CROSSHAIR : "Cursor_Crosshair"
+//	CursorEWResize  : "Cursor_EWResize"
+//	CursorNSResize  : "Cursor_NSResize"
+//	CursorDefault   : "Cursor_Default"
+//	CursorPointer   : "Cursor_Pointer"
+//	CursorText      : "Cursor_Text"
+//	CursorCrosshair : "Cursor_Crosshair"
 func SetCursorUpdater(cursorUpdater CursorUpdater) {
 	if cursorUpdater == nil {
 		cursorUpdater = internalinput.InputHandler
@@ -69,16 +69,16 @@ func SetCursorUpdater(cursorUpdater CursorUpdater) {
 }
 
 const (
-	CURSOR_DEFAULT   = "Cursor_Default"
-	CURSOR_EWRESIZE  = "Cursor_EWResize"
-	CURSOR_NSRESIZE  = "Cursor_NSResize"
-	CURSOR_POINTER   = "Cursor_Pointer"
-	CURSOR_TEXT      = "Cursor_Text"
-	CURSOR_CROSSHAIR = "Cursor_Crosshair"
-	CURSOR_NONE      = "Cursor_None"
+	CursorDefault   = "Cursor_Default"
+	CursorEWResize  = "Cursor_EWResize"
+	CursorNSResize  = "Cursor_NSResize"
+	CursorPointer   = "Cursor_Pointer"
+	CursorText      = "Cursor_Text"
+	CursorCrosshair = "Cursor_Crosshair"
+	CursorNone      = "Cursor_None"
 )
 
-var currentCursor = CURSOR_DEFAULT
+var currentCursor = CursorDefault
 
 func SetCursorShape(name string) {
 	currentCursor = name
@@ -168,8 +168,8 @@ func WheelLayer(l *Layer) (float64, float64) {
 	return x, y
 }
 
-// InputChars returns user keyboard input.
-func InputChars() []rune {
+// Chars returns the characters typed this update.
+func Chars() []rune {
 	return internalinput.InputHandler.InputChars
 }
 
@@ -243,7 +243,7 @@ func GetWindowSize() image.Point {
 }
 
 func Update() {
-	SetCursorShape(CURSOR_DEFAULT)
+	SetCursorShape(CursorDefault)
 	currentCursorUpdater.Update()
 	if currentCursorUpdater != internalinput.InputHandler {
 		internalinput.InputHandler.Update()
@@ -287,19 +287,19 @@ func AfterDraw(screen *ebiten.Image) {
 		} else {
 			cursorMode := ebiten.CursorModeVisible
 			switch currentCursor {
-			case CURSOR_DEFAULT:
+			case CursorDefault:
 				ebiten.SetCursorShape(ebiten.CursorShapeDefault)
-			case CURSOR_EWRESIZE:
+			case CursorEWResize:
 				ebiten.SetCursorShape(ebiten.CursorShapeEWResize)
-			case CURSOR_NSRESIZE:
+			case CursorNSResize:
 				ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
-			case CURSOR_TEXT:
+			case CursorText:
 				ebiten.SetCursorShape(ebiten.CursorShapeText)
-			case CURSOR_CROSSHAIR:
+			case CursorCrosshair:
 				ebiten.SetCursorShape(ebiten.CursorShapeCrosshair)
-			case CURSOR_POINTER:
+			case CursorPointer:
 				ebiten.SetCursorShape(ebiten.CursorShapePointer)
-			case CURSOR_NONE:
+			case CursorNone:
 				cursorMode = ebiten.CursorModeHidden
 			default:
 				ebiten.SetCursorShape(ebiten.CursorShapeDefault)

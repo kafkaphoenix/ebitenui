@@ -84,7 +84,7 @@ func main() {
 			// Set how the context menu should be closed
 			// This defaults to "CLICK" so that it will close the contextmenu
 			// whenever the user clicks their mouse next
-			//widget.WidgetOpts.ContextMenuCloseMode(widget.NONE),
+			//widget.WidgetOpts.ContextMenuCloseMode(widget.WindowCloseNone),
 		),
 
 		// specify the images to use

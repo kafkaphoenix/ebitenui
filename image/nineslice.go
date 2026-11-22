@@ -22,7 +22,8 @@ type NineSlice struct {
 	op    ebiten.DrawImageOptions // reused by drawTile
 }
 
-type borders struct {
+// Border is a nine-slice's border: the width of each side and its color.
+type Border struct {
 	borderTop    int
 	borderRight  int
 	borderBottom int
@@ -30,9 +31,10 @@ type borders struct {
 	borderColor  color.Color
 }
 
-// This function returns a new borders struct instance for use with the NewAdvancedNineSlice* functions.
-func NewBorder(borderTop int, borderRight int, borderBottom int, borderLeft int, borderColor color.Color) borders {
-	return borders{max(borderTop, 0), max(borderRight, 0), max(borderBottom, 0), max(borderLeft, 0), borderColor}
+// NewBorder returns a Border for the NewAdvancedNineSlice* functions: each
+// side's width, at least 0, and the color.
+func NewBorder(borderTop int, borderRight int, borderBottom int, borderLeft int, borderColor color.Color) Border {
+	return Border{max(borderTop, 0), max(borderRight, 0), max(borderBottom, 0), max(borderLeft, 0), borderColor}
 }
 
 // A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
@@ -139,8 +141,8 @@ func NewBorderedNineSliceImage(img *ebiten.Image, borderColor color.Color, borde
 }
 
 // NewAdvancedNineSliceColor constructs a new NineSlice that when drawn fills with color c and
-// has a border defined by the borders struct.
-func NewAdvancedNineSliceColor(bodyColor color.Color, border borders) *NineSlice {
+// has a border defined by a Border.
+func NewAdvancedNineSliceColor(bodyColor color.Color, border Border) *NineSlice {
 	i := ebiten.NewImage(border.borderLeft+border.borderRight+1, border.borderTop+border.borderBottom*2+1)
 	i.Fill(border.borderColor)
 	i.Set(border.borderLeft, border.borderTop, bodyColor)
@@ -153,8 +155,8 @@ func NewAdvancedNineSliceColor(bodyColor color.Color, border borders) *NineSlice
 }
 
 // NewAdvancedNineSliceImage constructs a new NineSlice that when drawn fills with the provided image and
-// has a border defined by the borders struct.
-func NewAdvancedNineSliceImage(img *ebiten.Image, border borders) *NineSlice {
+// has a border defined by a Border.
+func NewAdvancedNineSliceImage(img *ebiten.Image, border Border) *NineSlice {
 	i := ebiten.NewImage(border.borderLeft+border.borderRight+img.Bounds().Dx(), border.borderTop+border.borderBottom+img.Bounds().Dy())
 	// Set the border color.
 	i.Fill(border.borderColor)

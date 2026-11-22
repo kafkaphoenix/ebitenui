@@ -64,27 +64,27 @@ func focusScore(src, dst image.Rectangle, d widget.FocusDirection) (ok, inBeam b
 	cols := dst.Min.X < src.Max.X && dst.Max.X > src.Min.X
 	var major, minor int
 	switch d {
-	case widget.FOCUS_EAST:
+	case widget.FocusEast:
 		ok = (src.Min.X < dst.Min.X || src.Max.X <= dst.Min.X) && src.Max.X < dst.Max.X
 		major, minor, inBeam = max(0, dst.Min.X-src.Max.X), dy, rows
-	case widget.FOCUS_WEST:
+	case widget.FocusWest:
 		ok = (src.Max.X > dst.Max.X || src.Min.X >= dst.Max.X) && src.Min.X > dst.Min.X
 		major, minor, inBeam = max(0, src.Min.X-dst.Max.X), dy, rows
-	case widget.FOCUS_SOUTH:
+	case widget.FocusSouth:
 		ok = (src.Min.Y < dst.Min.Y || src.Max.Y <= dst.Min.Y) && src.Max.Y < dst.Max.Y
 		major, minor, inBeam = max(0, dst.Min.Y-src.Max.Y), dx, cols
-	case widget.FOCUS_NORTH:
+	case widget.FocusNorth:
 		ok = (src.Max.Y > dst.Max.Y || src.Min.Y >= dst.Max.Y) && src.Min.Y > dst.Min.Y
 		major, minor, inBeam = max(0, src.Min.Y-dst.Max.Y), dx, cols
-	case widget.FOCUS_NORTHEAST:
+	case widget.FocusNortheast:
 		return dx > 0 && dy < 0, false, dx*dx + dy*dy
-	case widget.FOCUS_SOUTHEAST:
+	case widget.FocusSoutheast:
 		return dx > 0 && dy > 0, false, dx*dx + dy*dy
-	case widget.FOCUS_SOUTHWEST:
+	case widget.FocusSouthwest:
 		return dx < 0 && dy > 0, false, dx*dx + dy*dy
-	case widget.FOCUS_NORTHWEST:
+	case widget.FocusNorthwest:
 		return dx < 0 && dy < 0, false, dx*dx + dy*dy
-	case widget.FOCUS_NEXT, widget.FOCUS_PREVIOUS:
+	case widget.FocusNext, widget.FocusPrevious:
 		return false, false, 0 // the tab order, not a place
 	}
 	return ok, inBeam, 13*major*major + minor*minor

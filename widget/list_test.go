@@ -476,13 +476,13 @@ func TestList_SlidersWhenNeeded(t *testing.T) {
 	screen := ebiten.NewImage(200, 120)
 	l.Render(screen) // laid out
 	l.Render(screen)
-	is.Equal(l.vSlider.GetWidget().GetVisibility(), Visibility_Hide_Blocking) // one entry fits
+	is.Equal(l.vSlider.GetWidget().GetVisibility(), VisibilityHideBlocking) // one entry fits
 
 	for i := range 20 {
 		l.AddEntry("entry " + strconv.Itoa(i))
 	}
 	l.Render(screen)
-	is.Equal(l.vSlider.GetWidget().GetVisibility(), Visibility_Show) // twenty-one do not
+	is.Equal(l.vSlider.GetWidget().GetVisibility(), VisibilityShow) // twenty-one do not
 }
 
 // Entries wider than the list (upstream #325): a move of the focus scrolls
@@ -522,8 +522,8 @@ func TestList_WideEntriesScroll(t *testing.T) {
 	frames(5)
 	is.Equal([]float64{sc.ScrollTop, sc.ScrollLeft}, []float64{top, left}) // settled
 
-	sc.GetWidget().ScrolledEvent.Fire(&WidgetScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
-	l.hSlider.Current = 500                                                                    // the slider, sideways
+	sc.GetWidget().ScrolledEvent.Fire(&ScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
+	l.hSlider.Current = 500                                                              // the slider, sideways
 	event.ExecuteDeferred()
 	frames(5)
 	is.True(sc.ScrollTop > top)  // still down
@@ -558,7 +558,7 @@ func TestList_SelectFocusLetsTheWheelScroll(t *testing.T) {
 	}
 	frames(3)
 	sc := l.scrollContainer
-	sc.GetWidget().ScrolledEvent.Fire(&WidgetScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
+	sc.GetWidget().ScrolledEvent.Fire(&ScrolledEventArgs{Widget: sc.GetWidget(), Y: -3}) // the wheel, down
 	event.ExecuteDeferred()
 	frames(5)
 	is.True(sc.ScrollTop > 0)        // still down

@@ -120,9 +120,9 @@ func main() {
 					//This is an optional parameter that defaults to 15 pixels
 					widget.DragAndDropOpts.MinDragStartDistance(15),
 					//This sets where to anchor the widget to the cursor - vertical orientation
-					widget.DragAndDropOpts.ContentsOriginVertical(widget.DND_ANCHOR_END),
+					widget.DragAndDropOpts.ContentsOriginVertical(widget.DragAndDropAnchorEnd),
 					//This sets where to anchor the widget to the cursor - horizontal orientation
-					widget.DragAndDropOpts.ContentsOriginHorizontal(widget.DND_ANCHOR_END),
+					widget.DragAndDropOpts.ContentsOriginHorizontal(widget.DragAndDropAnchorEnd),
 					//This sets of far off the cursor to offset the dragged element
 					widget.DragAndDropOpts.Offset(img.Point{-5, -5}),
 					//This will turn of Drag to initiate drag and drop
@@ -130,7 +130,7 @@ func main() {
 					//widget.DragAndDropOpts.DisableDrag(),
 				),
 			),
-			widget.WidgetOpts.MouseButtonReleasedHandler(func(args *widget.WidgetMouseButtonReleasedEventArgs) {
+			widget.WidgetOpts.MouseButtonReleasedHandler(func(args *widget.MouseButtonReleasedEventArgs) {
 				if args.Inside && args.Button == ebiten.MouseButtonLeft && ebiten.IsKeyPressed(ebiten.KeyControl) {
 					args.Widget.DragAndDrop.StartDrag()
 				}

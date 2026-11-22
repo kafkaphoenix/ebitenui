@@ -52,7 +52,7 @@ func main() {
 	)
 	winContainer.AddChild(widget.NewText(widget.TextOpts.Text("Click outside to close.\nResizable.\nUses System cursor for E/W.\nUses Custom cursor for N/S", &face, color.White)))
 
-	win := widget.NewWindow(widget.WindowOpts.CloseMode(widget.CLICK_OUT), widget.WindowOpts.Contents(winContainer), widget.WindowOpts.Resizeable())
+	win := widget.NewWindow(widget.WindowOpts.CloseMode(widget.WindowCloseClickOut), widget.WindowOpts.Contents(winContainer), widget.WindowOpts.Resizeable())
 
 	// construct a button
 	button := widget.NewButton(
@@ -106,7 +106,7 @@ func main() {
 	}
 
 	// Set the main cursor used within the application
-	input.SetCursorImage(input.CURSOR_DEFAULT, loadNormalCursorImage())
+	input.SetCursorImage(input.CursorDefault, loadNormalCursorImage())
 
 	// Set the custom hover image
 	input.SetCursorImage("buttonHover", loadHoverCursorImage())
@@ -114,7 +114,7 @@ func main() {
 	input.SetCursorImage("buttonPressed", loadPressedCursorImage())
 
 	// Set the NS resize cursor with an offset so that it shows up a little above the cursor point
-	input.SetCursorImageWithOffset(input.CURSOR_NSRESIZE, loadNSCursorImage(), image.Point{0, -6})
+	input.SetCursorImageWithOffset(input.CursorNSResize, loadNSCursorImage(), image.Point{0, -6})
 
 	// Disable cursor management by ebitenui
 	// input.CursorManagementEnabled = false

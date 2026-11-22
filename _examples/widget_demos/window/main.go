@@ -182,7 +182,7 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 			Bottom: 5,
 		}),
 	)
-	btn2.GetWidget().SetVisibility(widget.Visibility_Hide)
+	btn2.GetWidget().SetVisibility(widget.VisibilityHide)
 	btn := widget.NewButton(
 		// specify the images to use
 		widget.ButtonOpts.Image(buttonImage),
@@ -202,12 +202,12 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if btn1.GetWidget().GetVisibility() == widget.Visibility_Show {
-				btn1.GetWidget().SetVisibility(widget.Visibility_Hide)
-				btn2.GetWidget().SetVisibility(widget.Visibility_Show)
+			if btn1.GetWidget().GetVisibility() == widget.VisibilityShow {
+				btn1.GetWidget().SetVisibility(widget.VisibilityHide)
+				btn2.GetWidget().SetVisibility(widget.VisibilityShow)
 			} else {
-				btn1.GetWidget().SetVisibility(widget.Visibility_Show)
-				btn2.GetWidget().SetVisibility(widget.Visibility_Hide)
+				btn1.GetWidget().SetVisibility(widget.VisibilityShow)
+				btn2.GetWidget().SetVisibility(widget.VisibilityHide)
 			}
 		}),
 	)
@@ -241,9 +241,9 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 		widget.WindowOpts.TitleBar(titleContainer, 25),
 		// Set the window above everything else and block input elsewhere
 		// widget.WindowOpts.Modal(),
-		// Set how to close the window. CLICK_OUT will close the window when clicking anywhere
+		// Set how to close the window. WindowCloseClickOut will close the window when clicking anywhere
 		// that is not a part of the window object
-		// widget.WindowOpts.CloseMode(widget.CLICK_OUT),
+		// widget.WindowOpts.CloseMode(widget.WindowCloseClickOut),
 		// Indicates that the window is draggable. It must have a TitleBar for this to work
 		widget.WindowOpts.Draggable(),
 		// Set the window resizeable

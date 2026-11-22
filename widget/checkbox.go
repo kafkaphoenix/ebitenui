@@ -13,8 +13,8 @@ import (
 type LabelOrder int
 
 const (
-	CHECKBOX_FIRST LabelOrder = iota
-	LABEL_FIRST
+	CheckboxFirst LabelOrder = iota
+	LabelFirst
 )
 
 type CheckboxParams struct {
@@ -32,7 +32,7 @@ type Checkbox struct {
 	triState          bool
 	StateChangedEvent *event.Event
 
-	state    WidgetState
+	state    CheckState
 	hovering bool
 
 	labelString string
@@ -64,7 +64,7 @@ type CheckboxImage struct {
 
 type CheckboxChangedEventArgs struct {
 	Active *Checkbox
-	State  WidgetState
+	State  CheckState
 }
 
 type CheckboxChangedHandlerFunc func(args *CheckboxChangedEventArgs)
@@ -78,7 +78,7 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	c := &Checkbox{
 		StateChangedEvent: &event.Event{},
 		spacing:           8,
-		order:             CHECKBOX_FIRST,
+		order:             CheckboxFirst,
 		init:              &MultiOnce{},
 
 		focusMap: make(map[FocusDirection]Focuser),
@@ -112,7 +112,7 @@ func (c *Checkbox) Validate() {
 	if c.triState && c.computedParams.Image.Greyed == nil {
 		panic("Checkbox: Image.Greyed is required if this is a tristate checkbox.")
 	}
-	if c.state == WidgetGreyed && !c.triState {
+	if c.state == Greyed && !c.triState {
 		panic("Checkbox: non-tri state Checkbox cannot be in greyed state.")
 	}
 	if c.label != nil {
@@ -247,7 +247,7 @@ func (o CheckboxOptions) Spacing(s int) CheckboxOpt {
 // This option indicates that the label should be before the checkbox.
 func (o CheckboxOptions) LabelFirst() CheckboxOpt {
 	return func(l *Checkbox) {
-		l.order = LABEL_FIRST
+		l.order = LabelFirst
 	}
 }
 
@@ -285,7 +285,7 @@ func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) Check
 }
 
 // This option sets the initial state for the checkbox.
-func (o CheckboxOptions) InitialState(state WidgetState) CheckboxOpt {
+func (o CheckboxOptions) InitialState(state CheckState) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.state = state
 	}
@@ -307,13 +307,13 @@ func (c *Checkbox) Text() *Text {
 }
 
 // This function will return the current state the checkbox is in.
-func (c *Checkbox) State() WidgetState {
+func (c *Checkbox) State() CheckState {
 	return c.state
 }
 
 // This function will allow you to update the checkbox's current state.
-func (c *Checkbox) SetState(state WidgetState) {
-	if state == WidgetGreyed && !c.triState {
+func (c *Checkbox) SetState(state CheckState) {
+	if state == Greyed && !c.triState {
 		panic("non-tri state Checkbox cannot be in greyed state")
 	}
 
@@ -419,7 +419,7 @@ func (c *Checkbox) Render(screen *ebiten.Image) {
 			checkboxStartY += ((c.widget.Rect.Dy() - cy) / 2)
 		}
 
-		if c.order == CHECKBOX_FIRST {
+		if c.order == CheckboxFirst {
 			c.currentImage().Draw(screen, cx, cy, func(opts *ebiten.DrawImageOptions) {
 				opts.GeoM.Translate(float64(c.widget.Rect.Min.X), float64(checkboxStartY))
 			})
@@ -488,17 +488,17 @@ func (c *Checkbox) Click() {
 func (c *Checkbox) createWidget() {
 	c.widget = NewWidget(append([]WidgetOpt{
 		WidgetOpts.TrackHover(true),
-		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *CursorEnterEventArgs) {
 			if !c.widget.Disabled {
 				c.hovering = true
 			}
 		}),
 
-		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *CursorExitEventArgs) {
 			c.hovering = false
 		}),
 
-		WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+		WidgetOpts.MouseButtonClickedHandler(func(args *MouseButtonClickedEventArgs) {
 			if !c.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				c.Click()
 			}
@@ -510,7 +510,7 @@ func (c *Checkbox) createWidget() {
 			LabelOpts.TextOpts(
 				TextOpts.Position(TextPositionStart, TextPositionCenter),
 				TextOpts.WidgetOpts(
-					WidgetOpts.MouseButtonClickedHandler(func(_ *WidgetMouseButtonClickedEventArgs) {
+					WidgetOpts.MouseButtonClickedHandler(func(_ *MouseButtonClickedEventArgs) {
 						c.Click()
 					}),
 				),
@@ -520,20 +520,20 @@ func (c *Checkbox) createWidget() {
 	}
 }
 
-func (s WidgetState) Advance(triState bool) WidgetState {
-	if s == WidgetUnchecked {
-		return WidgetChecked
+func (s CheckState) Advance(triState bool) CheckState {
+	if s == Unchecked {
+		return Checked
 	}
 
-	if s == WidgetChecked {
+	if s == Checked {
 		if triState {
-			return WidgetGreyed
+			return Greyed
 		}
 
-		return WidgetUnchecked
+		return Unchecked
 	}
 
-	return WidgetUnchecked
+	return Unchecked
 }
 
 // currentImage returns the image for the checkbox's state: the disabled one
@@ -542,11 +542,11 @@ func (s WidgetState) Advance(triState bool) WidgetState {
 func (c *Checkbox) currentImage() *image.NineSlice {
 	i := c.computedParams.Image
 	switch c.state {
-	case WidgetUnchecked:
+	case Unchecked:
 		return c.imageOf(i.Unchecked, i.UncheckedDisabled, i.UncheckedHovered)
-	case WidgetChecked:
+	case Checked:
 		return c.imageOf(i.Checked, i.CheckedDisabled, i.CheckedHovered)
-	case WidgetGreyed:
+	case Greyed:
 		return c.imageOf(i.Greyed, i.GreyedDisabled, i.GreyedHovered)
 	}
 	return i.Unchecked

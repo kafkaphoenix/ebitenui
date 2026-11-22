@@ -54,15 +54,15 @@ func TestUI_ChangeFocusToTheNearestInADirection(t *testing.T) {
 		dir  widget.FocusDirection
 		want *widget.Button
 	}{
-		{g[1][1], widget.FOCUS_EAST, g[1][2]},
-		{g[1][0], widget.FOCUS_EAST, g[1][1]}, // the nearer of two in the row
-		{g[1][1], widget.FOCUS_WEST, g[1][0]},
-		{g[1][1], widget.FOCUS_NORTH, g[0][1]},
-		{g[1][1], widget.FOCUS_SOUTH, g[2][1]},
-		{g[1][1], widget.FOCUS_NORTHEAST, g[0][2]},
-		{g[1][1], widget.FOCUS_SOUTHWEST, g[2][0]},
-		{g[1][2], widget.FOCUS_EAST, g[1][2]}, // nothing further east
-		{g[0][0], widget.FOCUS_NORTHWEST, g[0][0]},
+		{g[1][1], widget.FocusEast, g[1][2]},
+		{g[1][0], widget.FocusEast, g[1][1]}, // the nearer of two in the row
+		{g[1][1], widget.FocusWest, g[1][0]},
+		{g[1][1], widget.FocusNorth, g[0][1]},
+		{g[1][1], widget.FocusSouth, g[2][1]},
+		{g[1][1], widget.FocusNortheast, g[0][2]},
+		{g[1][1], widget.FocusSouthwest, g[2][0]},
+		{g[1][2], widget.FocusEast, g[1][2]}, // nothing further east
+		{g[0][0], widget.FocusNorthwest, g[0][0]},
 	} {
 		ui.SetFocusedWidget(step.from)
 		ui.ChangeFocus(step.dir)
@@ -81,7 +81,7 @@ func TestUI_ChangeFocusKeepsToTheRow(t *testing.T) {
 	ui := focusUI(from, far, beside)
 
 	ui.SetFocusedWidget(from)
-	ui.ChangeFocus(widget.FOCUS_EAST)
+	ui.ChangeFocus(widget.FocusEast)
 	is.Equal(ui.GetFocusedWidget(), far)
 
 	bottom := focusButton(image.Rect(0, 300, 40, 320))
@@ -89,7 +89,7 @@ func TestUI_ChangeFocusKeepsToTheRow(t *testing.T) {
 	aside := focusButton(image.Rect(50, 250, 90, 270)) // nearer, one column across
 	ui = focusUI(bottom, above, aside)
 	ui.SetFocusedWidget(bottom)
-	ui.ChangeFocus(widget.FOCUS_NORTH)
+	ui.ChangeFocus(widget.FocusNorth)
 	is.Equal(ui.GetFocusedWidget(), above)
 }
 
@@ -98,20 +98,20 @@ func TestUI_ChangeFocusFollowsLinksAndSkipsDisabled(t *testing.T) {
 	is := is.New(t)
 
 	ui, g := focusGrid()
-	g[1][1].AddFocus(widget.FOCUS_EAST, g[2][0])
+	g[1][1].AddFocus(widget.FocusEast, g[2][0])
 	ui.SetFocusedWidget(g[1][1])
-	ui.ChangeFocus(widget.FOCUS_EAST)
+	ui.ChangeFocus(widget.FocusEast)
 	is.Equal(ui.GetFocusedWidget(), g[2][0]) // the link
 
 	g[1][0].GetWidget().Disabled = true
-	g[1][1].AddFocus(widget.FOCUS_WEST, g[1][0])
+	g[1][1].AddFocus(widget.FocusWest, g[1][0])
 	ui.SetFocusedWidget(g[1][1])
-	ui.ChangeFocus(widget.FOCUS_WEST)
+	ui.ChangeFocus(widget.FocusWest)
 	is.True(ui.GetFocusedWidget() != g[1][0]) // a link to a disabled widget gives way to the search
 
 	g[0][1].GetWidget().Disabled = true
 	ui.SetFocusedWidget(g[1][1])
-	ui.ChangeFocus(widget.FOCUS_NORTH)
+	ui.ChangeFocus(widget.FocusNorth)
 	is.True(ui.GetFocusedWidget() != g[0][1])                                     // not the disabled one
 	is.True(ui.GetFocusedWidget() == g[0][0] || ui.GetFocusedWidget() == g[0][2]) // the row above
 }
@@ -122,7 +122,7 @@ func TestUI_ChangeFocusPreviousWraps(t *testing.T) {
 
 	ui, g := focusGrid()
 	ui.SetFocusedWidget(g[0][0])
-	ui.ChangeFocus(widget.FOCUS_PREVIOUS)
+	ui.ChangeFocus(widget.FocusPrevious)
 	is.Equal(ui.GetFocusedWidget(), g[2][2])
 	is.True(!g[0][0].IsFocused())
 }

@@ -495,7 +495,7 @@ func (t *TabBook) SetTab(tab *TabBookTab) {
 			t.tab = tab
 			t.flipBook.SetPage(tab)
 
-			btn.SetState(WidgetChecked)
+			btn.SetState(Checked)
 
 			t.TabSelectedEvent.Fire(&TabBookTabSelectedEventArgs{
 				TabBook:     t,

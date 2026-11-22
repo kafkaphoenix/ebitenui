@@ -24,7 +24,7 @@ func TestRadioGroup_Active_Initial(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[0])
 	is.Equal(eventArgs.Active, cbs[0])
-	is.Equal(cbs[0].State(), WidgetChecked)
+	is.Equal(cbs[0].State(), Checked)
 }
 
 func TestRadioGroup_ChangedEvent_User(t *testing.T) {
@@ -49,8 +49,8 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[1])
 	is.Equal(eventArgs.Active, cbs[1])
-	is.Equal(cbs[0].State(), WidgetUnchecked)
-	is.Equal(cbs[1].State(), WidgetChecked)
+	is.Equal(cbs[0].State(), Unchecked)
+	is.Equal(cbs[1].State(), Checked)
 }
 
 func TestRadioGroup_SetActive(t *testing.T) {
@@ -76,8 +76,8 @@ func TestRadioGroup_SetActive(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[1])
 	is.Equal(eventArgs.Active, cbs[1])
-	is.Equal(cbs[0].State(), WidgetUnchecked)
-	is.Equal(cbs[1].State(), WidgetChecked)
+	is.Equal(cbs[0].State(), Unchecked)
+	is.Equal(cbs[1].State(), Checked)
 }
 
 func newRadioGroup(t *testing.T, cbs []*Checkbox, opts ...RadioGroupOpt) *RadioGroup {

@@ -50,12 +50,12 @@ func TestWheelAndTextOnce(t *testing.T) {
 	d.Chars = []rune("hé")
 	input.Update()
 	wx, wy := input.Wheel()
-	is.Equal([]any{wx, wy, string(input.InputChars())}, []any{1.0, -2.0, "hé"})
+	is.Equal([]any{wx, wy, string(input.Chars())}, []any{1.0, -2.0, "hé"})
 	input.AfterUpdate()
 
 	input.Update()
 	wx, wy = input.Wheel()
-	is.Equal([]any{wx, wy, len(input.InputChars())}, []any{0.0, 0.0, 0})
+	is.Equal([]any{wx, wy, len(input.Chars())}, []any{0.0, 0.0, 0})
 	input.AfterUpdate()
 }
 
