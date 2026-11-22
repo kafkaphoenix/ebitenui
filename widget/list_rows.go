@@ -12,9 +12,9 @@ import (
 
 // listRows is a List's scrolled content: a row for each entry, as tall as
 // all of them, laying out, updating and drawing only the rows in view.
-// Labeled entries share a few rows of text of one height, each showing the
-// entry in view it is bound to (entry i in row i modulo their number), so a
-// list of thousands of labels keeps a screenful of widgets. Entries with
+// Labeled entries, and those of EntryRows, share a few rows of one height,
+// each showing the entry in view it is bound to (entry i in row i modulo
+// their number), so a list of thousands keeps a screenful of widgets. Entries with
 // widgets of their own (EntryWidgetFunc) keep one each, its own height:
 // the tops of their rows are measured once, again only as the entries or
 // their sizes change.
@@ -50,9 +50,11 @@ type listRows struct {
 	place image.DrawImageOptionsFunc
 }
 
+// listLabelRow is a recycled row: a label, or a row of EntryRows.
 type listLabelRow struct {
 	text  *Text
-	entry int // the entry it shows, -1 for none
+	row   PreferredSizeLocateableWidget // with EntryRows, in place of text
+	entry int                           // the entry it shows, -1 for none
 }
 
 func newListRows(l *List) *listRows {
@@ -166,7 +168,7 @@ func (r *listRows) measure() {
 // measures them all (MeasureLabels), on a label of its own.
 func (r *listRows) measureLabels() {
 	l := r.list
-	if !l.measureLabels {
+	if !l.measureLabels || !l.labeled() {
 		return
 	}
 	l.checkMeasuredLabels()
@@ -182,9 +184,25 @@ func (r *listRows) measureLabels() {
 	r.measurer.Label = ""
 }
 
-// styleLabels makes the first labeled row, to learn a row's height.
+// styleLabels makes the first recycled row, to learn a row's height: a
+// line of a label, or a row of EntryRows bound to the first entry, or the
+// height EntryRowHeight gives, with the padding.
 func (r *listRows) styleLabels() {
 	if r.rowH > 0 {
+		return
+	}
+	if l := r.list; l.entryRowFunc != nil {
+		lr := r.newRow()
+		h := l.entryRowHeight
+		if h <= 0 {
+			if len(l.entries) > 0 {
+				l.entryBindFunc(lr.row, l.entries[0])
+			}
+			_, h = lr.row.PreferredSize()
+		}
+		pad := l.computedParams.EntryTextPadding
+		r.rowH = max(h+pad.Top+pad.Bottom, 1)
+		r.labels = append(r.labels, lr)
 		return
 	}
 	t := r.labelRow()
@@ -193,6 +211,18 @@ func (r *listRows) styleLabels() {
 	r.rowH = max(r.rowH, 1)
 	t.Label = ""
 	r.labels = append(r.labels, listLabelRow{text: t, entry: -1})
+}
+
+// newRow returns a new recycled row, bound to no entry: a row of
+// EntryRows, or a label.
+func (r *listRows) newRow() listLabelRow {
+	if f := r.list.entryRowFunc; f != nil {
+		w := f()
+		w.GetWidget().parent = r.widget
+		w.Validate()
+		return listLabelRow{row: w, entry: -1}
+	}
+	return listLabelRow{text: r.labelRow(), entry: -1}
 }
 
 func (r *listRows) labelRow() *Text {
@@ -276,7 +306,7 @@ func (r *listRows) layOut() {
 	pad := l.computedParams.EntryTextPadding
 	if l.entryWidgetFunc == nil {
 		for len(r.labels) < r.last-r.first {
-			r.labels = append(r.labels, listLabelRow{text: r.labelRow(), entry: -1})
+			r.labels = append(r.labels, r.newRow())
 		}
 	}
 	for i := r.first; i < r.last; i++ {
@@ -287,14 +317,34 @@ func (r *listRows) layOut() {
 		}
 		lr := &r.labels[i%len(r.labels)]
 		if lr.entry != i {
-			lr.text.Label = l.entryLabelFunc(l.entries[i])
-			lr.entry = i
-			if w, _ := lr.text.PreferredSize(); w > r.widest {
-				r.widest = w
-				r.widget.relayoutParent = true // the content grew wider
-			}
+			r.bind(lr, i)
 		}
-		lr.text.SetLocation(row)
+		if lr.row != nil {
+			lr.row.SetLocation(pad.Apply(row))
+		} else {
+			lr.text.SetLocation(row)
+		}
+	}
+}
+
+// bind has recycled row lr show entry i, the content growing wider for a
+// row wider than all before.
+func (r *listRows) bind(lr *listLabelRow, i int) {
+	l := r.list
+	lr.entry = i
+	var w int
+	if lr.row != nil {
+		l.entryBindFunc(lr.row, l.entries[i])
+		w, _ = lr.row.PreferredSize()
+		pad := l.computedParams.EntryTextPadding
+		w += pad.Left + pad.Right
+	} else {
+		lr.text.Label = l.entryLabelFunc(l.entries[i])
+		w, _ = lr.text.PreferredSize()
+	}
+	if w > r.widest {
+		r.widest = w
+		r.widget.relayoutParent = true // the content grew wider
 	}
 }
 
@@ -346,30 +396,49 @@ func (r *listRows) Render(screen *ebiten.Image) {
 			}
 			continue
 		}
-		t := r.labels[i%len(r.labels)].text
-		t.SetColor(r.labelColor(i))
-		t.Render(screen)
+		lr := &r.labels[i%len(r.labels)]
+		if lr.row != nil {
+			if w, ok := lr.row.(Renderer); ok {
+				w.Render(screen)
+			}
+			continue
+		}
+		lr.text.SetColor(r.labelColor(i))
+		lr.text.Render(screen)
 	}
+}
+
+// shownWidget returns the widget of entry i's row, in view: its entry
+// widget, or the row of EntryRows bound to it; nil for a label.
+func (r *listRows) shownWidget(i int) PreferredSizeLocateableWidget {
+	l := r.list
+	switch {
+	case l.entryWidgetFunc != nil:
+		return r.widgets[l.entries[i]]
+	case l.entryRowFunc != nil && len(r.labels) > 0:
+		return r.labels[i%len(r.labels)].row
+	}
+	return nil
 }
 
 func (r *listRows) Update(updObj *UpdateObject) {
 	r.widget.Update(updObj)
-	if r.list.entryWidgetFunc == nil {
+	if r.list.labeled() {
 		return
 	}
 	for i := r.first; i < min(r.last, len(r.list.entries)); i++ {
-		if u, ok := r.widgets[r.list.entries[i]].(Updater); ok {
+		if u, ok := r.shownWidget(i).(Updater); ok {
 			u.Update(updObj)
 		}
 	}
 }
 
 func (r *listRows) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	if r.list.entryWidgetFunc == nil {
+	if r.list.labeled() {
 		return
 	}
 	for i := r.first; i < min(r.last, len(r.list.entries)); i++ {
-		if l, ok := r.widgets[r.list.entries[i]].(input.Layerer); ok {
+		if l, ok := r.shownWidget(i).(input.Layerer); ok {
 			l.SetupInputLayer(def)
 		}
 	}
@@ -378,12 +447,12 @@ func (r *listRows) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 // GetFocusers returns what the entry widgets in view hold that takes the
 // focus, so a gamepad reaches into a list's entries as into a container.
 func (r *listRows) GetFocusers() []Focuser {
-	if r.list.entryWidgetFunc == nil {
+	if r.list.labeled() {
 		return nil
 	}
 	var fs []Focuser
 	for i := r.first; i < min(r.last, len(r.list.entries)); i++ {
-		switch w := r.widgets[r.list.entries[i]].(type) {
+		switch w := r.shownWidget(i).(type) {
 		case interface{ GetFocusers() []Focuser }:
 			fs = append(fs, w.GetFocusers()...)
 		case Focuser:

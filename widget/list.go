@@ -57,6 +57,9 @@ type List struct {
 	entries         []any
 	entryLabelFunc  ListEntryLabelFunc
 	entryWidgetFunc ListEntryWidgetFunc
+	entryRowFunc    ListEntryRowFunc
+	entryBindFunc   ListEntryBindFunc
+	entryRowHeight  int
 	entrySortFunc   ListEntrySortFunc
 
 	init            *MultiOnce
@@ -83,6 +86,13 @@ type ListEntryLabelFunc func(e any) string
 
 // ListEntryWidgetFunc returns the widget an entry shows, in place of a label.
 type ListEntryWidgetFunc func(e any) PreferredSizeLocateableWidget
+
+// ListEntryRowFunc makes a row of a list of recycled rows (EntryRows),
+// which the list binds to the entries it comes to show.
+type ListEntryRowFunc func() PreferredSizeLocateableWidget
+
+// ListEntryBindFunc shows entry e in row, a row ListEntryRowFunc made.
+type ListEntryBindFunc func(row PreferredSizeLocateableWidget, e any)
 type ListEntrySortFunc func(a, b any) int
 
 type ListEntryColor struct {
@@ -151,10 +161,10 @@ func (l *List) Validate() {
 	l.init.Do()
 	l.populateComputedParams()
 
-	if l.entryWidgetFunc == nil && l.computedParams.EntryFace == nil {
+	if l.labeled() && l.computedParams.EntryFace == nil {
 		panic("List: EntryFontFace is required.")
 	}
-	if l.entryWidgetFunc == nil && l.entryLabelFunc == nil {
+	if l.labeled() && l.entryLabelFunc == nil {
 		panic("List: EntryLabelFunc is required.")
 	}
 	l.initWidget()
@@ -414,6 +424,36 @@ func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
 	}
+}
+
+// EntryRows shows the entries in rows of one height, any widgets: the list
+// makes them with newRow, as many as a screenful needs, and binds each to
+// the entry it comes to show with bind, as it does labels, so a list of
+// thousands of entries keeps a screenful of widgets. A row is as tall as
+// the first row bound to the first entry, unless EntryRowHeight sets it,
+// with EntryTextPadding around it; the list is as wide as the widest row
+// bound yet. The rows in view take updates, input and the focus.
+// UpdateEntry binds the rows again. With it, neither EntryLabelFunc nor
+// EntryFontFace is required. For rows of their own heights, one widget an
+// entry, EntryWidgetFunc.
+func (o ListOptions) EntryRows(newRow ListEntryRowFunc, bind ListEntryBindFunc) ListOpt {
+	return func(l *List) {
+		l.entryRowFunc, l.entryBindFunc = newRow, bind
+	}
+}
+
+// EntryRowHeight sets the height of the rows of EntryRows, padding
+// excluded, in place of the first row's.
+func (o ListOptions) EntryRowHeight(h int) ListOpt {
+	return func(l *List) {
+		l.entryRowHeight = h
+	}
+}
+
+// labeled reports whether the list shows its entries as labels, neither
+// as rows of EntryRows nor as widgets of EntryWidgetFunc.
+func (l *List) labeled() bool {
+	return l.entryWidgetFunc == nil && l.entryRowFunc == nil
 }
 
 // ListMeasureLabelsMax is the most entries a list measuring all its labels
