@@ -1,6 +1,7 @@
 package widget
 
 import (
+	"fmt"
 	img "image"
 	"image/color"
 	"math"
@@ -51,6 +52,7 @@ type List struct {
 	hideVerticalSlider   bool
 	slidersWhenNeeded    bool
 	dragToScroll         bool
+	measureLabels        bool
 
 	entries         []any
 	entryLabelFunc  ListEntryLabelFunc
@@ -140,6 +142,7 @@ func NewList(opts ...ListOpt) *List {
 	for _, o := range opts {
 		o(l)
 	}
+	l.checkMeasuredLabels()
 
 	return l
 }
@@ -410,6 +413,36 @@ func (o ListOptions) Entries(e []any) ListOpt {
 func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
+	}
+}
+
+// ListMeasureLabelsMax is the most entries a list measuring all its labels
+// (MeasureLabels) may have.
+const ListMeasureLabelsMax = 1000
+
+// MeasureLabels has the list measure every entry's label as its entries
+// are set or change, so that it is as wide as its widest label from the
+// start, and its horizontal scroll reaches the end of every label. Without
+// it, a label is measured as its row comes into view: a wider entry
+// further down widens the list only as it shows, and the list never
+// narrows.
+//
+// Measuring shapes every label's text, which a long list would pay for at
+// once and again at each change of its entries. So a list measuring its
+// labels may have at most ListMeasureLabelsMax entries: made with more, or
+// given more by SetEntries or AddEntry, it panics. Keep it to short lists,
+// such as a menu or a settings list.
+func (o ListOptions) MeasureLabels() ListOpt {
+	return func(l *List) {
+		l.measureLabels = true
+	}
+}
+
+// checkMeasuredLabels panics if the list measures all its labels and has
+// more entries than it may.
+func (l *List) checkMeasuredLabels() {
+	if l.measureLabels && len(l.entries) > ListMeasureLabelsMax {
+		panic(fmt.Sprintf("List: MeasureLabels takes at most %d entries (ListMeasureLabelsMax), not %d", ListMeasureLabelsMax, len(l.entries)))
 	}
 }
 
