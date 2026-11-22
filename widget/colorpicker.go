@@ -36,6 +36,8 @@ type ColorPicker struct {
 	// inner.
 	swatchRadius int
 	swatchFrames [2][2]*eimage.NineSlice
+	frames       [2]*eimage.NineSlice // the game's swatch frames, plain and chosen
+	marker       *ebiten.Image        // the game's marker, in the ring's place
 
 	init      *MultiOnce
 	container *Container
@@ -139,6 +141,23 @@ func (o ColorPickerOptions) Swatches(size int, colors ...color.Color) ColorPicke
 	}
 }
 
+// Marker sets the image marking the color picked on the wheel or the
+// square, drawn centered on it, in place of the ring the picker draws.
+func (o ColorPickerOptions) Marker(marker *ebiten.Image) ColorPickerOpt {
+	return func(p *ColorPicker) {
+		p.marker = marker
+	}
+}
+
+// SwatchFrames sets the frames drawn around the swatches, plain and for
+// the color picked, in place of the picker's: each swatch's color is drawn
+// over its frame, 4 pixels in from its edge.
+func (o ColorPickerOptions) SwatchFrames(plain, chosen *eimage.NineSlice) ColorPickerOpt {
+	return func(p *ColorPicker) {
+		p.frames = [2]*eimage.NineSlice{plain, chosen}
+	}
+}
+
 // SwatchRadius rounds the swatches' corners by radius pixels; they are
 // square by default.
 func (o ColorPickerOptions) SwatchRadius(radius int) ColorPickerOpt {
@@ -237,7 +256,9 @@ func (p *ColorPicker) createWidget() {
 	)
 	p.widgetOpts = nil
 
-	p.ring = ringImage(max(4, float64(p.wheelSize)/24))
+	if p.ring = p.marker; p.ring == nil {
+		p.ring = ringImage(max(4, float64(p.wheelSize)/24))
+	}
 	steps, sliderMax := trackSteps, 255
 	if p.squared {
 		p.square = newColorSquare(p)
@@ -267,7 +288,9 @@ func (p *ColorPicker) createWidget() {
 	p.container.AddChild(p.slider)
 
 	if len(p.presets) > 0 {
-		if r := p.swatchRadius; r > 0 {
+		if p.frames[0] != nil {
+			p.swatchFrames = [2][2]*eimage.NineSlice{{p.frames[0], nil}, {p.frames[1], nil}}
+		} else if r := p.swatchRadius; r > 0 {
 			for chosen, colors := range [2][2]color.NRGBA{
 				{{0x60, 0x60, 0x60, 0xff}, {0x60, 0x60, 0x60, 0xff}},
 				{{0xff, 0xff, 0xff, 0xff}, {A: 0xff}},
@@ -571,8 +594,11 @@ type colorSwatch struct {
 
 func newColorSwatch(p *ColorPicker, c color.NRGBA) *colorSwatch {
 	s := &colorSwatch{widget: NewWidget(), picker: p, color: c}
-	if p.swatchRadius > 0 {
+	switch {
+	case p.swatchRadius > 0:
 		s.fill = eimage.NewNineSliceRounded(c, max(p.swatchRadius-4, 0), nil, 0)
+	case p.frames[0] != nil:
+		s.fill = eimage.NewNineSliceColor(c)
 	}
 	s.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
 		a, ok := args.(*MouseButtonPressedEventArgs)
@@ -630,7 +656,7 @@ func (s *colorSwatch) Render(screen *ebiten.Image) {
 // edge.
 func (s *colorSwatch) drawRounded(screen *ebiten.Image, n *eimage.NineSlice, inset int) {
 	r := s.widget.Rect.Inset(inset)
-	if r.Empty() {
+	if r.Empty() || n == nil {
 		return
 	}
 	n.Draw(screen, r.Dx(), r.Dy(), func(opts *ebiten.DrawImageOptions) {

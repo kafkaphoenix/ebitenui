@@ -42,6 +42,7 @@ func (x *Button) TextLabel() string                                     { return
 func (x *Caret) Visible() bool                                          { return x.visible }
 func (x *Checkbox) CurrentImage() *image.NineSlice                      { return x.currentImage() }
 func (x *ColorPicker) Container() *Container                            { return x.container }
+func (x *ColorPicker) Ring() *ebiten.Image                              { return x.ring }
 func (x *ColorPicker) Slider() *Slider                                  { return x.slider }
 func (x *ColorPicker) Square() *colorSquare                             { return x.square }
 func (x *ColorPicker) SwatchFrames() [2][2]*image.NineSlice             { return x.swatchFrames }
@@ -63,12 +64,14 @@ func (x *List) ScrollContainer() *ScrollContainer                       { return
 func (x *List) SetScrollTop(a0 float64)                                 { x.setScrollTop(a0) }
 func (x *List) VSlider() *Slider                                        { return x.vSlider }
 func (x *Carousel) ComputedParams() *CarouselParams                     { return &x.computedParams }
+func (x *Carousel) Dot() *ebiten.Image                                  { return x.dot }
 func (x *Carousel) DotRect(a0 int) image2.Rectangle                     { return x.dotRect(a0) }
 func (x *Carousel) NextButton() *Button                                 { return x.next }
 func (x *Carousel) PageRect() image2.Rectangle                          { return x.pageRect() }
 func (x *Carousel) PrevButton() *Button                                 { return x.prev }
 func (x *Loading) BandX() int                                           { return x.bandX() }
 func (x *Loading) ComputedParams() *LoadingParams                       { return &x.computedParams }
+func (x *Loading) Dot() *ebiten.Image                                   { return x.dot }
 func (x *Loading) IndicatorRect() image2.Rectangle                      { return x.indicatorRect() }
 func (x *Loading) Step() int                                            { return x.step() }
 func (x *Loading) Tip() string                                          { return x.tip.Label }
