@@ -127,9 +127,6 @@ linters:
         path: widget.textinput\.go$
         text: '`\(\*TextInput\)\.populateComputedParams`'
       - linters: [gocognit]
-        path: widget.virtuallist\.go$
-        text: '`\(\*VirtualList\)\.lookUpLabels`'
-      - linters: [gocognit]
         path: widget.widget\.go$
         text: '`\(\*Widget\)\.fireEvents`'
       - linters: [gocognit]
