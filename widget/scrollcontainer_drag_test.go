@@ -144,7 +144,8 @@ func TestScrollContainer_NoDragByDefault(t *testing.T) {
 	is.Equal(s.ScrollTop, 0.0)
 }
 
-// A list that drags to scroll keeps its slider with the content.
+// A list that drags to scroll moves its content with the pointer, and its
+// slider with the content.
 func TestList_DragToScroll(t *testing.T) {
 	is := is.New(t)
 
@@ -161,5 +162,7 @@ func TestList_DragToScroll(t *testing.T) {
 	pointerAt(t, l, l, d, 80, true) // in the view, above the bottom slider
 	pointerAt(t, l, l, d, 30, true)
 	is.True(l.ScrollContainer().ScrollTop > 0)
-	is.Equal(l.VSlider().Current, int(math.Round(l.ScrollContainer().ScrollTop*1000)))
+	is.True(l.VSlider().Max > 0)                                                                           // its range: the rows' height less the view's, in pixels
+	is.Equal(l.VSlider().Current, int(math.Round(l.ScrollContainer().ScrollTop*float64(l.VSlider().Max)))) // the pixel the view is at
+	is.Equal(l.VSlider().Current, 50)                                                                      // dragged 50 pixels up: the view 50 down
 }

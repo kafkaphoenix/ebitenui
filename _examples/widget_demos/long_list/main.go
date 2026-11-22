@@ -13,7 +13,8 @@ import (
 // A list of a hundred thousand entries: the List keeps widgets only for
 // the rows in view, and binds them to the entries as it scrolls. A click
 // selects an entry; with the list focused (Tab), Up and Down move through
-// the entries. The window's title shows the selection.
+// the entries and Enter or Space selects one. The window's title shows the
+// selection.
 func main() {
 	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 		widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(30)))))
