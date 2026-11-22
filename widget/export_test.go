@@ -29,6 +29,9 @@ var SweepTextSlots = sweepTextSlots
 type TextPage = textPage
 
 const TextPageMaxSlot = textPageMaxSlot
+
+var WordBounds = wordBounds
+
 const TextPageSize = textPageSize
 
 type TextSlot = textSlot

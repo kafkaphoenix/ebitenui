@@ -6,6 +6,7 @@ import (
 	"math"
 	"runtime"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -65,6 +66,7 @@ type TextInput struct {
 	lastInputText         string
 	previousSubmittedText *string
 	dragStartIndex        int
+	wordSelected          bool // a double click's word, kept while the button is held
 
 	tabOrder int
 	focused  bool
@@ -155,10 +157,10 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		dragStartIndex:  -1,
 	}
 
-	t.commandToFunc[textInputGoLeft] = t.CursorMoveLeft
-	t.commandToFunc[textInputGoRight] = t.CursorMoveRight
-	t.commandToFunc[textInputGoStart] = t.CursorMoveStart
-	t.commandToFunc[textInputGoEnd] = t.CursorMoveEnd
+	t.commandToFunc[textInputGoLeft] = t.selectingMove(t.CursorMoveLeft, true)
+	t.commandToFunc[textInputGoRight] = t.selectingMove(t.CursorMoveRight, false)
+	t.commandToFunc[textInputGoStart] = t.selectingMove(t.CursorMoveStart, true)
+	t.commandToFunc[textInputGoEnd] = t.selectingMove(t.CursorMoveEnd, false)
 	t.commandToFunc[textInputBackspace] = t.Backspace
 	t.commandToFunc[textInputDelete] = t.Delete
 	t.commandToFunc[textInputEnter] = t.submitWithEnter
@@ -610,19 +612,21 @@ func (t *TextInput) handlePointer() {
 		x, curIdx := t.pointerIndex()
 		if justPressed {
 			t.endIME(true)
-			t.dragStartIndex = curIdx
-			t.cursorPosition = curIdx
-		} else if pressed {
+			t.press(curIdx)
+		} else if pressed && !t.wordSelected {
 			t.dragTo(x, curIdx)
 		}
 
 		if released {
-			t.cursorPosition = curIdx
-			t.caret.ResetBlinking()
-
-			if t.dragStartIndex == curIdx {
-				t.dragStartIndex = -1
+			if t.wordSelected {
+				t.wordSelected = false
+			} else {
+				t.cursorPosition = curIdx
+				if t.dragStartIndex == curIdx {
+					t.dragStartIndex = -1
+				}
 			}
+			t.caret.ResetBlinking()
 		}
 	}
 
@@ -630,6 +634,91 @@ func (t *TextInput) handlePointer() {
 		dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
 		dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
 		jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
+	}
+}
+
+// press places the caret at index, where the left button goes down: with
+// Shift held, it selects from the caret there; as the second press of a
+// double click (DoubleClick), it selects the word there.
+func (t *TextInput) press(index int) {
+	x, y := input.CursorPosition()
+	switch {
+	case input.KeyPressed(ebiten.KeyShift):
+		if t.dragStartIndex == -1 {
+			t.dragStartIndex = t.cursorPosition
+		}
+		t.cursorPosition = index
+	case t.widget.pairs(ebiten.MouseButtonLeft, img.Pt(x, y), input.TouchCount() > 0):
+		t.dragStartIndex, t.cursorPosition = wordBounds([]rune(t.inputText), index)
+		t.wordSelected = true
+	default:
+		t.dragStartIndex = index
+		t.cursorPosition = index
+	}
+}
+
+// selectingMove returns a command that runs move, selecting as it moves
+// while Shift is held.
+func (t *TextInput) selectingMove(move func(), towardStart bool) textInputCommandFunc {
+	return func() {
+		t.moveCursor(move, towardStart, input.KeyPressed(ebiten.KeyShift))
+	}
+}
+
+// moveCursor runs move, extending the selection if extend is set.
+// Otherwise it ends a selection with the caret at its start, moving toward
+// the start, or at its end, and only without one runs move.
+func (t *TextInput) moveCursor(move func(), towardStart bool, extend bool) {
+	if extend {
+		if t.dragStartIndex == -1 {
+			t.dragStartIndex = t.cursorPosition
+		}
+		move()
+		return
+	}
+	if t.dragStartIndex != -1 && t.dragStartIndex != t.cursorPosition {
+		edge := max(t.dragStartIndex, t.cursorPosition)
+		if towardStart {
+			edge = min(t.dragStartIndex, t.cursorPosition)
+		}
+		t.DeselectText()
+		t.cursorPosition = edge
+		t.caret.ResetBlinking()
+		return
+	}
+	t.DeselectText()
+	move()
+}
+
+// wordBounds returns the start and end of the word at index. Runs of spaces
+// and of punctuation count as words.
+func wordBounds(runes []rune, index int) (int, int) {
+	if len(runes) == 0 {
+		return 0, 0
+	}
+	index = min(max(index, 0), len(runes))
+	if index == len(runes) {
+		index--
+	}
+	class := runeClass(runes[index])
+	start, end := index, index+1
+	for start > 0 && runeClass(runes[start-1]) == class {
+		start--
+	}
+	for end < len(runes) && runeClass(runes[end]) == class {
+		end++
+	}
+	return start, end
+}
+
+func runeClass(r rune) int {
+	switch {
+	case unicode.IsLetter(r), unicode.IsDigit(r), r == '_':
+		return 0
+	case unicode.IsSpace(r):
+		return 1
+	default:
+		return 2
 	}
 }
 

@@ -74,16 +74,24 @@ func (w *Widget) ageFirstClick(inside bool) {
 	}
 }
 
-// clicked makes a click of button at p, a tap if touch, the second of a
-// double click when it follows a first one close enough, and otherwise
-// the first.
-func (w *Widget) clicked(button ebiten.MouseButton, p image.Point, touch bool) {
+// pairs reports whether a click or a press of button at p, a tap if
+// touch, follows the first click close enough to make a double click, as
+// a widget that acts on the second press asks.
+func (w *Widget) pairs(button ebiten.MouseButton, p image.Point, touch bool) bool {
 	f := &w.firstClick
 	d := DoubleClick.Distance
 	if touch {
 		d = DoubleClick.TouchDistance
 	}
-	if f.pending && f.button == button && abs(p.X-f.at.X) <= d && abs(p.Y-f.at.Y) <= d {
+	return f.pending && f.button == button && abs(p.X-f.at.X) <= d && abs(p.Y-f.at.Y) <= d
+}
+
+// clicked makes a click of button at p, a tap if touch, the second of a
+// double click when it follows a first one close enough, and otherwise
+// the first.
+func (w *Widget) clicked(button ebiten.MouseButton, p image.Point, touch bool) {
+	f := &w.firstClick
+	if w.pairs(button, p, touch) {
 		f.pending = false
 		off := p.Sub(w.Rect.Min)
 		w.MouseButtonDoubleClickedEvent.Fire(&MouseButtonDoubleClickedEventArgs{
