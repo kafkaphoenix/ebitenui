@@ -163,3 +163,6 @@ func UseIME(update func(*textinput.Composer) (bool, error), end func(*textinput.
 	imeUpdate, imeEnd = update, end
 	return func() { imeUpdate, imeEnd = oldUpdate, oldEnd }
 }
+
+// Handle returns the slider's handle.
+func (x *Slider) Handle() *Button { return x.handle }
