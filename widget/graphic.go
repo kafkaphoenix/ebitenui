@@ -154,17 +154,24 @@ func (g *Graphic) SetLocation(rect img.Rectangle) {
 	g.widget.Rect = rect
 }
 
+// PreferredSize returns the size of Image, of the GIF's frames or of the
+// idle image of its images; a nine-slice has no size of its own, and takes
+// 50 by 50.
 func (g *Graphic) PreferredSize() (int, int) {
 	g.init.Do()
-	if g.Image != nil {
-		s := g.Image.Bounds().Size()
-		return s.X, s.Y
-	} else if g.gif != nil {
-		s := g.gifImages[0].Bounds().Size()
-		return s.X, s.Y
+	var i *ebiten.Image
+	switch {
+	case g.Image != nil:
+		i = g.Image
+	case g.gif != nil:
+		i = g.gifImages[0]
+	case g.images != nil && g.images.Idle != nil:
+		i = g.images.Idle
+	default:
+		return 50, 50
 	}
-
-	return 50, 50
+	s := i.Bounds().Size()
+	return s.X, s.Y
 }
 
 func (g *Graphic) Validate() {

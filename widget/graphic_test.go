@@ -19,6 +19,16 @@ func TestGraphic_PreferredSize(t *testing.T) {
 	is.Equal(h, i.Bounds().Dy())
 }
 
+// A graphic of images is as big as its idle image.
+func TestGraphic_PreferredSizeOfImages(t *testing.T) {
+	is := is.New(t)
+
+	g := newGraphic(t, widget.GraphicOpts.Images(&widget.GraphicImage{
+		Idle: newImageEmptySize(47, 11, t), Hover: newImageEmptySize(60, 60, t)}))
+	w, h := g.PreferredSize()
+	is.Equal([]int{w, h}, []int{47, 11})
+}
+
 // A graphic draws Image while it is set, otherwise its images for its
 // state, and picking one allocates nothing.
 func TestGraphic_DrawsItsImage(t *testing.T) {
