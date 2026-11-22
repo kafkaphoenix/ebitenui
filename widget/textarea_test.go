@@ -69,3 +69,22 @@ func TestTextAreaScrollsAsItsTextChanges(t *testing.T) {
 		})
 	}
 }
+
+// A text area places its text and its slider without drawing
+// (PlaceChildren), as UI.Layout has it.
+func TestTextAreaPlacesItsParts(t *testing.T) {
+	a := widget.NewTextArea(
+		widget.TextAreaOpts.ScrollContainerImage(&widget.ScrollContainerImage{Idle: newNineSliceEmpty(t), Mask: newNineSliceEmpty(t)}),
+		widget.TextAreaOpts.SliderParams(&widget.SliderParams{TrackImage: &widget.SliderTrackImage{}, HandleImage: &widget.ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}}),
+		widget.TextAreaOpts.FontFace(loadFont(t)),
+		widget.TextAreaOpts.FontColor(color.White),
+		widget.TextAreaOpts.ShowVerticalScrollbar(),
+		widget.TextAreaOpts.Text(strings.Repeat("a line\n", 40)),
+	)
+	a.Validate()
+	a.SetLocation(image.Rect(0, 0, 200, 60))
+	a.PlaceChildren()
+	if r := a.VSlider().GetWidget().Rect; r.Empty() {
+		t.Errorf("the slider is at %v: not placed", r)
+	}
+}

@@ -346,31 +346,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image) {
 		return
 	}
 
-	if l, ok := s.content.(Locateable); ok {
-		cw, ch := 50, 50
-		if p, ok := s.content.(PreferredSizer); ok {
-			cw, ch = p.PreferredSize()
-		}
-
-		vrect := s.ViewRect()
-		if s.stretchContentWidth && cw < vrect.Dx() {
-			cw = vrect.Dx()
-		}
-
-		rect := img.Rect(0, 0, cw, ch)
-		rect = rect.Add(s.widget.Rect.Min)
-		rect = rect.Add(img.Point{s.padding.Left, s.padding.Top})
-
-		rect = rect.Sub(img.Point{int(math.Round(float64(cw-vrect.Dx()) * s.ScrollLeft)), int(math.Round(float64(ch-vrect.Dy()) * s.ScrollTop))})
-
-		if rect != s.content.GetWidget().Rect {
-			l.SetLocation(rect)
-
-			if r, ok := s.content.(Relayoutable); ok {
-				r.RequestRelayout()
-			}
-		}
-	}
+	s.placeContent()
 
 	s.renderBuf.DrawIn(screen, s.ViewRect(),
 		func(buf *ebiten.Image) {
@@ -382,6 +358,39 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image) {
 				opts.Blend = ebiten.BlendCopy
 			})
 		})
+}
+
+// placeContent places the content where it is scrolled to, as big as it
+// prefers, or as wide as the view with StretchContentWidth, asking it to
+// lay out again when that moves it.
+func (s *ScrollContainer) placeContent() {
+	l, ok := s.content.(Locateable)
+	if !ok {
+		return
+	}
+	cw, ch := 50, 50
+	if p, ok := s.content.(PreferredSizer); ok {
+		cw, ch = p.PreferredSize()
+	}
+
+	vrect := s.ViewRect()
+	if s.stretchContentWidth && cw < vrect.Dx() {
+		cw = vrect.Dx()
+	}
+
+	rect := img.Rect(0, 0, cw, ch)
+	rect = rect.Add(s.widget.Rect.Min)
+	rect = rect.Add(img.Point{s.padding.Left, s.padding.Top})
+
+	rect = rect.Sub(img.Point{int(math.Round(float64(cw-vrect.Dx()) * s.ScrollLeft)), int(math.Round(float64(ch-vrect.Dy()) * s.ScrollTop))})
+
+	if rect != s.content.GetWidget().Rect {
+		l.SetLocation(rect)
+
+		if r, ok := s.content.(Relayoutable); ok {
+			r.RequestRelayout()
+		}
+	}
 }
 
 func (s *ScrollContainer) ViewRect() img.Rectangle {
