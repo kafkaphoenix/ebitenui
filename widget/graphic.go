@@ -24,20 +24,26 @@ type Graphic struct {
 	gifCurrentImage int
 	gifUpdates      int // the updates the current frame has shown
 
+	// hovering is whether the pointer is over the graphic, pressing whether
+	// the left button went down on it and is held, for images' states.
+	hovering, pressing bool
+
 	widgetOpts []WidgetOpt
 
 	init   *MultiOnce
 	widget *Widget
 }
 
+// GraphicImage is a graphic's image for each state: Disabled while its
+// widget is disabled, Pressed while the left button, pressed on it, is
+// held, Hover while the pointer is over it, and otherwise Idle, also for a
+// state without an image. A button's graphic shows them for the button's
+// state.
 type GraphicImage struct {
 	Idle     *ebiten.Image
 	Disabled *ebiten.Image
-
-	// Graphic does not have a handler for this 2 states
-	// and they are used through the Button
-	Pressed *ebiten.Image
-	Hover   *ebiten.Image
+	Pressed  *ebiten.Image
+	Hover    *ebiten.Image
 }
 
 type GraphicOpt func(g *Graphic)
@@ -154,17 +160,24 @@ func (g *Graphic) SetLocation(rect img.Rectangle) {
 	g.widget.Rect = rect
 }
 
+// PreferredSize returns the size of Image, of the GIF's frames or of the
+// idle image of its images; a nine-slice has no size of its own, and takes
+// 50 by 50.
 func (g *Graphic) PreferredSize() (int, int) {
 	g.init.Do()
-	if g.Image != nil {
-		s := g.Image.Bounds().Size()
-		return s.X, s.Y
-	} else if g.gif != nil {
-		s := g.gifImages[0].Bounds().Size()
-		return s.X, s.Y
+	var i *ebiten.Image
+	switch {
+	case g.Image != nil:
+		i = g.Image
+	case g.gif != nil:
+		i = g.gifImages[0]
+	case g.images != nil && g.images.Idle != nil:
+		i = g.images.Idle
+	default:
+		return 50, 50
 	}
-
-	return 50, 50
+	s := i.Bounds().Size()
+	return s.X, s.Y
 }
 
 func (g *Graphic) Validate() {
@@ -217,14 +230,37 @@ func (g *Graphic) image() *ebiten.Image {
 		return g.Image
 	case g.gif != nil:
 		return g.gifImages[g.gifCurrentImage]
-	case g.widget.Disabled && g.images.Disabled != nil:
-		return g.images.Disabled
-	default:
-		return g.images.Idle
+	case g.widget.Disabled:
+		if g.images.Disabled != nil {
+			return g.images.Disabled
+		}
+	case g.pressing && g.images.Pressed != nil:
+		return g.images.Pressed
+	case g.hovering && g.images.Hover != nil:
+		return g.images.Hover
 	}
+	return g.images.Idle
 }
 
 func (g *Graphic) createWidget() {
-	g.widget = NewWidget(g.widgetOpts...)
+	opts := g.widgetOpts
+	if g.images != nil {
+		// What the images' states need, as a button's.
+		opts = append([]WidgetOpt{
+			WidgetOpts.CursorEnterHandler(func(*CursorEnterEventArgs) { g.hovering = true }),
+			WidgetOpts.CursorExitHandler(func(*CursorExitEventArgs) { g.hovering = false }),
+			WidgetOpts.MouseButtonPressedHandler(func(a *MouseButtonPressedEventArgs) {
+				if a.Button == ebiten.MouseButtonLeft {
+					g.pressing = true
+				}
+			}),
+			WidgetOpts.MouseButtonReleasedHandler(func(a *MouseButtonReleasedEventArgs) {
+				if a.Button == ebiten.MouseButtonLeft {
+					g.pressing = false
+				}
+			}),
+		}, opts...)
+	}
+	g.widget = NewWidget(opts...)
 	g.widgetOpts = nil
 }
