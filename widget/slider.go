@@ -79,11 +79,14 @@ type SliderOptions struct {
 
 var SliderOpts SliderOptions
 
+// NewSlider makes a slider from 1 to 100 unless MinMax says otherwise,
+// which starts at its Min unless InitialCurrent says otherwise.
 func NewSlider(opts ...SliderOpt) *Slider {
+	const notGiven = math.MinInt // no InitialCurrent
 	s := &Slider{
 		Min:     1,
 		Max:     100,
-		Current: 1,
+		Current: notGiven,
 
 		ChangedEvent: &event.Event{},
 
@@ -97,6 +100,9 @@ func NewSlider(opts ...SliderOpt) *Slider {
 
 	for _, o := range opts {
 		o(s)
+	}
+	if s.Current == notGiven {
+		s.Current = s.Min
 	}
 
 	return s
