@@ -76,6 +76,11 @@ func (u *UI) giveActions() {
 		u.GamepadFocus && input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonRightRight) {
 		n.actions.Give(widget.ActionBack)
 	}
+	if input.KeyJustPressed(ebiten.KeyContextMenu) ||
+		input.KeyJustPressed(ebiten.KeyF10) && input.KeyPressed(ebiten.KeyShift) ||
+		u.GamepadFocus && input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonCenterRight) {
+		n.actions.Give(widget.ActionMenu)
+	}
 }
 
 // stickDirection returns the direction a stick at x, y points, as an index
@@ -122,7 +127,8 @@ func repeats(held, delay, interval int) bool {
 // actOnActionsLeft acts on the actions no widget took: a direction from a
 // gamepad moves the focus, Activate opens the on-screen keyboard for a text
 // input or activates the focused widget, Back closes the open keyboard or
-// calls BackHandler.
+// context menu or calls BackHandler, Menu opens the focused widget's
+// context menu.
 func (u *UI) actOnActionsLeft() {
 	n := &u.navigation
 	for i, d := range directions {
@@ -130,15 +136,17 @@ func (u *UI) actOnActionsLeft() {
 			u.ChangeFocus(d.focus)
 		}
 	}
-	if n.actions.Left(widget.ActionActivate) && !u.openKeyboard() {
-		u.ActivateFocused()
-	}
+	activated := n.actions.Left(widget.ActionActivate) && !u.openKeyboard() && u.ActivateFocused()
+	u.closeContextMenuOnChoice(activated)
 	if n.actions.Left(widget.ActionBack) {
 		if k := u.OnScreenKeyboard; k != nil && k.IsOpen() {
 			k.Close()
-		} else if u.BackHandler != nil {
+		} else if !u.closeContextMenu() && u.BackHandler != nil {
 			u.BackHandler()
 		}
+	}
+	if n.actions.Left(widget.ActionMenu) {
+		u.openFocusedContextMenu()
 	}
 }
 

@@ -20,9 +20,14 @@ const (
 	// themselves.
 	ActionActivate
 	// ActionBack comes from Escape and a gamepad's right face button. An
-	// open list combo button takes it and closes; left, the UI calls its
-	// BackHandler.
+	// open list combo button takes it and closes; left, the UI closes the
+	// open context menu, or calls its BackHandler.
 	ActionBack
+	// ActionMenu comes from the context-menu key, Shift+F10 and a
+	// gamepad's Menu button, the right one in its middle. Left by the
+	// focused widget, the UI opens the context menu of that widget, or of
+	// its nearest parent with one, below it.
+	ActionMenu
 
 	actionCount
 )
