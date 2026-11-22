@@ -27,12 +27,18 @@ type UI struct {
 	// GamepadFocus, when true, lets the gamepads with the standard layout
 	// navigate: their D-pad and left stick give the direction actions, as
 	// the arrow keys do, and their bottom face button, A on an Xbox pad or
-	// cross on a PlayStation one, the Activate action (widget.Action). The
-	// focused widget takes those it acts on: a list moves through its
-	// entries, a slider its handle. A gamepad's direction it leaves moves
-	// the focus (ChangeFocus), an Activate it leaves activates it
-	// (ActivateFocused); the arrow keys never move the focus. A button
-	// pressed on two gamepads at once acts once.
+	// cross on a PlayStation one, the Activate action (widget.Action), and
+	// their Menu button, the right one in their middle, the Menu action, as
+	// the context-menu key does. The focused widget takes those it acts on:
+	// a list moves through its entries, a slider its handle. A gamepad's
+	// direction it leaves moves the focus (ChangeFocus), an Activate it
+	// leaves activates it (ActivateFocused), a Menu opens its context menu;
+	// the arrow keys never move the focus. A button pressed on two gamepads
+	// at once acts once.
+	//
+	// A context menu the keys or a gamepad open has the focus on its first
+	// widget, and gives it back as it closes. One that closes on a click
+	// (WindowCloseClick) closes too as a key or a gamepad chooses in it.
 	GamepadFocus bool
 
 	// A direction held, from a key or a gamepad, acts as it goes down, then
@@ -45,7 +51,8 @@ type UI struct {
 	// BackHandler, when set, is called for a Back action no widget takes:
 	// Escape, or with GamepadFocus on a gamepad's right face button, B on an
 	// Xbox pad or circle on a PlayStation one. Closing a menu or a window is
-	// the usual answer. An open list combo button takes Back and closes.
+	// the usual answer. An open list combo button takes Back and closes; an
+	// open context menu closes, and BackHandler is not called.
 	BackHandler func()
 
 	// OnScreenKeyboard, when set, opens for a gamepad's Activate on a focused
@@ -80,6 +87,7 @@ type UI struct {
 	tabWasPressed              bool
 	navigation                 navigation
 	keyboardWindow             *widget.Window // the window OnScreenKeyboard opens in
+	contextMenu                contextMenu    // the context menu open
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
@@ -265,21 +273,6 @@ func (u *UI) setTheme() {
 		}
 	}
 }
-func (u *UI) handleContextMenu(args any) {
-	if a, ok := args.(*widget.ContextMenuEventArgs); ok {
-		x, y := a.Widget.ContextMenu.PreferredSize()
-		r := image.Rect(0, 0, x, y)
-		r = r.Add(a.Location)
-		a.Widget.ContextMenuWindow = widget.NewWindow(
-			widget.WindowOpts.Contents(a.Widget.ContextMenu),
-			widget.WindowOpts.CloseMode(a.Widget.ContextMenuCloseMode),
-			widget.WindowOpts.Modal(),
-			widget.WindowOpts.Location(r),
-		)
-		u.AddWindow(a.Widget.ContextMenuWindow)
-	}
-}
-
 func (u *UI) handleFocusEvent(args any) {
 	if a, ok := args.(*widget.FocusEventArgs); ok {
 		switch {
