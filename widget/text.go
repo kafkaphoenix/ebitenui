@@ -17,8 +17,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-const COLOR_TAG = "color"
-const LINK_TAG = "link"
+const ColorTag = "color"
+const LinkTag = "link"
 
 type TextParams struct {
 	Face      *text.Face
@@ -114,7 +114,7 @@ type TextLinkColor struct {
 
 type LinkEventArgs struct {
 	Text    *Text
-	Id      string
+	ID      string
 	Value   string
 	Args    map[string]string
 	OffsetX int
@@ -495,7 +495,7 @@ func (t *Text) handleLinkEvents() {
 
 				if t.measurements.processedLines[linesIdx][idx].linkValue != nil {
 					if cursorPoint.In(image.Rect(int(hoverLX), int(ly), int(hoverLX+wordWidth), int(ly+t.measurements.lineHeight))) {
-						input.SetCursorShape(input.CURSOR_POINTER)
+						input.SetCursorShape(input.CursorPointer)
 						t.currentLink = t.measurements.processedLines[linesIdx][idx]
 						t.measurements.processedLines[linesIdx][idx].hovered = true
 						for additionalIdx := range t.measurements.processedLines[linesIdx][idx].linkValue.textBlocks {
@@ -514,7 +514,7 @@ func (t *Text) handleLinkEvents() {
 			t.LinkCursorExitedEvent.Fire(&LinkEventArgs{
 				Text:    t,
 				Value:   t.previousLink.linkValue.text,
-				Id:      t.previousLink.linkValue.id,
+				ID:      t.previousLink.linkValue.id,
 				Args:    t.previousLink.linkValue.args,
 				OffsetX: off.X,
 				OffsetY: off.Y,
@@ -528,7 +528,7 @@ func (t *Text) handleLinkEvents() {
 			t.LinkCursorEnteredEvent.Fire(&LinkEventArgs{
 				Text:    t,
 				Value:   t.currentLink.linkValue.text,
-				Id:      t.currentLink.linkValue.id,
+				ID:      t.currentLink.linkValue.id,
 				Args:    t.currentLink.linkValue.args,
 				OffsetX: off.X,
 				OffsetY: off.Y,
@@ -542,7 +542,7 @@ func (t *Text) handleLinkEvents() {
 			t.LinkClickedEvent.Fire(&LinkEventArgs{
 				Text:    t,
 				Value:   t.currentLink.linkValue.text,
-				Id:      t.currentLink.linkValue.id,
+				ID:      t.currentLink.linkValue.id,
 				Args:    t.currentLink.linkValue.args,
 				OffsetX: off.X,
 				OffsetY: off.Y,
@@ -718,12 +718,12 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 		// Handle changing color back.
 		if nodeVal, ok := node.Value.(bbcode.BBClosingTag); ok {
 			switch {
-			case nodeVal.Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case nodeVal.Name == ColorTag && (t.StripBBCode || t.ProcessBBCode):
 				if t.colorList.Size() > 1 {
 					t.colorList.Pop()
 				}
 				newColor = *t.colorList.Top()
-			case nodeVal.Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case nodeVal.Name == LinkTag && (t.StripBBCode || t.ProcessBBCode):
 				t.linkStack.Pop()
 				linkVal = t.linkStack.Top()
 			case !t.StripBBCode:
@@ -745,13 +745,13 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 	default:
 		if node.GetOpeningTag() != nil {
 			switch {
-			case node.GetOpeningTag().Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case node.GetOpeningTag().Name == ColorTag && (t.StripBBCode || t.ProcessBBCode):
 				c, err := colorutil.HexToColor(node.GetOpeningTag().Value)
 				if err == nil {
 					t.colorList.Push(&c)
 					newColor = c
 				}
-			case node.GetOpeningTag().Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case node.GetOpeningTag().Name == LinkTag && (t.StripBBCode || t.ProcessBBCode):
 				linkVal = &linkData{id: node.GetOpeningTag().Value, args: node.GetOpeningTag().Args, textBlocks: []*bbCodeText{}}
 				t.linkStack.Push(linkVal)
 			case !t.StripBBCode:
@@ -773,12 +773,12 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 		}
 		if node.ClosingTag != nil {
 			switch {
-			case node.ClosingTag.Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case node.ClosingTag.Name == ColorTag && (t.StripBBCode || t.ProcessBBCode):
 				if t.colorList.Size() > 1 {
 					t.colorList.Pop()
 				}
 				newColor = *t.colorList.Top()
-			case node.ClosingTag.Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
+			case node.ClosingTag.Name == LinkTag && (t.StripBBCode || t.ProcessBBCode):
 				t.linkStack.Pop()
 				linkVal = t.linkStack.Top()
 			case !t.StripBBCode:

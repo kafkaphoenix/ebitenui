@@ -250,7 +250,7 @@ func TestVirtualList_WheelAndTheme(t *testing.T) {
 	theme := &Theme{}
 	l.GetWidget().SetTheme(theme)
 
-	l.scroll.GetWidget().ScrolledEvent.Fire(&WidgetScrolledEventArgs{Widget: l.scroll.GetWidget(), Y: -1})
+	l.scroll.GetWidget().ScrolledEvent.Fire(&ScrolledEventArgs{Widget: l.scroll.GetWidget(), Y: -1})
 	event.ExecuteDeferred()
 	drawAgain(l)
 	is.Equal(rows.at(l.scroll.ViewRect().Min.Y), 3) // three rows down
@@ -564,12 +564,12 @@ func TestVirtualList_Focuser(t *testing.T) {
 	var f Focuser = l
 	is.Equal(f.TabOrder(), 4)
 	other := newVirtualList(t, 3, rows)
-	l.AddFocus(FOCUS_SOUTH, other)
-	is.True(l.GetFocus(FOCUS_SOUTH) == other)
+	l.AddFocus(FocusSouth, other)
+	is.True(l.GetFocus(FocusSouth) == other)
 
 	var events []bool
 	l.GetWidget().FocusEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetFocusEventArgs); ok {
+		if a, ok := args.(*FocusEventArgs); ok {
 			events = append(events, a.Focused)
 		}
 	})

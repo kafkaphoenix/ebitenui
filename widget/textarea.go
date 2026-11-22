@@ -575,7 +575,7 @@ func (t *TextArea) initWidget() {
 		t.container.AddChild(t.vSlider)
 
 		t.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
-			if a, ok := args.(*WidgetScrolledEventArgs); ok {
+			if a, ok := args.(*ScrolledEventArgs); ok {
 				p := max(pageSizeFunc()/3, 1)
 				t.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}

@@ -187,7 +187,7 @@ func openToolbarMenu(opener *widget.Widget, ui *ebitenui.UI, entries ...*widget.
 		widget.WindowOpts.Contents(c),
 
 		// Close the menu if the user clicks outside of it.
-		widget.WindowOpts.CloseMode(widget.CLICK),
+		widget.WindowOpts.CloseMode(widget.WindowCloseClick),
 
 		// Position the menu below the menu button that it belongs to.
 		widget.WindowOpts.Location(

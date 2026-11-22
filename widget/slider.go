@@ -553,16 +553,16 @@ func (s *Slider) clampCurrentMinMax() {
 func (s *Slider) createWidget() {
 	s.widget = NewWidget(append([]WidgetOpt{
 		WidgetOpts.TrackHover(true),
-		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *CursorEnterEventArgs) {
 			if !s.widget.Disabled {
 				s.hovering = true
 			}
 		}),
 
-		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *CursorExitEventArgs) {
 			s.hovering = false
 		}),
-		WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
+		WidgetOpts.ScrolledHandler(func(args *ScrolledEventArgs) {
 			if !s.widget.Disabled {
 				ps := s.computedParams.PageSizeFunc()
 				if *s.computedParams.Orientation == DirectionHorizontal {
@@ -575,7 +575,7 @@ func (s *Slider) createWidget() {
 		}),
 
 		// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
-		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+		WidgetOpts.MouseButtonPressedHandler(func(args *MouseButtonPressedEventArgs) {
 			if !s.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				x, y := input.CursorPosition()
 				ps := s.computedParams.PageSizeFunc()
@@ -617,7 +617,7 @@ func (s *Slider) createWidget() {
 			s.fireEvents()
 		}),
 
-		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
+		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *ScrolledEventArgs) {
 			if !s.widget.Disabled {
 				ps := s.computedParams.PageSizeFunc()
 				if *s.computedParams.Orientation == DirectionHorizontal {

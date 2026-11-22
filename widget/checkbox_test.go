@@ -20,19 +20,19 @@ func TestCheckbox_State_Initial(t *testing.T) {
 			is.Fail() // event fired without previous action
 		}))
 
-	is.Equal(c.State(), WidgetUnchecked)
+	is.Equal(c.State(), Unchecked)
 }
 
 func TestCheckbox_State_SetInitial(t *testing.T) {
 	is := is.New(t)
 
 	c := newCheckbox(t,
-		CheckboxOpts.InitialState(WidgetChecked),
+		CheckboxOpts.InitialState(Checked),
 		CheckboxOpts.StateChangedHandler(func(_ *CheckboxChangedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(c.State(), Checked)
 }
 
 func TestCheckbox_State_SetInitialTri(t *testing.T) {
@@ -40,12 +40,12 @@ func TestCheckbox_State_SetInitialTri(t *testing.T) {
 
 	c := newCheckbox(t,
 		CheckboxOpts.TriState(),
-		CheckboxOpts.InitialState(WidgetGreyed),
+		CheckboxOpts.InitialState(Greyed),
 		CheckboxOpts.StateChangedHandler(func(_ *CheckboxChangedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
-	is.Equal(c.State(), WidgetGreyed)
+	is.Equal(c.State(), Greyed)
 }
 
 func TestCheckbox_State_SetInitialPanic(t *testing.T) {
@@ -58,7 +58,7 @@ func TestCheckbox_State_SetInitialPanic(t *testing.T) {
 	}()
 
 	newCheckbox(t,
-		CheckboxOpts.InitialState(WidgetGreyed),
+		CheckboxOpts.InitialState(Greyed),
 		CheckboxOpts.StateChangedHandler(func(_ *CheckboxChangedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
@@ -76,8 +76,8 @@ func TestCheckbox_ChangedEvent_User(t *testing.T) {
 
 	leftMouseButtonClick(c, t)
 
-	is.Equal(eventArgs.State, WidgetChecked)
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(eventArgs.State, Checked)
+	is.Equal(c.State(), Checked)
 }
 
 func TestCheckbox_Click(t *testing.T) {
@@ -93,8 +93,8 @@ func TestCheckbox_Click(t *testing.T) {
 	c.Click()
 	event.ExecuteDeferred()
 
-	is.Equal(eventArgs.State, WidgetChecked)
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(eventArgs.State, Checked)
+	is.Equal(c.State(), Checked)
 }
 
 func TestCheckbox_SetState(t *testing.T) {
@@ -109,13 +109,13 @@ func TestCheckbox_SetState(t *testing.T) {
 			numEvents++
 		}))
 
-	c.SetState(WidgetChecked)
+	c.SetState(Checked)
 	event.ExecuteDeferred()
 
-	is.Equal(eventArgs.State, WidgetChecked)
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(eventArgs.State, Checked)
+	is.Equal(c.State(), Checked)
 
-	c.SetState(WidgetChecked)
+	c.SetState(Checked)
 	event.ExecuteDeferred()
 
 	is.Equal(numEvents, 1)
@@ -126,9 +126,9 @@ func TestCheckbox_State_Cycle(t *testing.T) {
 
 	c := newCheckbox(t)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(c.State(), Checked)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), WidgetUnchecked)
+	is.Equal(c.State(), Unchecked)
 }
 
 func TestCheckbox_State_Cycle_TriState(t *testing.T) {
@@ -136,11 +136,11 @@ func TestCheckbox_State_Cycle_TriState(t *testing.T) {
 
 	c := newCheckbox(t, CheckboxOpts.TriState())
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), WidgetChecked)
+	is.Equal(c.State(), Checked)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), WidgetGreyed)
+	is.Equal(c.State(), Greyed)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), WidgetUnchecked)
+	is.Equal(c.State(), Unchecked)
 }
 
 // A focused checkbox toggles once each time Enter or Space goes down, as the
@@ -154,12 +154,12 @@ func TestCheckbox_KeysToggleOncePerPress(t *testing.T) {
 	for i, s := range []struct {
 		key   ebiten.Key
 		down  bool
-		state WidgetState
+		state CheckState
 	}{
-		{ebiten.KeyEnter, true, WidgetChecked},
-		{ebiten.KeyEnter, true, WidgetChecked}, // held
-		{ebiten.KeyEnter, false, WidgetChecked},
-		{ebiten.KeySpace, true, WidgetUnchecked},
+		{ebiten.KeyEnter, true, Checked},
+		{ebiten.KeyEnter, true, Checked}, // held
+		{ebiten.KeyEnter, false, Checked},
+		{ebiten.KeySpace, true, Unchecked},
 	} {
 		d.Keys[s.key] = s.down
 		input.Update()
@@ -186,7 +186,7 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 }
 
 func TestCheckbox_HoveredImage(t *testing.T) {
-	for _, state := range []WidgetState{WidgetUnchecked, WidgetChecked, WidgetGreyed} {
+	for _, state := range []CheckState{Unchecked, Checked, Greyed} {
 		is := is.New(t)
 		images := newCheckboxImages(t)
 		c := newCheckboxWithImages(t, images, state)
@@ -204,7 +204,7 @@ func TestCheckbox_HoveredImage(t *testing.T) {
 }
 
 func TestCheckbox_DisabledImage(t *testing.T) {
-	for _, state := range []WidgetState{WidgetUnchecked, WidgetChecked, WidgetGreyed} {
+	for _, state := range []CheckState{Unchecked, Checked, Greyed} {
 		is := is.New(t)
 		images := newCheckboxImages(t)
 		normal, disabled, _ := checkboxImagesFor(images, state)
@@ -229,20 +229,20 @@ func TestCheckbox_DisabledImageOfItsState(t *testing.T) {
 
 	images := newCheckboxImages(t)
 	images.UncheckedDisabled = nil
-	c := newCheckboxWithImages(t, images, WidgetGreyed)
+	c := newCheckboxWithImages(t, images, Greyed)
 	c.GetWidget().Disabled = true
 	is.Equal(c.currentImage(), images.GreyedDisabled)
 
 	images = newCheckboxImages(t)
 	images.GreyedDisabled = nil
-	c = newCheckboxWithImages(t, images, WidgetGreyed)
+	c = newCheckboxWithImages(t, images, Greyed)
 	c.GetWidget().Disabled = true
 	is.Equal(c.currentImage(), images.Greyed)
 }
 
 // newCheckboxWithImages returns a 20x20 tri-state checkbox at the origin,
 // drawn with images, in state.
-func newCheckboxWithImages(t *testing.T, images *CheckboxImage, state WidgetState) *Checkbox {
+func newCheckboxWithImages(t *testing.T, images *CheckboxImage, state CheckState) *Checkbox {
 	t.Helper()
 	c := NewCheckbox(CheckboxOpts.TriState(), CheckboxOpts.InitialState(state), CheckboxOpts.Image(images))
 	event.ExecuteDeferred()
@@ -262,13 +262,13 @@ func newCheckboxImages(t *testing.T) *CheckboxImage {
 }
 
 // checkboxImagesFor returns the normal, disabled and hovered images for state.
-func checkboxImagesFor(i *CheckboxImage, state WidgetState) (normal, disabled, hovered *image.NineSlice) {
+func checkboxImagesFor(i *CheckboxImage, state CheckState) (normal, disabled, hovered *image.NineSlice) {
 	switch state {
-	case WidgetUnchecked:
+	case Unchecked:
 		return i.Unchecked, i.UncheckedDisabled, i.UncheckedHovered
-	case WidgetChecked:
+	case Checked:
 		return i.Checked, i.CheckedDisabled, i.CheckedHovered
-	case WidgetGreyed:
+	case Greyed:
 		return i.Greyed, i.GreyedDisabled, i.GreyedHovered
 	}
 	return nil, nil, nil

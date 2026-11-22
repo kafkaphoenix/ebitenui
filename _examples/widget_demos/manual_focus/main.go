@@ -76,54 +76,54 @@ func main() {
 	// Links are optional: without one, ChangeFocus goes to the nearest
 	// focusable widget in the direction asked. A link chooses the widget
 	// itself, as these do for every direction.
-	btn1.AddFocus(widget.FOCUS_EAST, btn2)
-	btn1.AddFocus(widget.FOCUS_SOUTH, btn4)
-	btn1.AddFocus(widget.FOCUS_SOUTHEAST, btn5)
+	btn1.AddFocus(widget.FocusEast, btn2)
+	btn1.AddFocus(widget.FocusSouth, btn4)
+	btn1.AddFocus(widget.FocusSoutheast, btn5)
 
-	btn2.AddFocus(widget.FOCUS_WEST, btn1)
-	btn2.AddFocus(widget.FOCUS_EAST, btn3)
-	btn2.AddFocus(widget.FOCUS_SOUTH, btn5)
-	btn2.AddFocus(widget.FOCUS_SOUTHWEST, btn4)
-	btn2.AddFocus(widget.FOCUS_SOUTHEAST, btn6)
+	btn2.AddFocus(widget.FocusWest, btn1)
+	btn2.AddFocus(widget.FocusEast, btn3)
+	btn2.AddFocus(widget.FocusSouth, btn5)
+	btn2.AddFocus(widget.FocusSouthwest, btn4)
+	btn2.AddFocus(widget.FocusSoutheast, btn6)
 
-	btn3.AddFocus(widget.FOCUS_WEST, btn2)
-	btn3.AddFocus(widget.FOCUS_SOUTH, btn6)
-	btn3.AddFocus(widget.FOCUS_SOUTHWEST, btn5)
+	btn3.AddFocus(widget.FocusWest, btn2)
+	btn3.AddFocus(widget.FocusSouth, btn6)
+	btn3.AddFocus(widget.FocusSouthwest, btn5)
 
-	btn4.AddFocus(widget.FOCUS_NORTH, btn1)
-	btn4.AddFocus(widget.FOCUS_EAST, btn5)
-	btn4.AddFocus(widget.FOCUS_SOUTH, btn7)
-	btn4.AddFocus(widget.FOCUS_NORTHEAST, btn2)
-	btn4.AddFocus(widget.FOCUS_SOUTHEAST, btn8)
+	btn4.AddFocus(widget.FocusNorth, btn1)
+	btn4.AddFocus(widget.FocusEast, btn5)
+	btn4.AddFocus(widget.FocusSouth, btn7)
+	btn4.AddFocus(widget.FocusNortheast, btn2)
+	btn4.AddFocus(widget.FocusSoutheast, btn8)
 
-	btn5.AddFocus(widget.FOCUS_NORTHWEST, btn1)
-	btn5.AddFocus(widget.FOCUS_NORTH, btn2)
-	btn5.AddFocus(widget.FOCUS_NORTHEAST, btn3)
-	btn5.AddFocus(widget.FOCUS_WEST, btn4)
-	btn5.AddFocus(widget.FOCUS_EAST, btn6)
-	btn5.AddFocus(widget.FOCUS_SOUTHWEST, btn7)
-	btn5.AddFocus(widget.FOCUS_SOUTH, btn8)
-	btn5.AddFocus(widget.FOCUS_SOUTHEAST, btn9)
+	btn5.AddFocus(widget.FocusNorthwest, btn1)
+	btn5.AddFocus(widget.FocusNorth, btn2)
+	btn5.AddFocus(widget.FocusNortheast, btn3)
+	btn5.AddFocus(widget.FocusWest, btn4)
+	btn5.AddFocus(widget.FocusEast, btn6)
+	btn5.AddFocus(widget.FocusSouthwest, btn7)
+	btn5.AddFocus(widget.FocusSouth, btn8)
+	btn5.AddFocus(widget.FocusSoutheast, btn9)
 
-	btn6.AddFocus(widget.FOCUS_NORTH, btn3)
-	btn6.AddFocus(widget.FOCUS_NORTHWEST, btn2)
-	btn6.AddFocus(widget.FOCUS_WEST, btn5)
-	btn6.AddFocus(widget.FOCUS_SOUTHWEST, btn8)
-	btn6.AddFocus(widget.FOCUS_SOUTH, btn9)
+	btn6.AddFocus(widget.FocusNorth, btn3)
+	btn6.AddFocus(widget.FocusNorthwest, btn2)
+	btn6.AddFocus(widget.FocusWest, btn5)
+	btn6.AddFocus(widget.FocusSouthwest, btn8)
+	btn6.AddFocus(widget.FocusSouth, btn9)
 
-	btn7.AddFocus(widget.FOCUS_NORTH, btn4)
-	btn7.AddFocus(widget.FOCUS_NORTHEAST, btn5)
-	btn7.AddFocus(widget.FOCUS_EAST, btn8)
+	btn7.AddFocus(widget.FocusNorth, btn4)
+	btn7.AddFocus(widget.FocusNortheast, btn5)
+	btn7.AddFocus(widget.FocusEast, btn8)
 
-	btn8.AddFocus(widget.FOCUS_WEST, btn7)
-	btn8.AddFocus(widget.FOCUS_NORTHWEST, btn4)
-	btn8.AddFocus(widget.FOCUS_NORTH, btn5)
-	btn8.AddFocus(widget.FOCUS_NORTHEAST, btn6)
-	btn8.AddFocus(widget.FOCUS_EAST, btn9)
+	btn8.AddFocus(widget.FocusWest, btn7)
+	btn8.AddFocus(widget.FocusNorthwest, btn4)
+	btn8.AddFocus(widget.FocusNorth, btn5)
+	btn8.AddFocus(widget.FocusNortheast, btn6)
+	btn8.AddFocus(widget.FocusEast, btn9)
 
-	btn9.AddFocus(widget.FOCUS_WEST, btn8)
-	btn9.AddFocus(widget.FOCUS_NORTHWEST, btn5)
-	btn9.AddFocus(widget.FOCUS_NORTH, btn6)
+	btn9.AddFocus(widget.FocusWest, btn8)
+	btn9.AddFocus(widget.FocusNorthwest, btn5)
+	btn9.AddFocus(widget.FocusNorth, btn6)
 
 	// construct the UI
 	ui := ebitenui.UI{
@@ -205,28 +205,28 @@ func (g *game) Update() error {
 	g.ui.Update()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
-		g.ui.ChangeFocus(widget.FOCUS_NORTH)
+		g.ui.ChangeFocus(widget.FocusNorth)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyA) {
-		g.ui.ChangeFocus(widget.FOCUS_WEST)
+		g.ui.ChangeFocus(widget.FocusWest)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-		g.ui.ChangeFocus(widget.FOCUS_SOUTH)
+		g.ui.ChangeFocus(widget.FocusSouth)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
-		g.ui.ChangeFocus(widget.FOCUS_EAST)
+		g.ui.ChangeFocus(widget.FocusEast)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		g.ui.ChangeFocus(widget.FOCUS_NORTHWEST)
+		g.ui.ChangeFocus(widget.FocusNorthwest)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyE) {
-		g.ui.ChangeFocus(widget.FOCUS_NORTHEAST)
+		g.ui.ChangeFocus(widget.FocusNortheast)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
-		g.ui.ChangeFocus(widget.FOCUS_SOUTHWEST)
+		g.ui.ChangeFocus(widget.FocusSouthwest)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
-		g.ui.ChangeFocus(widget.FOCUS_SOUTHEAST)
+		g.ui.ChangeFocus(widget.FocusSoutheast)
 	}
 	return nil
 }

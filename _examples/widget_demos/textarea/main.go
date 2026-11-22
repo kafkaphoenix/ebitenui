@@ -90,15 +90,15 @@ func main() {
 			},
 		}),
 		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkEventArgs) {
-			fmt.Println("Link Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+			fmt.Println("Link Clicked Id: ", args.ID, " value: ", args.Value, " args: ", args.Args,
 				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
 		}),
 		widget.TextAreaOpts.LinkCursorEnteredEvent(func(args *widget.LinkEventArgs) {
-			fmt.Println("Link Entered Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+			fmt.Println("Link Entered Id: ", args.ID, " value: ", args.Value, " args: ", args.Args,
 				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
 		}),
 		widget.TextAreaOpts.LinkCursorExitedEvent(func(args *widget.LinkEventArgs) {
-			fmt.Println("Link Exited Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+			fmt.Println("Link Exited Id: ", args.ID, " value: ", args.Value, " args: ", args.Args,
 				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
 		}),
 	)

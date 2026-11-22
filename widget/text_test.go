@@ -48,7 +48,7 @@ func TestText_LinkHover(t *testing.T) {
 	tw := newText(t, "go [link=home]there[/link] now",
 		TextOpts.ProcessBBCode(true),
 		TextOpts.LinkCursorEnteredHandler(func(args *LinkEventArgs) {
-			entered = append(entered, args.Id)
+			entered = append(entered, args.ID)
 		}))
 	tw.SetLocation(image.Rect(0, 0, 400, 100))
 
@@ -239,8 +239,8 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	tw := NewText(
 		TextOpts.Text("[link=away]there[/link]", loadFont(t), color.White),
 		TextOpts.ProcessBBCode(true),
-		TextOpts.LinkCursorEnteredHandler(func(args *LinkEventArgs) { entered = append(entered, args.Id) }),
-		TextOpts.LinkClickedHandler(func(args *LinkEventArgs) { clicked = append(clicked, args.Id) }),
+		TextOpts.LinkCursorEnteredHandler(func(args *LinkEventArgs) { entered = append(entered, args.ID) }),
+		TextOpts.LinkClickedHandler(func(args *LinkEventArgs) { clicked = append(clicked, args.ID) }),
 	)
 	content := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Direction(DirectionVertical))))
 	content.AddChild(newSimpleWidget(100, 200, nil), tw)

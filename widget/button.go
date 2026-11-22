@@ -55,7 +55,7 @@ type Button struct {
 	textProcessBBCode bool
 	hovering          bool
 	pressing          bool
-	state             WidgetState
+	state             CheckState
 
 	tabOrder      int
 	focused       bool
@@ -112,7 +112,7 @@ type ButtonHoverEventArgs struct {
 
 type ButtonChangedEventArgs struct {
 	Button  *Button
-	State   WidgetState
+	State   CheckState
 	OffsetX int
 	OffsetY int
 }
@@ -540,11 +540,11 @@ func (o ButtonOptions) TabOrder(tabOrder int) ButtonOpt {
 	}
 }
 
-func (b *Button) State() WidgetState {
+func (b *Button) State() CheckState {
 	return b.state
 }
 
-func (b *Button) SetState(state WidgetState) {
+func (b *Button) SetState(state CheckState) {
 	if state != b.state {
 		b.state = state
 
@@ -700,7 +700,7 @@ func (b *Button) Render(screen *ebiten.Image) {
 				b.graphic.Image = b.computedParams.GraphicImage.Disabled
 			}
 
-		case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
+		case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == Checked) || b.justSubmitted:
 			if b.text != nil && b.computedParams.TextColor.Pressed != nil {
 				b.text.SetColor(b.computedParams.TextColor.Pressed)
 			}
@@ -743,7 +743,7 @@ func (b *Button) Update(updObj *UpdateObject) {
 
 func (b *Button) draw(screen *ebiten.Image) {
 	i := b.computedParams.Image.Idle
-	pressed := (b.pressing && (b.hovering || b.KeepPressedOnExit)) || (b.ToggleMode && b.state == WidgetChecked)
+	pressed := (b.pressing && (b.hovering || b.KeepPressedOnExit)) || (b.ToggleMode && b.state == Checked)
 	switch {
 	case b.widget.Disabled:
 		if b.computedParams.Image.Disabled != nil {
@@ -784,17 +784,17 @@ func (b *Button) Click() {
 	b.init.Do()
 
 	b.pressing = true
-	b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+	b.widget.MouseButtonClickedEvent.Fire(&MouseButtonClickedEventArgs{
 		Widget:  b.widget,
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: -1,
 		OffsetY: -1,
 	})
 	if b.ToggleMode {
-		if b.state == WidgetUnchecked {
-			b.state = WidgetChecked
+		if b.state == Unchecked {
+			b.state = Checked
 		} else {
-			b.state = WidgetUnchecked
+			b.state = Unchecked
 		}
 		b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
 			Button:  b,
@@ -819,7 +819,7 @@ func (b *Button) Press() {
 	}
 	b.hovering = true
 	b.pressing = true
-	b.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+	b.widget.MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
 		Widget:  b.widget,
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: offx,
@@ -842,7 +842,7 @@ func (b *Button) Release() {
 	if !b.ToggleMode {
 		b.hovering = false
 	}
-	b.widget.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
+	b.widget.MouseButtonReleasedEvent.Fire(&MouseButtonReleasedEventArgs{
 		Widget:  b.widget,
 		Inside:  true,
 		Button:  ebiten.MouseButtonLeft,
@@ -850,7 +850,7 @@ func (b *Button) Release() {
 		OffsetY: offy,
 	})
 	if b.pressing {
-		b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+		b.widget.MouseButtonClickedEvent.Fire(&MouseButtonClickedEventArgs{
 			Widget:  b.widget,
 			Button:  ebiten.MouseButtonLeft,
 			OffsetX: offx,
@@ -1000,7 +1000,7 @@ func (b *Button) initWidget() {
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append([]WidgetOpt{
 		WidgetOpts.TrackHover(true),
-		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(args *CursorEnterEventArgs) {
 			if !b.widget.Disabled {
 				b.hovering = true
 			}
@@ -1016,7 +1016,7 @@ func (b *Button) createWidget() {
 			}
 		}),
 
-		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
+		WidgetOpts.CursorMoveHandler(func(args *CursorMoveEventArgs) {
 			b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
 				Button:  b,
 				Entered: false,
@@ -1027,7 +1027,7 @@ func (b *Button) createWidget() {
 			})
 		}),
 
-		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(args *CursorExitEventArgs) {
 			if b.hovering {
 				b.hovering = false
 				b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
@@ -1041,7 +1041,7 @@ func (b *Button) createWidget() {
 			}
 		}),
 
-		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+		WidgetOpts.MouseButtonPressedHandler(func(args *MouseButtonPressedEventArgs) {
 			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.pressing = true
 				b.PressedEvent.Fire(&ButtonPressedEventArgs{
@@ -1052,7 +1052,7 @@ func (b *Button) createWidget() {
 			}
 		}),
 
-		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+		WidgetOpts.MouseButtonReleasedHandler(func(args *MouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
@@ -1065,7 +1065,7 @@ func (b *Button) createWidget() {
 			b.pressing = false
 		}),
 
-		WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+		WidgetOpts.MouseButtonClickedHandler(func(args *MouseButtonClickedEventArgs) {
 			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 					Button:  b,
@@ -1073,10 +1073,10 @@ func (b *Button) createWidget() {
 					OffsetY: args.OffsetY,
 				})
 				if b.ToggleMode {
-					if b.state == WidgetUnchecked {
-						b.state = WidgetChecked
+					if b.state == Unchecked {
+						b.state = Checked
 					} else {
-						b.state = WidgetUnchecked
+						b.state = Unchecked
 					}
 					b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
 						Button:  b,

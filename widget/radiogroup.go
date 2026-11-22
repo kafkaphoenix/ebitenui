@@ -4,16 +4,16 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 )
 
-type WidgetState int
+type CheckState int
 
 const (
-	WidgetUnchecked = WidgetState(iota)
-	WidgetChecked
-	WidgetGreyed
+	Unchecked = CheckState(iota)
+	Checked
+	Greyed
 )
 
 type RadioGroupElement interface {
-	SetState(state WidgetState)
+	SetState(state CheckState)
 	getStateChangedEvent() *event.Event
 }
 
@@ -103,9 +103,9 @@ func (r *RadioGroup) SetActive(a RadioGroupElement) {
 			r.active = c
 
 			// ignore unchecking and reset to checked
-			c.SetState(WidgetChecked)
+			c.SetState(Checked)
 		} else {
-			c.SetState(WidgetUnchecked)
+			c.SetState(Unchecked)
 		}
 	}
 

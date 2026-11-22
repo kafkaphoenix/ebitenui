@@ -12,11 +12,11 @@ type WindowCloseMode int
 
 const (
 	// The window will not automatically close.
-	NONE WindowCloseMode = iota
+	WindowCloseNone WindowCloseMode = iota
 	// The window will close when you click anywhere.
-	CLICK
+	WindowCloseClick
 	// The window will close when you click outside the window.
-	CLICK_OUT
+	WindowCloseClickOut
 )
 
 type RemoveWindowFunc func()
@@ -395,11 +395,11 @@ func (w *Window) Render(screen *ebiten.Image) {
 			cursorRect := image.Rect(x, y, x+1, y+1)
 			switch {
 			case cursorRect.Overlaps(xRect):
-				input.SetCursorShape(input.CURSOR_EWRESIZE)
+				input.SetCursorShape(input.CursorEWResize)
 				w.resizingWidth = true
 				w.resizingHeight = false
 			case cursorRect.Overlaps(yRect):
-				input.SetCursorShape(input.CURSOR_NSRESIZE)
+				input.SetCursorShape(input.CursorNSResize)
 				w.resizingWidth = false
 				w.resizingHeight = true
 			case !input.MouseButtonPressed(ebiten.MouseButtonLeft):
@@ -445,7 +445,7 @@ func (w *Window) createWidget() {
 		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
 		if w.Draggable {
 			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-				if args, ok := a.(*WidgetMouseButtonPressedEventArgs); ok {
+				if args, ok := a.(*MouseButtonPressedEventArgs); ok {
 					if args.Button == ebiten.MouseButtonLeft {
 						x, y := input.CursorPosition()
 						w.startingPoint = image.Point{x, y}
@@ -454,7 +454,7 @@ func (w *Window) createWidget() {
 				}
 			})
 			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-				if args, ok := a.(*WidgetMouseButtonReleasedEventArgs); ok {
+				if args, ok := a.(*MouseButtonReleasedEventArgs); ok {
 					if w.dragging && args.Button == ebiten.MouseButtonLeft {
 						w.dragging = false
 						w.MoveEvent.Fire(&WindowChangedEventArgs{
@@ -481,7 +481,7 @@ func (w *Window) createWidget() {
 
 	if w.Resizeable {
 		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-			if args, ok := a.(*WidgetMouseButtonPressedEventArgs); ok {
+			if args, ok := a.(*MouseButtonPressedEventArgs); ok {
 				if args.Button == ebiten.MouseButtonLeft {
 					x, y := input.CursorPosition()
 					w.startingPoint = image.Point{x, y}
@@ -492,7 +492,7 @@ func (w *Window) createWidget() {
 			}
 		})
 		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-			if args, ok := a.(*WidgetMouseButtonReleasedEventArgs); ok {
+			if args, ok := a.(*MouseButtonReleasedEventArgs); ok {
 				if w.resizing && args.Button == ebiten.MouseButtonLeft {
 					w.resizing = false
 					w.ResizeEvent.Fire(&WindowChangedEventArgs{
@@ -504,11 +504,11 @@ func (w *Window) createWidget() {
 		})
 	}
 
-	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
+	if w.closeMode == WindowCloseClick || w.closeMode == WindowCloseClickOut {
 		w.container.GetWidget().CustomData = "Window"
 		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args any) {
-			if a, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok {
-				if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
+			if a, ok := args.(*MouseButtonReleasedEventArgs); ok {
+				if w.closeMode == WindowCloseClick || (w.closeMode == WindowCloseClickOut && !a.Inside) {
 					if w.closeFunc != nil {
 						w.closeFunc()
 					}

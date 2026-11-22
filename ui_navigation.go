@@ -19,10 +19,10 @@ var directions = [...]struct {
 	button ebiten.StandardGamepadButton
 	focus  widget.FocusDirection
 }{
-	{widget.ActionUp, ebiten.KeyArrowUp, ebiten.StandardGamepadButtonLeftTop, widget.FOCUS_NORTH},
-	{widget.ActionDown, ebiten.KeyArrowDown, ebiten.StandardGamepadButtonLeftBottom, widget.FOCUS_SOUTH},
-	{widget.ActionLeft, ebiten.KeyArrowLeft, ebiten.StandardGamepadButtonLeftLeft, widget.FOCUS_WEST},
-	{widget.ActionRight, ebiten.KeyArrowRight, ebiten.StandardGamepadButtonLeftRight, widget.FOCUS_EAST},
+	{widget.ActionUp, ebiten.KeyArrowUp, ebiten.StandardGamepadButtonLeftTop, widget.FocusNorth},
+	{widget.ActionDown, ebiten.KeyArrowDown, ebiten.StandardGamepadButtonLeftBottom, widget.FocusSouth},
+	{widget.ActionLeft, ebiten.KeyArrowLeft, ebiten.StandardGamepadButtonLeftLeft, widget.FocusWest},
+	{widget.ActionRight, ebiten.KeyArrowRight, ebiten.StandardGamepadButtonLeftRight, widget.FocusEast},
 }
 
 // The repeat of a direction held, unless the UI sets its own.

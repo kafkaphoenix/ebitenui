@@ -13,11 +13,11 @@ type DragAndDropAnchor int
 
 const (
 	// Anchor at the start of the element.
-	DND_ANCHOR_START DragAndDropAnchor = iota
+	DragAndDropAnchorStart DragAndDropAnchor = iota
 	// Anchor in the middle of the element.
-	DND_ANCHOR_MIDDLE
+	DragAndDropAnchorMiddle
 	// Anchor at the end of the element.
-	DND_ANCHOR_END
+	DragAndDropAnchorEnd
 )
 
 type DragAndDrop struct {
@@ -67,8 +67,8 @@ type dragAndDropState func(HasWidget) (dragAndDropState, bool)
 func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 	d := &DragAndDrop{
 		minDragStartDistance:     15,
-		ContentsOriginVertical:   DND_ANCHOR_MIDDLE,
-		ContentsOriginHorizontal: DND_ANCHOR_MIDDLE,
+		ContentsOriginVertical:   DragAndDropAnchorMiddle,
+		ContentsOriginHorizontal: DragAndDropAnchorMiddle,
 		Offset:                   image.Point{0, 0},
 	}
 	d.state = d.idleState()
@@ -105,7 +105,7 @@ func (o DragAndDropOptions) MinDragStartDistance(d int) DragAndDropOpt {
 
 // The vertical position of the anchor on the tooltip.
 //
-//	Optional - Defaults to DND_ANCHOR_MIDDLE
+//	Optional - Defaults to DragAndDropAnchorMiddle
 func (o DragAndDropOptions) ContentsOriginVertical(contentsOriginVertical DragAndDropAnchor) DragAndDropOpt {
 	return func(t *DragAndDrop) {
 		t.ContentsOriginVertical = contentsOriginVertical
@@ -114,7 +114,7 @@ func (o DragAndDropOptions) ContentsOriginVertical(contentsOriginVertical DragAn
 
 // The horizontal position of the anchor on the tooltip.
 //
-//	Optional - Defaults to DND_ANCHOR_MIDDLE
+//	Optional - Defaults to DragAndDropAnchorMiddle
 func (o DragAndDropOptions) ContentsOriginHorizontal(contentsOriginHorizontal DragAndDropAnchor) DragAndDropOpt {
 	return func(t *DragAndDrop) {
 		t.ContentsOriginHorizontal = contentsOriginHorizontal
@@ -224,7 +224,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 				return d.idleState(), false
 			}
 			d.window = NewWindow(
-				WindowOpts.CloseMode(NONE),
+				WindowOpts.CloseMode(WindowCloseNone),
 				WindowOpts.Contents(dragWidget),
 				WindowOpts.BlockLower(false),
 			)
@@ -249,7 +249,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 					Data:    dragData,
 				}
 				for _, target := range d.AvailableDropTargets {
-					if target.GetWidget().GetVisibility() == Visibility_Hide {
+					if target.GetWidget().GetVisibility() == VisibilityHide {
 						continue
 					}
 					if !target.GetWidget().In(x, y) {
@@ -303,7 +303,7 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData a
 		}
 		dropSuccessful := false
 		for _, target := range d.AvailableDropTargets {
-			if target.GetWidget().GetVisibility() == Visibility_Hide {
+			if target.GetWidget().GetVisibility() == VisibilityHide {
 				continue
 			}
 			if !target.GetWidget().In(x, y) {
@@ -345,34 +345,34 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData a
 }
 func (d *DragAndDrop) processContentsPosition(p image.Point, sx int, sy int) image.Point {
 	switch d.ContentsOriginVertical {
-	case DND_ANCHOR_START:
+	case DragAndDropAnchorStart:
 		switch d.ContentsOriginHorizontal {
-		case DND_ANCHOR_START:
+		case DragAndDropAnchorStart:
 			// Do nothing
-		case DND_ANCHOR_MIDDLE:
+		case DragAndDropAnchorMiddle:
 			p.X -= (sx / 2)
-		case DND_ANCHOR_END:
+		case DragAndDropAnchorEnd:
 			p.X -= sx
 		}
-	case DND_ANCHOR_MIDDLE:
+	case DragAndDropAnchorMiddle:
 		switch d.ContentsOriginHorizontal {
-		case DND_ANCHOR_START:
+		case DragAndDropAnchorStart:
 			p.Y -= (sy / 2)
-		case DND_ANCHOR_MIDDLE:
+		case DragAndDropAnchorMiddle:
 			p.X -= (sx / 2)
 			p.Y -= (sy / 2)
-		case DND_ANCHOR_END:
+		case DragAndDropAnchorEnd:
 			p.X -= sx
 			p.Y -= (sy / 2)
 		}
-	case DND_ANCHOR_END:
+	case DragAndDropAnchorEnd:
 		switch d.ContentsOriginHorizontal {
-		case DND_ANCHOR_START:
+		case DragAndDropAnchorStart:
 			p.Y -= sy
-		case DND_ANCHOR_MIDDLE:
+		case DragAndDropAnchorMiddle:
 			p.X -= (sx / 2)
 			p.Y -= sy
-		case DND_ANCHOR_END:
+		case DragAndDropAnchorEnd:
 			p.X -= sx
 			p.Y -= sy
 		}

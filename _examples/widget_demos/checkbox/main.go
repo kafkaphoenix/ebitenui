@@ -50,16 +50,16 @@ func main() {
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 			switch args.State {
-			case widget.WidgetChecked:
+			case widget.Checked:
 				fmt.Println("Checkbox is Checked")
-			case widget.WidgetGreyed:
+			case widget.Greyed:
 				fmt.Println("Checkbox is Greyed")
-			case widget.WidgetUnchecked:
+			case widget.Unchecked:
 				fmt.Println("Checkbox is Unchecked")
 			}
 		}),
 		widget.CheckboxOpts.TriState(),
-		widget.CheckboxOpts.InitialState(widget.WidgetChecked),
+		widget.CheckboxOpts.InitialState(widget.Checked),
 	)
 
 	rootContainer.AddChild(game.checkBox)

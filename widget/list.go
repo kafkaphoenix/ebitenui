@@ -572,9 +572,9 @@ func (l *List) showSlidersWhenNeeded() {
 	}
 	w, h := l.listContent.PreferredSize()
 	show := func(s *Slider, needed bool) {
-		v := Visibility_Hide_Blocking
+		v := VisibilityHideBlocking
 		if needed {
-			v = Visibility_Show
+			v = VisibilityShow
 		}
 		s.GetWidget().SetVisibility(v)
 	}
@@ -816,11 +816,11 @@ func (l *List) initWidget() {
 		}...)...)
 		l.container.AddChild(l.vSlider)
 		if l.slidersWhenNeeded {
-			l.vSlider.GetWidget().SetVisibility(Visibility_Hide_Blocking)
+			l.vSlider.GetWidget().SetVisibility(VisibilityHideBlocking)
 		}
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
-			if a, ok := args.(*WidgetScrolledEventArgs); ok {
+			if a, ok := args.(*ScrolledEventArgs); ok {
 				p := max(pageSizeFunc()/3, 1)
 				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
@@ -840,7 +840,7 @@ func (l *List) initWidget() {
 		}...)...)
 		l.container.AddChild(l.hSlider)
 		if l.slidersWhenNeeded {
-			l.hSlider.GetWidget().SetVisibility(Visibility_Hide_Blocking)
+			l.hSlider.GetWidget().SetVisibility(VisibilityHideBlocking)
 		}
 	}
 

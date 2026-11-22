@@ -108,7 +108,7 @@ func (u *UI) Update() {
 
 	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
-		u.ChangeFocus(widget.FOCUS_NEXT)
+		u.ChangeFocus(widget.FocusNext)
 	}
 	resortFocusedWindow := false
 	index := 0
@@ -249,7 +249,7 @@ func (u *UI) setTheme() {
 	}
 }
 func (u *UI) handleContextMenu(args any) {
-	if a, ok := args.(*widget.WidgetContextMenuEventArgs); ok {
+	if a, ok := args.(*widget.ContextMenuEventArgs); ok {
 		x, y := a.Widget.ContextMenu.PreferredSize()
 		r := image.Rect(0, 0, x, y)
 		r = r.Add(a.Location)
@@ -264,7 +264,7 @@ func (u *UI) handleContextMenu(args any) {
 }
 
 func (u *UI) handleFocusEvent(args any) {
-	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
+	if a, ok := args.(*widget.FocusEventArgs); ok {
 		switch {
 		case a.Focused: // New widget focused
 			u.focusedWidget = a.Widget
@@ -281,7 +281,7 @@ func (u *UI) handleFocusEvent(args any) {
 }
 
 func (u *UI) handleToolTipEvent(args any) {
-	if a, ok := args.(*widget.WidgetToolTipEventArgs); ok {
+	if a, ok := args.(*widget.ToolTipEventArgs); ok {
 		a.Window.Ephemeral = true
 		if a.Show {
 			u.addWindow(a.Window)
@@ -292,7 +292,7 @@ func (u *UI) handleToolTipEvent(args any) {
 }
 
 func (u *UI) handleDragAndDropEvent(args any) {
-	if a, ok := args.(*widget.WidgetDragAndDropEventArgs); ok {
+	if a, ok := args.(*widget.DragAndDropEventArgs); ok {
 		if a.Show {
 			a.Window.Ephemeral = true
 			a.DnD.AvailableDropTargets = u.getDropTargets()
@@ -324,9 +324,9 @@ func (u *UI) handleFocusChangeRequest() {
 			if !u.tabWasPressed {
 				u.tabWasPressed = true
 				if input.KeyPressed(ebiten.KeyShift) {
-					u.ChangeFocus(widget.FOCUS_PREVIOUS)
+					u.ChangeFocus(widget.FocusPrevious)
 				} else {
-					u.ChangeFocus(widget.FOCUS_NEXT)
+					u.ChangeFocus(widget.FocusNext)
 				}
 			}
 		} else {
@@ -335,7 +335,7 @@ func (u *UI) handleFocusChangeRequest() {
 	}
 }
 
-// ChangeFocus moves the focus. FOCUS_NEXT and FOCUS_PREVIOUS follow the tab
+// ChangeFocus moves the focus. FocusNext and FocusPrevious follow the tab
 // order. A direction follows the focused widget's link for it (AddFocus)
 // when it has one that can take the focus, and otherwise goes to the
 // nearest focusable widget that way, keeping the focus where it is when
@@ -353,7 +353,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 	}
 	fwLen := len(focusableWidgets)
 
-	if direction == widget.FOCUS_NEXT || direction == widget.FOCUS_PREVIOUS {
+	if direction == widget.FocusNext || direction == widget.FocusPrevious {
 		if fwLen == 1 {
 			if u.focusedWidget != nil && u.focusedWidget != focusableWidgets[0] {
 				u.focusedWidget.Focus(false)
@@ -365,7 +365,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 				return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
 			})
 			if u.focusedWidget != nil {
-				if direction == widget.FOCUS_PREVIOUS {
+				if direction == widget.FocusPrevious {
 					for i := range fwLen {
 						if focusableWidgets[i] == u.focusedWidget {
 							u.focusedWidget.Focus(false)

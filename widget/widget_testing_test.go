@@ -93,7 +93,7 @@ func newNineSliceEmpty(t *testing.T) *image.NineSlice {
 
 func leftMouseButtonClick(w HasWidget, t *testing.T) {
 	t.Helper()
-	w.GetWidget().MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+	w.GetWidget().MouseButtonClickedEvent.Fire(&MouseButtonClickedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,
@@ -106,7 +106,7 @@ func leftMouseButtonClick(w HasWidget, t *testing.T) {
 func leftMouseButtonPress(w HasWidget, t *testing.T) {
 	t.Helper()
 
-	w.GetWidget().MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+	w.GetWidget().MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,
@@ -119,7 +119,7 @@ func leftMouseButtonPress(w HasWidget, t *testing.T) {
 func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 	t.Helper()
 
-	w.GetWidget().MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
+	w.GetWidget().MouseButtonReleasedEvent.Fire(&MouseButtonReleasedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,

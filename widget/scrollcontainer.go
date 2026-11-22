@@ -132,22 +132,22 @@ func (s *ScrollContainer) Validate() {
 func (s *ScrollContainer) forwardContentEvents() {
 	s.forwarding = s.content
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
+		if a, ok := args.(*ContextMenuEventArgs); ok {
 			s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
 		}
 	})
 	s.content.GetWidget().FocusEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetFocusEventArgs); ok {
+		if a, ok := args.(*FocusEventArgs); ok {
 			s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
 		}
 	})
 	s.content.GetWidget().ToolTipEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetToolTipEventArgs); ok {
+		if a, ok := args.(*ToolTipEventArgs); ok {
 			s.GetWidget().FireToolTipEvent(a.Window, a.Show)
 		}
 	})
 	s.content.GetWidget().DragAndDropEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
+		if a, ok := args.(*DragAndDropEventArgs); ok {
 			s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		}
 	})

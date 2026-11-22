@@ -77,7 +77,7 @@ func main() {
 
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				fmt.Println("Checkbox1 is Checked")
 			} else {
 				fmt.Println("Checkbox1 is Unchecked")
@@ -115,7 +115,7 @@ func main() {
 
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			if args.State == widget.Checked {
 				fmt.Println("Checkbox2 is Checked")
 			} else {
 				fmt.Println("Checkbox2 is Unchecked")
@@ -123,7 +123,7 @@ func main() {
 		}),
 	)
 	// Set this checkbox as Checked by default
-	labeledCheckBox2.SetState(widget.WidgetChecked)
+	labeledCheckBox2.SetState(widget.Checked)
 
 	rootContainer.AddChild(labeledCheckBox2)
 	// construct the UI

@@ -104,22 +104,22 @@ func (c *Container) addChildInit(child PreferredSizeLocateableWidget) {
 	}
 
 	child.GetWidget().ContextMenuEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
+		if a, ok := args.(*ContextMenuEventArgs); ok {
 			c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
 		}
 	})
 	child.GetWidget().FocusEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetFocusEventArgs); ok {
+		if a, ok := args.(*FocusEventArgs); ok {
 			c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
 		}
 	})
 	child.GetWidget().ToolTipEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetToolTipEventArgs); ok {
+		if a, ok := args.(*ToolTipEventArgs); ok {
 			c.GetWidget().FireToolTipEvent(a.Window, a.Show)
 		}
 	})
 	child.GetWidget().DragAndDropEvent.AddHandler(func(args any) {
-		if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
+		if a, ok := args.(*DragAndDropEventArgs); ok {
 			c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		}
 	})

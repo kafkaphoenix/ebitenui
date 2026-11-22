@@ -25,7 +25,7 @@ func main() {
 	root.AddChild(widget.NewCheckbox(
 		widget.CheckboxOpts.TextLabel("Draw each text from an image of itself"),
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			widget.SetTextCache(args.State == widget.WidgetChecked)
+			widget.SetTextCache(args.State == widget.Checked)
 		}),
 	))
 	root.AddChild(g.timing)
