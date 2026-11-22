@@ -9,6 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/uitest"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 
@@ -103,6 +104,54 @@ func TestTouch_SecondFingerCancels(t *testing.T) {
 	step(at) // a tap again is a tap
 	step()
 	is.Equal(*clicks, 1)
+}
+
+// A gesture ends the update after its fingers lift: on a desktop with a
+// touch screen, the mouse clicks again after a pan, and after a long press
+// a second finger joined.
+func TestTouch_MouseClicksAfterAGesture(t *testing.T) {
+	is := is.New(t)
+
+	d := uitest.Use(t)
+	clicks := 0
+	b := newButton(t, widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { clicks++ }))
+	b.SetLocation(img.Rect(20, 20, 120, 60))
+	update := func() {
+		input.Update()
+		b.Update(&widget.UpdateObject{})
+		input.AfterUpdate()
+		event.ExecuteDeferred()
+	}
+	d.Touches = []img.Point{{200, 200}, {300, 200}} // a pan, away from the button
+	update()
+	d.Touches = nil
+	update()
+	is.True(input.TouchGesture()) // the update they lift in
+	update()
+	is.True(!input.TouchGesture())
+	click := func() {
+		d.Cursor = img.Pt(70, 40)
+		d.Mouse[ebiten.MouseButtonLeft] = true
+		update()
+		d.Mouse[ebiten.MouseButtonLeft] = false
+		update()
+	}
+	click()
+	is.Equal(clicks, 1)
+
+	at := img.Pt(70, 40)
+	for range b.GetWidget().LongPressDuration() + 1 {
+		d.Touches = []img.Point{at} // a long press: the hover kept as it lifts
+		update()
+	}
+	d.Touches = []img.Point{at, {100, 50}}
+	update()
+	d.Touches = nil
+	update()
+	update()
+	is.True(!input.TouchGesture())
+	click()
+	is.Equal(clicks, 2)
 }
 
 // The mouse's long press keeps its meaning: it opens no context menu, and
