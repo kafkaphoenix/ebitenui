@@ -574,10 +574,18 @@ func (t *TextArea) initWidget() {
 		}
 		t.container.AddChild(t.vSlider)
 
+		// The wheel scrolls the pixels the platform's settings give, or,
+		// from a device that gives only the wheel's units, a third of a
+		// page a notch. The slider counts thousandths of the span; less
+		// than one waits for more.
+		var rest scrollRest
 		t.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*ScrolledEventArgs); ok {
-				p := max(pageSizeFunc()/3, 1)
-				t.vSlider.Current -= int(math.Round(a.Y * float64(p)))
+				step := a.Y * float64(max(pageSizeFunc()/3, 1))
+				if span := content.GetWidget().Rect.Dy() - t.scrollContainer.ViewRect().Dy(); a.DY != 0 && span > 0 {
+					step = a.DY * 1000 / float64(span)
+				}
+				t.vSlider.Current -= rest.take(step)
 			}
 		})
 	}

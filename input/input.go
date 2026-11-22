@@ -152,6 +152,14 @@ func Wheel() (float64, float64) {
 	return internalinput.InputHandler.WheelX, internalinput.InputHandler.WheelY
 }
 
+// ScrollDelta returns how far the mouse wheel, a touchpad or another
+// scroll device scrolls this update, in device-independent pixels, as the
+// platform's settings have it (ebiten.ScrollDelta). Wheel's units vary
+// among platforms and devices; these don't.
+func ScrollDelta() (float64, float64) {
+	return internalinput.InputHandler.ScrollX, internalinput.InputHandler.ScrollY
+}
+
 // WheelLayer returns current mouse wheel movement if input layer l is eligible to handle it.
 // If l is not eligible, it returns 0, 0.
 func WheelLayer(l *Layer) (float64, float64) {

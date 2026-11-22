@@ -23,7 +23,8 @@ type SliderParams struct {
 }
 
 type Slider struct {
-	inverted       bool // Max at the track's start (Inverted)
+	inverted       bool       // Max at the track's start (Inverted)
+	wheel          scrollRest // a fraction of a notch, kept for the next
 	definedParams  SliderParams
 	computedParams SliderParams
 
@@ -562,6 +563,20 @@ func (s *Slider) internalToCurrent(i float64) int {
 	return int(math.Round(float64(s.Min)*(1-i) + float64(s.Max)*i))
 }
 
+// scroll moves the handle a page a notch of the wheel: a scroll up moves
+// a vertical slider's handle up and a horizontal one's right. A fraction of
+// a notch waits for more. For ebitenui/ebitenui#200.
+func (s *Slider) scroll(notches float64) {
+	n := s.wheel.take(notches)
+	ps := s.computedParams.PageSizeFunc()
+	if *s.computedParams.Orientation == DirectionHorizontal {
+		s.moveAlong(ps * n)
+	} else {
+		s.moveAlong(-ps * n)
+	}
+	s.clampCurrentMinMax()
+}
+
 // moveAlong moves the handle steps toward the track's end, or back with a
 // negative count, whichever way the values run.
 func (s *Slider) moveAlong(steps int) {
@@ -593,13 +608,7 @@ func (s *Slider) createWidget() {
 		}),
 		WidgetOpts.ScrolledHandler(func(args *ScrolledEventArgs) {
 			if !s.widget.Disabled {
-				ps := s.computedParams.PageSizeFunc()
-				if *s.computedParams.Orientation == DirectionHorizontal {
-					s.moveAlong(ps * int(args.Y))
-				} else {
-					s.moveAlong(-ps * int(args.Y))
-				}
-				s.clampCurrentMinMax()
+				s.scroll(args.Y)
 			}
 		}),
 
@@ -648,13 +657,7 @@ func (s *Slider) createWidget() {
 
 		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *ScrolledEventArgs) {
 			if !s.widget.Disabled {
-				ps := s.computedParams.PageSizeFunc()
-				if *s.computedParams.Orientation == DirectionHorizontal {
-					s.moveAlong(ps * int(args.Y))
-				} else {
-					s.moveAlong(-ps * int(args.Y))
-				}
-				s.clampCurrentMinMax()
+				s.scroll(args.Y)
 			}
 		})),
 	}...)

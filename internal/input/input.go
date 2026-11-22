@@ -14,6 +14,7 @@ type DefaultInternalHandler struct {
 	CursorY                  int
 	WheelX                   float64
 	WheelY                   float64
+	ScrollX, ScrollY         float64 // the scrolling, in device-independent pixels
 
 	LeftMouseButtonJustPressed   bool
 	MiddleMouseButtonJustPressed bool
@@ -102,6 +103,9 @@ func (handler *DefaultInternalHandler) Update() {
 	wx, wy := handler.Devices.Wheel()
 	handler.WheelX += wx
 	handler.WheelY += wy
+	sx, sy := handler.Devices.ScrollDelta()
+	handler.ScrollX += sx
+	handler.ScrollY += sy
 
 	handler.InputChars = handler.Devices.AppendInputChars(handler.InputChars)
 	handler.updateKeys()
@@ -122,6 +126,7 @@ func (handler *DefaultInternalHandler) Update() {
 func (handler *DefaultInternalHandler) AfterUpdate() {
 	handler.InputChars = handler.InputChars[:0]
 	handler.WheelX, handler.WheelY = 0, 0
+	handler.ScrollX, handler.ScrollY = 0, 0
 }
 
 func (handler *DefaultInternalHandler) Draw(_ *ebiten.Image) {}

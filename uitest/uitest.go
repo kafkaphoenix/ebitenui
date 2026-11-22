@@ -25,10 +25,12 @@ type Devices struct {
 	// Cursor is where the mouse pointer is; Mouse is each button held.
 	Cursor image.Point
 	Mouse  [ebiten.MouseButtonMax + 1]bool
-	// WheelX and WheelY are how far the wheel turns, and Chars the text
-	// typed, both by the next update only, which takes them.
-	WheelX, WheelY float64
-	Chars          []rune
+	// WheelX and WheelY are how far the wheel turns, in its units,
+	// ScrollX and ScrollY how far that scrolls, in pixels, and Chars the
+	// text typed, all by the next update only, which takes them.
+	WheelX, WheelY   float64
+	ScrollX, ScrollY float64
+	Chars            []rune
 
 	Keys [ebiten.KeyMax + 1]bool
 	// Pads are the gamepads connected, all with the standard layout; pad i
@@ -83,6 +85,12 @@ func (d *Devices) CursorPosition() (int, int) { return d.Cursor.X, d.Cursor.Y }
 func (d *Devices) Wheel() (float64, float64) {
 	x, y := d.WheelX, d.WheelY
 	d.WheelX, d.WheelY = 0, 0
+	return x, y
+}
+
+func (d *Devices) ScrollDelta() (float64, float64) {
+	x, y := d.ScrollX, d.ScrollY
+	d.ScrollX, d.ScrollY = 0, 0
 	return x, y
 }
 
