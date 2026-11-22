@@ -93,6 +93,15 @@ func (x *TextInput) CursorPosition() int                                { return
 func (x *TextInput) ImeSession() *textinput.SessionOptions              { return x.imeSession() }
 func (x *TextInput) StateImage() *image.NineSlice                       { return x.stateImage() }
 func (x *TextInput) Text() *Text                                        { return x.text }
+func (x *TextInput) Wrap()                                              { x.wrappedLines() }
+func (x *TextInput) WrappedLines() []string {
+	lines := x.wrappedLines()
+	s := make([]string, 0, len(lines))
+	for _, l := range lines {
+		s = append(s, l.text)
+	}
+	return s
+}
 func (x *ToolTip) Content() Containerer                                 { return x.content }
 func (x *Widget) LongPressDuration() int                                { return x.longPressDuration }
 func (x *Window) Layer() *input.Layer                                   { return &x.layer }
