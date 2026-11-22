@@ -14,8 +14,12 @@ import (
 type Devices interface {
 	IsMouseButtonPressed(b ebiten.MouseButton) bool
 	CursorPosition() (int, int)
-	// Wheel and AppendInputChars report what happened since the last update.
+	// Wheel, ScrollDelta and AppendInputChars report what happened since the
+	// last update: the wheel in its own units, which vary among platforms
+	// and devices, and the scrolling in device-independent pixels, as the
+	// platform's settings have it.
 	Wheel() (float64, float64)
+	ScrollDelta() (float64, float64)
 	AppendInputChars(chars []rune) []rune
 	IsKeyPressed(k ebiten.Key) bool
 	AppendGamepadIDs(ids []ebiten.GamepadID) []ebiten.GamepadID
@@ -52,6 +56,8 @@ func (Ebitengine) IsMouseButtonPressed(b ebiten.MouseButton) bool {
 func (Ebitengine) CursorPosition() (int, int) { return ebiten.CursorPosition() }
 
 func (Ebitengine) Wheel() (float64, float64) { return ebiten.Wheel() }
+
+func (Ebitengine) ScrollDelta() (float64, float64) { return ebiten.ScrollDelta() }
 
 func (Ebitengine) AppendInputChars(chars []rune) []rune { return ebiten.AppendInputChars(chars) }
 

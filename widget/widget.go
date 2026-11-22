@@ -312,10 +312,16 @@ type MouseButtonClickedEventArgs struct {
 }
 
 // ScrolledEventArgs are the arguments for mouse wheel scroll events.
+// ScrolledEventArgs tell how far the pointer's widget is scrolled: X and Y
+// in the wheel's units, which vary among platforms and devices, and DX and
+// DY in device-independent pixels, as the platform's settings have it,
+// which are what to scroll content by. A precision touchpad gives
+// fractions of a notch.
 type ScrolledEventArgs struct {
 	Widget *Widget
 	X      float64
 	Y      float64
+	DX, DY float64
 }
 
 type FocusEventArgs struct {
@@ -872,10 +878,13 @@ func (w *Widget) fireEvents() {
 
 	scrollX, scrollY := input.WheelLayer(layer)
 	if inside && (scrollX != 0 || scrollY != 0) {
+		dx, dy := input.ScrollDelta()
 		w.ScrolledEvent.Fire(&ScrolledEventArgs{
 			Widget: w,
 			X:      scrollX,
 			Y:      scrollY,
+			DX:     dx,
+			DY:     dy,
 		})
 	}
 

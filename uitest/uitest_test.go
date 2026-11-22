@@ -40,22 +40,25 @@ func TestMouse(t *testing.T) {
 	}
 }
 
-// The wheel turns and the text typed count in the next update only, as
-// Ebitengine reports each update's.
+// The wheel turns, the pixels they scroll and the text typed count in the
+// next update only, as Ebitengine reports each update's.
 func TestWheelAndTextOnce(t *testing.T) {
 	is := is.New(t)
 
 	d := uitest.Use(t)
 	d.WheelX, d.WheelY = 1, -2
+	d.ScrollX, d.ScrollY = 3, -4.5
 	d.Chars = []rune("hé")
 	input.Update()
 	wx, wy := input.Wheel()
-	is.Equal([]any{wx, wy, string(input.Chars())}, []any{1.0, -2.0, "hé"})
+	sx, sy := input.ScrollDelta()
+	is.Equal([]any{wx, wy, sx, sy, string(input.Chars())}, []any{1.0, -2.0, 3.0, -4.5, "hé"})
 	input.AfterUpdate()
 
 	input.Update()
 	wx, wy = input.Wheel()
-	is.Equal([]any{wx, wy, len(input.Chars())}, []any{0.0, 0.0, 0})
+	sx, sy = input.ScrollDelta()
+	is.Equal([]any{wx, wy, sx, sy, len(input.Chars())}, []any{0.0, 0.0, 0.0, 0.0, 0})
 	input.AfterUpdate()
 }
 

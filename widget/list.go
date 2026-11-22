@@ -791,10 +791,17 @@ func (l *List) initWidget() {
 			l.vSlider.GetWidget().SetVisibility(VisibilityHideBlocking)
 		}
 
-		// The wheel moves three rows a notch.
+		// The wheel scrolls the pixels the platform's settings give, or,
+		// from a device that gives only the wheel's units, three rows a
+		// notch. Less than a pixel waits for more.
+		var rest scrollRest
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*ScrolledEventArgs); ok {
-				l.vSlider.Current -= int(math.Round(a.Y * float64(3*l.rows.rowStep())))
+				dy := a.DY
+				if dy == 0 {
+					dy = a.Y * float64(3*l.rows.rowStep())
+				}
+				l.vSlider.Current -= rest.take(dy)
 			}
 		})
 	}
