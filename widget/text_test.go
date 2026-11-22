@@ -274,6 +274,45 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	is.Equal(clicked, []string{"away"}) // in view: clicked
 }
 
+// A text moved outside its parent, as negative padding moves it, draws
+// wherever the image it is drawn on covers it; only lines off that image,
+// such as those scrolled out of a scroll container's view, are skipped.
+// For ebitenui/ebitenui#173.
+func TestText_DrawsOutsideItsParent(t *testing.T) {
+	laidAfterDraw := func(top int, on *ebiten.Image) []bool {
+		tw := widget.NewText(widget.TextOpts.Text("one\ntwo", loadFont(t), color.White),
+			widget.TextOpts.Padding(&widget.Insets{Top: top}))
+		parent := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout()))
+		parent.AddChild(tw)
+		parent.SetLocation(image.Rect(0, 100, 200, 120))
+		parent.Validate()
+		parent.Render(on)
+		return tw.Measurements().ProcessedLinesLaid()
+	}
+	if laid := laidAfterDraw(-60, ebiten.NewImage(200, 200)); !laid[0] || !laid[1] {
+		t.Errorf("a text 60 pixels above its parent, on the image, drew lines %v, want both", laid)
+	}
+	if laid := laidAfterDraw(-300, ebiten.NewImage(200, 200)); laid[0] || laid[1] {
+		t.Errorf("a text above the image drew lines %v, want none", laid)
+	}
+	part := ebiten.NewImage(200, 200).SubImage(image.Rect(0, 150, 200, 200)).(*ebiten.Image)
+	if laid := laidAfterDraw(-60, part); laid[0] || laid[1] {
+		t.Errorf("a text above the part of the image drawn on drew lines %v, want none", laid)
+	}
+
+	area := widget.NewText(widget.TextOpts.Text(strings.Repeat("a line\n", 40), loadFont(t), color.White))
+	scroll := widget.NewScrollContainer(
+		widget.ScrollContainerOpts.Content(area),
+		widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{Idle: newNineSliceEmpty(t), Mask: newNineSliceEmpty(t)}),
+	)
+	scroll.SetLocation(image.Rect(0, 0, 100, 50))
+	scroll.Validate()
+	scroll.Render(ebiten.NewImage(100, 200))
+	if laid := area.Measurements().ProcessedLinesLaid(); !laid[0] || laid[39] {
+		t.Errorf("a long text in a 50 pixel view laid out line 0 %v and line 39 %v, want only the first", laid[0], laid[39])
+	}
+}
+
 // A text whose label changes its size asks for the layout to be done
 // again, through its parent's update; one whose size stays does not.
 func TestText_RelayoutWhenResized(t *testing.T) {

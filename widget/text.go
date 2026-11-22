@@ -574,22 +574,17 @@ func (t *Text) draw(screen *ebiten.Image) {
 		return
 	}
 
-	// Draw text
+	// Draw the lines on the image, which is only a scroll container's view
+	// when drawn in one; a text outside its parent, as negative padding
+	// moves it, still shows.
+	b := screen.Bounds()
 	for linesIdx := range t.measurements.processedLines {
 		ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
-		if ly > float64(screen.Bounds().Max.Y) {
+		if ly > float64(b.Max.Y) {
 			return
 		}
-		if ly < -t.measurements.lineHeight {
+		if ly < float64(b.Min.Y)-t.measurements.lineHeight {
 			continue
-		}
-		if t.widget.parent != nil {
-			if ly < float64(t.widget.parent.Rect.Min.Y)-t.measurements.lineHeight {
-				continue
-			}
-			if ly-t.measurements.lineHeight > float64(t.widget.parent.Rect.Max.Y) {
-				return
-			}
 		}
 
 		lx := float64(p.X) + t.lineX(linesIdx, w)
