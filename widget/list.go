@@ -980,6 +980,25 @@ func (l *List) SelectedEntry() any {
 	return l.selectedEntry
 }
 
+// ScrollToIndex scrolls the list at once, as little as shows the row of
+// the entry at index i whole: to the view's bottom from below, to its top
+// from above, or to its top for a row taller than the view; a row in view
+// stays, and an index out of range scrolls nothing.
+func (l *List) ScrollToIndex(i int) {
+	l.init.Do()
+	if i < 0 || i >= len(l.entries) {
+		return
+	}
+	vrect, crect := l.scrollContainer.ViewRect(), l.scrollContainer.ContentRect()
+	row := l.rows.rowRect(i)
+	top := l.scrollContainer.ScrollTop
+	span := crect.Dy() - vrect.Dy()
+	to := scrollTarget(row.Min.Y, row.Max.Y, vrect.Min.Y, vrect.Max.Y, crect.Min.Y, span, top)
+	if to != top {
+		l.setScrollTop(to)
+	}
+}
+
 // Set the Selected Entry to e if it is found.
 func (l *List) SetSelectedEntry(entry any) {
 	l.setSelectedEntry(entry, false)
