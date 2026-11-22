@@ -42,6 +42,15 @@ type TextInput struct {
 	ChangedEvent *event.Event
 	SubmitEvent  *event.Event
 
+	// The pointer and the left button on the input, as a button's
+	// (textinput_states.go).
+	PressedEvent       *event.Event
+	ReleasedEvent      *event.Event
+	ClickedEvent       *event.Event
+	CursorEnteredEvent *event.Event
+	CursorMovedEvent   *event.Event
+	CursorExitedEvent  *event.Event
+
 	inputText       string
 	validationFunc  TextInputValidationFunc
 	placeholderText string
@@ -67,6 +76,7 @@ type TextInput struct {
 	previousSubmittedText *string
 	dragStartIndex        int
 	wordSelected          bool // a double click's word, kept while the button is held
+	hovering, pressing    bool // the pointer over the input, the left button pressed on it
 
 	tabOrder int
 	focused  bool
@@ -93,18 +103,33 @@ type TextInputChangedEventArgs struct {
 
 type TextInputChangedHandlerFunc func(args *TextInputChangedEventArgs)
 
+// TextInputImage is a text input's image for each state (see
+// TextInput's stateImage): Idle, Disabled, Hover while hovered or
+// focused, Pressed while the left button pressed on it is held, and
+// PressedHover and PressedDisabled for both; a state without one shows
+// Idle.
 type TextInputImage struct {
 	Idle     *image.NineSlice
 	Disabled *image.NineSlice
 	// Highlight defaults to image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100}).
 	Highlight *image.NineSlice
+
+	Hover           *image.NineSlice
+	Pressed         *image.NineSlice
+	PressedHover    *image.NineSlice
+	PressedDisabled *image.NineSlice
 }
 
+// TextInputColor is a text input's colors: its text Idle, Disabled, also
+// for the placeholder, Hover while hovered and Pressed while the left
+// button pressed on it is held; its caret's.
 type TextInputColor struct {
 	Idle          color.Color
 	Disabled      color.Color
 	Caret         color.Color
 	DisabledCaret color.Color
+	Hover         color.Color
+	Pressed       color.Color
 }
 
 type TextInputValidationFunc func(newInputText string) (bool, *string)
@@ -145,8 +170,14 @@ var textInputKeys = [...]struct {
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t := &TextInput{
-		ChangedEvent: &event.Event{},
-		SubmitEvent:  &event.Event{},
+		ChangedEvent:       &event.Event{},
+		SubmitEvent:        &event.Event{},
+		PressedEvent:       &event.Event{},
+		ReleasedEvent:      &event.Event{},
+		ClickedEvent:       &event.Event{},
+		CursorEnteredEvent: &event.Event{},
+		CursorMovedEvent:   &event.Event{},
+		CursorExitedEvent:  &event.Event{},
 
 		init:          &MultiOnce{},
 		commandToFunc: map[textInputControlCommand]textInputCommandFunc{},
@@ -212,6 +243,8 @@ func (t *TextInput) populateComputedParams() {
 				params.Color.Disabled = theme.TextInputTheme.Color.Disabled
 				params.Color.Caret = theme.TextInputTheme.Color.Caret
 				params.Color.DisabledCaret = theme.TextInputTheme.Color.DisabledCaret
+				params.Color.Hover = theme.TextInputTheme.Color.Hover
+				params.Color.Pressed = theme.TextInputTheme.Color.Pressed
 			}
 			if theme.TextInputTheme.Face != nil {
 				params.Face = theme.TextInputTheme.Face
@@ -223,6 +256,10 @@ func (t *TextInput) populateComputedParams() {
 				params.Image.Idle = theme.TextInputTheme.Image.Idle
 				params.Image.Disabled = theme.TextInputTheme.Image.Disabled
 				params.Image.Highlight = theme.TextInputTheme.Image.Highlight
+				params.Image.Hover = theme.TextInputTheme.Image.Hover
+				params.Image.Pressed = theme.TextInputTheme.Image.Pressed
+				params.Image.PressedHover = theme.TextInputTheme.Image.PressedHover
+				params.Image.PressedDisabled = theme.TextInputTheme.Image.PressedDisabled
 			}
 			params.Padding = theme.TextInputTheme.Padding
 			params.RepeatDelay = theme.TextInputTheme.RepeatDelay
@@ -246,6 +283,8 @@ func (t *TextInput) populateComputedParams() {
 		params.Color.Disabled = t.definedParams.Color.Disabled
 		params.Color.Caret = t.definedParams.Color.Caret
 		params.Color.DisabledCaret = t.definedParams.Color.DisabledCaret
+		params.Color.Hover = t.definedParams.Color.Hover
+		params.Color.Pressed = t.definedParams.Color.Pressed
 	}
 	if t.definedParams.Face != nil {
 		params.Face = t.definedParams.Face
@@ -257,6 +296,10 @@ func (t *TextInput) populateComputedParams() {
 		params.Image.Idle = t.definedParams.Image.Idle
 		params.Image.Disabled = t.definedParams.Image.Disabled
 		params.Image.Highlight = t.definedParams.Image.Highlight
+		params.Image.Hover = t.definedParams.Image.Hover
+		params.Image.Pressed = t.definedParams.Image.Pressed
+		params.Image.PressedHover = t.definedParams.Image.PressedHover
+		params.Image.PressedDisabled = t.definedParams.Image.PressedDisabled
 	}
 	if t.definedParams.Padding != nil {
 		params.Padding = t.definedParams.Padding
@@ -928,11 +971,7 @@ func removeChar(r []rune, pos int) []rune {
 
 func (t *TextInput) renderImage(screen *ebiten.Image) {
 	if t.computedParams.Image != nil && t.computedParams.Image.Idle != nil {
-		i := t.computedParams.Image.Idle
-		if t.widget.Disabled && t.computedParams.Image.Disabled != nil {
-			i = t.computedParams.Image.Disabled
-		}
-
+		i := t.stateImage()
 		rect := t.widget.Rect
 		i.Draw(screen, rect.Dx(), rect.Dy(), func(opts *ebiten.DrawImageOptions) {
 			opts.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
@@ -1007,7 +1046,14 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	if (t.widget.Disabled || len([]rune(t.inputText)) == 0) && t.computedParams.Color.Disabled != nil {
 		t.text.SetColor(t.computedParams.Color.Disabled)
 	} else {
-		t.text.SetColor(t.computedParams.Color.Idle)
+		switch c := t.computedParams.Color; {
+		case t.pressing && c.Pressed != nil:
+			t.text.SetColor(c.Pressed)
+		case t.hovering && c.Hover != nil:
+			t.text.SetColor(c.Hover)
+		default:
+			t.text.SetColor(c.Idle)
+		}
 	}
 	t.text.Render(screen)
 
@@ -1105,7 +1151,7 @@ func (t *TextInput) AddFocus(direction FocusDirection, focus Focuser) {
 /** Focuser Interface - End **/
 
 func (t *TextInput) createWidget() {
-	t.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.widgetOpts...)...)
+	t.widget = NewWidget(append(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.pointerOpts()...), t.widgetOpts...)...)
 	t.widget.focusable = t
 	t.caret = NewCaret()
 	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})

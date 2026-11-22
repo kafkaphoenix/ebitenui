@@ -91,6 +91,7 @@ func (x *TextInput) Composer() *textinput.Composer                      { return
 func (x *TextInput) ComputedParams() *TextInputParams                   { return &x.computedParams }
 func (x *TextInput) CursorPosition() int                                { return x.cursorPosition }
 func (x *TextInput) ImeSession() *textinput.SessionOptions              { return x.imeSession() }
+func (x *TextInput) StateImage() *image.NineSlice                       { return x.stateImage() }
 func (x *TextInput) Text() *Text                                        { return x.text }
 func (x *ToolTip) Content() Containerer                                 { return x.content }
 func (x *Widget) LongPressDuration() int                                { return x.longPressDuration }
