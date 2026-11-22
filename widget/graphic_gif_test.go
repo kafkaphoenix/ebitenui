@@ -1,4 +1,4 @@
-package widget
+package widget_test
 
 import (
 	"image"
@@ -6,6 +6,8 @@ import (
 	"image/gif"
 	"slices"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 )
 
 // A GIF's frames follow their delays, in hundredths of a second, counted
@@ -15,14 +17,14 @@ func TestGraphic_GIFFramesInUpdates(t *testing.T) {
 	frame := func() *image.Paletted {
 		return image.NewPaletted(image.Rect(0, 0, 2, 2), color.Palette{color.Black, color.White})
 	}
-	g := newGraphic(t, GraphicOpts.GIF(&gif.GIF{
+	g := newGraphic(t, widget.GraphicOpts.GIF(&gif.GIF{
 		Image: []*image.Paletted{frame(), frame(), frame()},
 		Delay: []int{5, 10, 5},
 	}))
 	shown := make([]int, 0, 16)
 	for range 16 {
-		g.Update(&UpdateObject{})
-		shown = append(shown, g.gifCurrentImage)
+		g.Update(&widget.UpdateObject{})
+		shown = append(shown, g.GifCurrentImage())
 	}
 	want := []int{0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1}
 	if !slices.Equal(shown, want) {

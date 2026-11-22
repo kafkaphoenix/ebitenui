@@ -1,4 +1,4 @@
-package widget
+package widget_test
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"log"
 	"sync"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
@@ -26,7 +28,7 @@ type ValidatedRenderer interface {
 }
 
 type simpleWidget struct {
-	widget          *Widget
+	widget          *widget.Widget
 	preferredWidth  int
 	preferredHeight int
 }
@@ -36,13 +38,13 @@ var fontFace2 text.Face
 
 func newSimpleWidget(preferredWidth int, preferredHeight int, ld any) *simpleWidget {
 	return &simpleWidget{
-		widget:          NewWidget(WidgetOpts.LayoutData(ld)),
+		widget:          widget.NewWidget(widget.WidgetOpts.LayoutData(ld)),
 		preferredWidth:  preferredWidth,
 		preferredHeight: preferredHeight,
 	}
 }
 
-func (s *simpleWidget) GetWidget() *Widget {
+func (s *simpleWidget) GetWidget() *widget.Widget {
 	return s.widget
 }
 
@@ -91,9 +93,9 @@ func newNineSliceEmpty(t *testing.T) *image.NineSlice {
 	return image.NewNineSliceSimple(newImageEmpty(t), 0, 0)
 }
 
-func leftMouseButtonClick(w HasWidget, t *testing.T) {
+func leftMouseButtonClick(w widget.HasWidget, t *testing.T) {
 	t.Helper()
-	w.GetWidget().MouseButtonClickedEvent.Fire(&MouseButtonClickedEventArgs{
+	w.GetWidget().MouseButtonClickedEvent.Fire(&widget.MouseButtonClickedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,
@@ -103,10 +105,10 @@ func leftMouseButtonClick(w HasWidget, t *testing.T) {
 	event.ExecuteDeferred()
 }
 
-func leftMouseButtonPress(w HasWidget, t *testing.T) {
+func leftMouseButtonPress(w widget.HasWidget, t *testing.T) {
 	t.Helper()
 
-	w.GetWidget().MouseButtonPressedEvent.Fire(&MouseButtonPressedEventArgs{
+	w.GetWidget().MouseButtonPressedEvent.Fire(&widget.MouseButtonPressedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,
@@ -116,10 +118,10 @@ func leftMouseButtonPress(w HasWidget, t *testing.T) {
 	event.ExecuteDeferred()
 }
 
-func leftMouseButtonRelease(w HasWidget, t *testing.T) {
+func leftMouseButtonRelease(w widget.HasWidget, t *testing.T) {
 	t.Helper()
 
-	w.GetWidget().MouseButtonReleasedEvent.Fire(&MouseButtonReleasedEventArgs{
+	w.GetWidget().MouseButtonReleasedEvent.Fire(&widget.MouseButtonReleasedEventArgs{
 		Widget:  w.GetWidget(),
 		Button:  ebiten.MouseButtonLeft,
 		OffsetX: 0,

@@ -1,10 +1,12 @@
-package ebitenui
+package ebitenui_test
 
 import (
 	"bytes"
 	"image"
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -22,10 +24,10 @@ func textTheme(t *testing.T, c color.Color) *widget.Theme {
 	return &widget.Theme{TextTheme: &widget.TextParams{Face: &face, Color: c}}
 }
 
-func newThemedUI(t *testing.T, theme *widget.Theme) *UI {
+func newThemedUI(t *testing.T, theme *widget.Theme) *ebitenui.UI {
 	t.Helper()
 	t.Cleanup(func() { widget.SetUITheme(nil) })
-	ui := &UI{Container: widget.NewContainer(), PrimaryTheme: theme}
+	ui := &ebitenui.UI{Container: widget.NewContainer(), PrimaryTheme: theme}
 	ui.Update()
 	return ui
 }
@@ -56,7 +58,7 @@ func TestUI_WindowAddedBeforeTheFirstUpdate(t *testing.T) {
 	t.Cleanup(func() { widget.SetUITheme(nil) })
 
 	theme := textTheme(t, color.White)
-	ui := &UI{Container: widget.NewContainer(), PrimaryTheme: theme}
+	ui := &ebitenui.UI{Container: widget.NewContainer(), PrimaryTheme: theme}
 	w, label := newTextWindow()
 	ui.AddWindow(w)
 

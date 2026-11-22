@@ -1,10 +1,12 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"image/color"
 	"testing"
 	"time"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/uitest"
@@ -18,28 +20,28 @@ func TestTextToolTip_ThemeFallback(t *testing.T) {
 	is := is.New(t)
 
 	ns := newNineSliceEmpty(t)
-	theme := &Theme{TextTheme: &TextParams{Face: loadFont(t), Color: color.White}, PanelTheme: &PanelParams{BackgroundImage: ns}}
-	looks := func(tip *ToolTip) (*Text, any) {
-		tip.content.GetWidget().SetTheme(theme)
-		tip.content.Validate()
+	theme := &widget.Theme{TextTheme: &widget.TextParams{Face: loadFont(t), Color: color.White}, PanelTheme: &widget.PanelParams{BackgroundImage: ns}}
+	looks := func(tip *widget.ToolTip) (*widget.Text, any) {
+		tip.Content().GetWidget().SetTheme(theme)
+		tip.Content().Validate()
 		var background any // none unless drawn on a themed panel
-		if p, ok := tip.content.(*themedPanel); ok {
-			background = p.computedParams.BackgroundImage
+		if p, ok := tip.Content().(*widget.ThemedPanel); ok {
+			background = p.ComputedParams().BackgroundImage
 		}
-		return tip.content.Children()[0].(*Text), background
+		return tip.Content().Children()[0].(*widget.Text), background
 	}
 
-	txt, background := looks(NewTextToolTip("tip", nil, nil, nil))
-	is.True(txt.computedParams.Face == theme.TextTheme.Face)
-	is.Equal(txt.computedParams.Color, color.White)
+	txt, background := looks(widget.NewTextToolTip("tip", nil, nil, nil))
+	is.True(txt.ComputedParams().Face == theme.TextTheme.Face)
+	is.Equal(txt.ComputedParams().Color, color.White)
 	is.True(background == ns)
 
 	shared := *loadFont(t)
 	var face text.Face = &text.GoTextFace{Source: shared.(*text.GoTextFace).Source, Size: 30}
 	own := newNineSliceEmpty(t)
-	txt, background = looks(NewTextToolTip("tip", &face, color.Black, own))
-	is.True(txt.computedParams.Face == &face)
-	is.Equal(txt.computedParams.Color, color.Black)
+	txt, background = looks(widget.NewTextToolTip("tip", &face, color.Black, own))
+	is.True(txt.ComputedParams().Face == &face)
+	is.Equal(txt.ComputedParams().Color, color.Black)
 	is.True(background == own)
 }
 
@@ -49,20 +51,20 @@ func TestListComboButton_ToolTip(t *testing.T) {
 	is := is.New(t)
 
 	d := uitest.Use(t)
-	tip := NewToolTip(ToolTipOpts.Content(NewContainer()))
-	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
-		ListComboButtonOpts.WidgetOpts(WidgetOpts.ToolTip(tip)))
+	tip := widget.NewToolTip(widget.ToolTipOpts.Content(widget.NewContainer()))
+	l := newListComboButton(t, widget.ListComboButtonOpts.Entries([]any{"a"}), widget.ListComboButtonOpts.EntryLabelFunc(label, label),
+		widget.ListComboButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(tip)))
 	l.SetLocation(img.Rect(0, 0, 100, 30))
 	shown := 0
 	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
-		if a.(*ToolTipEventArgs).Show {
+		if a.(*widget.ToolTipEventArgs).Show {
 			shown++
 		}
 	})
 
 	point(d, 50, 15, false)
 	for range 2 {
-		l.Update(&UpdateObject{})
+		l.Update(&widget.UpdateObject{})
 		event.ExecuteDeferred()
 	}
 	is.Equal(shown, 1)
@@ -74,19 +76,19 @@ func TestListComboButton_ToolTip(t *testing.T) {
 // off starts it over.
 func TestToolTip_DelayInUpdates(t *testing.T) {
 	d := uitest.Use(t)
-	tip := NewToolTip(ToolTipOpts.Content(NewContainer()), ToolTipOpts.Delay(500*time.Millisecond))
-	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
-		ListComboButtonOpts.WidgetOpts(WidgetOpts.ToolTip(tip)))
+	tip := widget.NewToolTip(widget.ToolTipOpts.Content(widget.NewContainer()), widget.ToolTipOpts.Delay(500*time.Millisecond))
+	l := newListComboButton(t, widget.ListComboButtonOpts.Entries([]any{"a"}), widget.ListComboButtonOpts.EntryLabelFunc(label, label),
+		widget.ListComboButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(tip)))
 	l.SetLocation(img.Rect(0, 0, 100, 30))
 	shown := 0
 	l.GetWidget().ToolTipEvent.AddHandler(func(a any) {
-		if a.(*ToolTipEventArgs).Show {
+		if a.(*widget.ToolTipEventArgs).Show {
 			shown++
 		}
 	})
 	update := func(n int) int {
 		for range n {
-			l.Update(&UpdateObject{})
+			l.Update(&widget.UpdateObject{})
 			event.ExecuteDeferred()
 		}
 		return shown

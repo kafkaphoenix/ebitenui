@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -14,19 +16,19 @@ import (
 // absent mouse points, counting its clicks and context menus opened, on a
 // touch screen or a desktop with one, and step, which runs an update with
 // the fingers given down.
-func touchButton(t *testing.T, touchscreen bool) (b *Button, clicks, menus *int, step func(fingers ...img.Point)) {
+func touchButton(t *testing.T, touchscreen bool) (b *widget.Button, clicks, menus *int, step func(fingers ...img.Point)) {
 	t.Helper()
 	d := uitest.Use(t)
 	d.Touchscreen = touchscreen
 	clicks, menus = new(int), new(int)
-	b = newButton(t, ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { *clicks++ }),
-		ButtonOpts.WidgetOpts(WidgetOpts.ContextMenu(NewContainer())))
+	b = newButton(t, widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { *clicks++ }),
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ContextMenu(widget.NewContainer())))
 	b.SetLocation(img.Rect(20, 20, 120, 60))
 	b.GetWidget().ContextMenuEvent.AddHandler(func(any) { *menus++ })
 	step = func(fingers ...img.Point) {
 		d.Touches = fingers
 		input.Update()
-		b.Update(&UpdateObject{})
+		b.Update(&widget.UpdateObject{})
 		input.AfterUpdate()
 		event.ExecuteDeferred()
 	}
@@ -50,11 +52,11 @@ func TestTouch_TapLeavesNoHover(t *testing.T) {
 	step(at)
 	step() // lifted: released where it was
 	is.Equal(*clicks, 1)
-	is.True(b.hovering) // the pointer over it, up
-	step()              // the next update
+	is.True(b.Hovering()) // the pointer over it, up
+	step()                // the next update
 	x, y := input.CursorPosition()
 	is.Equal([]int{x, y}, []int{-1, -1})
-	is.True(!b.hovering)
+	is.True(!b.Hovering())
 	is.Equal(*menus, 0)
 }
 
@@ -66,19 +68,19 @@ func TestTouch_LongPress(t *testing.T) {
 
 	b, clicks, menus, step := touchButton(t, true)
 	at := img.Pt(70, 40)
-	for range b.GetWidget().longPressDuration + 1 {
+	for range b.GetWidget().LongPressDuration() + 1 {
 		step(at)
 	}
 	is.Equal(*menus, 1)
 	step()
 	step()
 	is.Equal(*clicks, 0)
-	is.True(b.hovering) // still hovered
+	is.True(b.Hovering()) // still hovered
 
 	step(at) // the next touch, a tap on it
 	step()
 	step()
-	is.True(!b.hovering)
+	is.True(!b.Hovering())
 	is.Equal(*clicks, 1)
 }
 
@@ -90,7 +92,7 @@ func TestTouch_SecondFingerCancels(t *testing.T) {
 	b, clicks, menus, step := touchButton(t, true)
 	at, other := img.Pt(70, 40), img.Pt(100, 50)
 	step(at)
-	for range b.GetWidget().longPressDuration + 1 {
+	for range b.GetWidget().LongPressDuration() + 1 {
 		step(at, other)
 	}
 	step(at) // one lifts first
@@ -110,17 +112,17 @@ func TestTouch_MouseLongPressUnchanged(t *testing.T) {
 
 	d := uitest.Use(t)
 	clicks, menus := 0, 0
-	b := newButton(t, ButtonOpts.ClickedHandler(func(*ButtonClickedEventArgs) { clicks++ }),
-		ButtonOpts.WidgetOpts(WidgetOpts.ContextMenu(NewContainer())))
+	b := newButton(t, widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { clicks++ }),
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ContextMenu(widget.NewContainer())))
 	b.SetLocation(img.Rect(0, 0, 100, 40))
 	b.GetWidget().ContextMenuEvent.AddHandler(func(any) { menus++ })
-	for range b.GetWidget().longPressDuration + 2 {
+	for range b.GetWidget().LongPressDuration() + 2 {
 		point(d, 50, 20, true)
-		b.Update(&UpdateObject{})
+		b.Update(&widget.UpdateObject{})
 		event.ExecuteDeferred()
 	}
 	point(d, 50, 20, false)
-	b.Update(&UpdateObject{})
+	b.Update(&widget.UpdateObject{})
 	event.ExecuteDeferred()
 	is.Equal(menus, 0)
 	is.Equal(clicks, 1)

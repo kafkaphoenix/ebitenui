@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -13,7 +15,7 @@ import (
 func TestScrollContainer_ScrollVisible(t *testing.T) {
 	is := is.New(t)
 
-	content := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Direction(DirectionVertical))))
+	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))))
 	rows := make([]*simpleWidget, 0, 10)
 	for range 10 {
 		r := newSimpleWidget(50, 20, nil)
@@ -21,7 +23,7 @@ func TestScrollContainer_ScrollVisible(t *testing.T) {
 		content.AddChild(r)
 	}
 	ns := newNineSliceEmpty(t)
-	s := NewScrollContainer(ScrollContainerOpts.Content(content), ScrollContainerOpts.Image(&ScrollContainerImage{Idle: ns, Mask: ns}))
+	s := widget.NewScrollContainer(widget.ScrollContainerOpts.Content(content), widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{Idle: ns, Mask: ns}))
 	s.SetLocation(img.Rect(0, 0, 50, 50)) // a view of 2.5 rows over 10
 	render(s, t)
 
@@ -56,24 +58,24 @@ func TestScrollContainer_ThemeImages(t *testing.T) {
 	is := is.New(t)
 
 	ns := newNineSliceEmpty(t)
-	dark := &Theme{ListTheme: &ListParams{ScrollContainerImage: &ScrollContainerImage{Idle: ns, Mask: ns}}}
-	light := &Theme{ListTheme: &ListParams{ScrollContainerImage: &ScrollContainerImage{Idle: ns, Mask: ns}}}
-	images := func(s *ScrollContainer, theme *Theme) *ScrollContainerImage {
+	dark := &widget.Theme{ListTheme: &widget.ListParams{ScrollContainerImage: &widget.ScrollContainerImage{Idle: ns, Mask: ns}}}
+	light := &widget.Theme{ListTheme: &widget.ListParams{ScrollContainerImage: &widget.ScrollContainerImage{Idle: ns, Mask: ns}}}
+	images := func(s *widget.ScrollContainer, theme *widget.Theme) *widget.ScrollContainerImage {
 		s.GetWidget().SetTheme(theme)
 		s.Validate()
-		return s.image
+		return s.Image()
 	}
 
-	s := NewScrollContainer(ScrollContainerOpts.Content(NewContainer()))
+	s := widget.NewScrollContainer(widget.ScrollContainerOpts.Content(widget.NewContainer()))
 	is.True(images(s, dark) == dark.ListTheme.ScrollContainerImage)
 	is.True(images(s, light) == light.ListTheme.ScrollContainerImage)
 
-	own := &ScrollContainerImage{Idle: ns, Mask: ns}
-	s = NewScrollContainer(ScrollContainerOpts.Content(NewContainer()), ScrollContainerOpts.Image(own))
+	own := &widget.ScrollContainerImage{Idle: ns, Mask: ns}
+	s = widget.NewScrollContainer(widget.ScrollContainerOpts.Content(widget.NewContainer()), widget.ScrollContainerOpts.Image(own))
 	is.True(images(s, dark) == own)
 
 	defer func() { is.True(recover() != nil) }() // neither
-	NewScrollContainer(ScrollContainerOpts.Content(NewContainer())).Validate()
+	widget.NewScrollContainer(widget.ScrollContainerOpts.Content(widget.NewContainer())).Validate()
 }
 
 // Validated again, as on a theme change, a scroll container still forwards
@@ -82,8 +84,8 @@ func TestScrollContainer_ForwardsEventsOnce(t *testing.T) {
 	is := is.New(t)
 
 	ns := newNineSliceEmpty(t)
-	content := NewContainer()
-	s := NewScrollContainer(ScrollContainerOpts.Content(content), ScrollContainerOpts.Image(&ScrollContainerImage{Idle: ns, Mask: ns}))
+	content := widget.NewContainer()
+	s := widget.NewScrollContainer(widget.ScrollContainerOpts.Content(content), widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{Idle: ns, Mask: ns}))
 	forwarded := 0
 	s.GetWidget().ToolTipEvent.AddHandler(func(any) { forwarded++ })
 	for range 3 {

@@ -1,10 +1,12 @@
-package widget
+package widget_test
 
 import (
 	"image/color"
 	"math"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -23,15 +25,15 @@ func TestTextInput_CaretAtDrawnGlyphs(t *testing.T) {
 	s := "To Wa AV"
 	for _, g := range text.AppendLazyGlyphs(nil, s, *face, nil) {
 		p := utf8.RuneCountInString(s[:g.StartIndexInBytes])
-		is.Equal(fontAdvanceAt(s, p, face), int(math.Round(g.OriginX))) // caret before the rune
+		is.Equal(widget.FontAdvanceAt(s, p, face), int(math.Round(g.OriginX))) // caret before the rune
 	}
 }
 
 func TestTextInput_ChangedEvent(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *TextInputChangedEventArgs
-	ti := newTextInput(t, TextInputOpts.ChangedHandler(func(args *TextInputChangedEventArgs) {
+	var eventArgs *widget.TextInputChangedEventArgs
+	ti := newTextInput(t, widget.TextInputOpts.ChangedHandler(func(args *widget.TextInputChangedEventArgs) {
 		eventArgs = args
 	}))
 
@@ -45,7 +47,7 @@ func TestTextInput_ChangedEvent_OnlyOnce(t *testing.T) {
 	is := is.New(t)
 
 	numEvents := 0
-	ti := newTextInput(t, TextInputOpts.ChangedHandler(func(_ *TextInputChangedEventArgs) {
+	ti := newTextInput(t, widget.TextInputOpts.ChangedHandler(func(_ *widget.TextInputChangedEventArgs) {
 		numEvents++
 	}))
 
@@ -61,12 +63,12 @@ func TestTextInput_DoBackspace(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.SetText("foo")
-	ti.lastInputText = ti.GetText()
-	ti.cursorPosition = 1
+	ti.SetLastInputText(ti.GetText())
+	ti.SetCursorPosition(1)
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(args any) {
-		if arg, ok := args.(*TextInputChangedEventArgs); ok {
+		if arg, ok := args.(*widget.TextInputChangedEventArgs); ok {
 			is.Equal(arg.InputText, "oo")
 		}
 	})
@@ -81,7 +83,7 @@ func TestTextInput_DoBackspace_Disabled(t *testing.T) {
 	ti := newTextInput(t)
 	ti.GetWidget().Disabled = true
 	ti.SetText("foo")
-	ti.cursorPosition = 1
+	ti.SetCursorPosition(1)
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(_ any) {
@@ -100,7 +102,7 @@ func TestTextInput_DoDelete(t *testing.T) {
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(args any) {
-		if arg, ok := args.(*TextInputChangedEventArgs); ok {
+		if arg, ok := args.(*widget.TextInputChangedEventArgs); ok {
 			is.Equal(arg.InputText, "oo")
 		}
 	})
@@ -130,14 +132,14 @@ func TestTextInput_DoInsert(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.SetText("foo")
-	ti.lastInputText = ti.GetText()
-	ti.cursorPosition = 1
+	ti.SetLastInputText(ti.GetText())
+	ti.SetCursorPosition(1)
 	render(ti, t)
 
 	ti.Insert("ab€c")
 
 	is.Equal(ti.GetText(), "fab€coo")
-	is.Equal(ti.cursorPosition, 5)
+	is.Equal(ti.CursorPosition(), 5)
 }
 
 // Typed characters go in, except while Control is held, as the input package
@@ -158,16 +160,16 @@ func TestTextInput_TypingWithControlHeld(t *testing.T) {
 		d.Keys[ebiten.KeyControl] = s.control
 		input.Update()
 		typeChars(t, "a")
-		ti.Update(&UpdateObject{})
+		ti.Update(&widget.UpdateObject{})
 		input.AfterUpdate()
 		is.Equal([]any{i, ti.GetText()}, []any{i, s.text})
 	}
 }
 
-func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {
-	ti := NewTextInput(append(opts, []TextInputOpt{
-		TextInputOpts.Face(loadFont(t)),
-		TextInputOpts.Color(&TextInputColor{
+func newTextInput(t *testing.T, opts ...widget.TextInputOpt) *widget.TextInput {
+	ti := widget.NewTextInput(append(opts, []widget.TextInputOpt{
+		widget.TextInputOpts.Face(loadFont(t)),
+		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:     color.White,
 			Disabled: color.White,
 			Caret:    color.White,

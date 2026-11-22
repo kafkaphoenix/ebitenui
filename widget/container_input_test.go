@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/matryer/is"
@@ -12,7 +14,7 @@ import (
 func TestContainer_SetupInputLayerAllocatesNothing(t *testing.T) {
 	is := is.New(t)
 
-	c := NewContainer()
+	c := widget.NewContainer()
 	for range 10 {
 		c.AddChild(newSimpleWidget(10, 10, nil))
 	}

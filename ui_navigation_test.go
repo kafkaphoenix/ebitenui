@@ -1,10 +1,12 @@
-package ebitenui
+package ebitenui_test
 
 import (
 	"image"
 	"image/color"
 	"testing"
 	"time"
+
+	"github.com/ebitenui/ebitenui"
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
@@ -29,7 +31,7 @@ func focusSlider(rect image.Rectangle) *widget.Slider {
 
 // navigationUI returns a UI with GamepadFocus on over widgets, drawn once so
 // they are laid out, with its devices (useDevices).
-func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget) (ui *UI, d *uitest.Devices, press func(any)) {
+func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget) (ui *ebitenui.UI, d *uitest.Devices, press func(any)) {
 	t.Helper()
 	ui = focusUI(widgets...)
 	ui.GamepadFocus = true
@@ -40,7 +42,7 @@ func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget)
 // useDevices draws ui once, so its widgets are laid out, and returns
 // devices with one gamepad. press holds a key or a gamepad button for two
 // updates of ui, then lets go for one.
-func useDevices(t *testing.T, ui *UI) (d *uitest.Devices, press func(any)) {
+func useDevices(t *testing.T, ui *ebitenui.UI) (d *uitest.Devices, press func(any)) {
 	t.Helper()
 	ui.Draw(ebiten.NewImage(200, 200))
 	d = uitest.Use(t)
@@ -259,7 +261,7 @@ func TestUI_OnScreenKeyboard(t *testing.T) {
 
 	press(ebiten.StandardGamepadButtonRightRight)
 	is.True(ui.GetFocusedWidget() == ti) // closed, the focus back
-	is.True(!k.IsOpen() && !ui.IsWindowOpen(ui.keyboardWindow))
+	is.True(!k.IsOpen() && !ui.IsWindowOpen(ui.KeyboardWindow()))
 	is.Equal(submits, 1)
 	is.Equal(backs, 0)
 

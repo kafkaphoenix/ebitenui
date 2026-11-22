@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	img "image"
 	"strings"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/ebitenui/ebitenui/uitest"
@@ -23,24 +25,24 @@ type imeStub struct {
 func stubIME(t *testing.T) *imeStub {
 	t.Helper()
 	s := &imeStub{}
-	oldUpdate, oldEnd := imeUpdate, imeEnd
-	imeUpdate = func(*textinput.Composer) (bool, error) { s.updates++; return s.handled, nil }
-	imeEnd = func(_ *textinput.Composer, commit bool) { s.ends = append(s.ends, commit) }
-	t.Cleanup(func() { imeUpdate, imeEnd = oldUpdate, oldEnd })
+	t.Cleanup(widget.UseIME(
+		func(*textinput.Composer) (bool, error) { s.updates++; return s.handled, nil },
+		func(_ *textinput.Composer, commit bool) { s.ends = append(s.ends, commit) },
+	))
 	return s
 }
 
 // placedInput returns an input taking its text through the IME, 200 by 30
 // px at the origin.
-func placedInput(t *testing.T, opts ...TextInputOpt) *TextInput {
+func placedInput(t *testing.T, opts ...widget.TextInputOpt) *widget.TextInput {
 	t.Helper()
-	ti := newTextInput(t, append(opts, TextInputOpts.IME())...)
+	ti := newTextInput(t, append(opts, widget.TextInputOpts.IME())...)
 	ti.SetLocation(img.Rect(0, 0, 200, 30))
 	return ti
 }
 
 // drawInput draws ti on a screen its size, without validating it again.
-func drawInput(ti *TextInput) {
+func drawInput(ti *widget.TextInput) {
 	ti.Render(ebiten.NewImage(200, 30))
 }
 
@@ -60,15 +62,15 @@ func typeChars(t *testing.T, s string) {
 func TestTextInput_IMECommit(t *testing.T) {
 	is := is.New(t)
 
-	ti := newTextInput(t, TextInputOpts.IME())
+	ti := newTextInput(t, widget.TextInputOpts.IME())
 	ti.SetText("foo")
-	ti.cursorPosition = 1
+	ti.SetCursorPosition(1)
 
-	ti.commitIME("ab", false, "", "")
+	ti.CommitIME("ab", false, "", "")
 	is.Equal(ti.GetText(), "faboo")
-	is.Equal(ti.cursorPosition, 3) // after what was committed
+	is.Equal(ti.CursorPosition(), 3) // after what was committed
 
-	ti.commitIME("x\r\ny", false, "", "")
+	ti.CommitIME("x\r\ny", false, "", "")
 	is.Equal(ti.GetText(), "fabxyoo") // line breaks dropped
 }
 
@@ -77,17 +79,17 @@ func TestTextInput_IMECommit(t *testing.T) {
 func TestTextInput_IMEReplacesSurroundings(t *testing.T) {
 	is := is.New(t)
 
-	ti := newTextInput(t, TextInputOpts.IME(), TextInputOpts.Validation(func(s string) (bool, *string) {
+	ti := newTextInput(t, widget.TextInputOpts.IME(), widget.TextInputOpts.Validation(func(s string) (bool, *string) {
 		return !strings.Contains(s, "!"), nil
 	}))
 	ti.SetText("abcd")
-	ti.cursorPosition = 2
+	ti.SetCursorPosition(2)
 
-	ti.commitIME("X", true, "a", "d")
+	ti.CommitIME("X", true, "a", "d")
 	is.Equal(ti.GetText(), "aXd")
-	is.Equal(ti.cursorPosition, 2)
+	is.Equal(ti.CursorPosition(), 2)
 
-	ti.commitIME("!", true, "", "")
+	ti.CommitIME("!", true, "", "")
 	is.Equal(ti.GetText(), "aXd") // refused
 }
 
@@ -98,23 +100,23 @@ func TestTextInput_IMEComposition(t *testing.T) {
 
 	ti := placedInput(t)
 	ti.SetText("foo")
-	ti.cursorPosition = 1
+	ti.SetCursorPosition(1)
 	ti.Focus(true)
-	ti.compose("かな", len("か"))
+	ti.Compose("かな", len("か"))
 	drawInput(ti)
 
-	is.Equal(ti.text.Label, "fかなoo")
-	is.Equal(ti.caretRect.Min.X-ti.text.GetWidget().Rect.Min.X, fontAdvanceAt("fかなoo", 2, ti.computedParams.Face)) // after "fか"
-	is.True(ti.caretRect.Dy() > 0)
+	is.Equal(ti.Text().Label, "fかなoo")
+	is.Equal(ti.CaretRect().Min.X-ti.Text().GetWidget().Rect.Min.X, widget.FontAdvanceAt("fかなoo", 2, ti.ComputedParams().Face)) // after "fか"
+	is.True(ti.CaretRect().Dy() > 0)
 
-	o := ti.imeSession()
-	is.Equal(o.CaretBounds, ti.caretRect)
+	o := ti.ImeSession()
+	is.Equal(o.CaretBounds, ti.CaretRect())
 	is.Equal(o.TextBeforeCaret, "f")
 	is.Equal(o.TextAfterCaret, "oo")
 
-	ti.compose("", 0)
+	ti.Compose("", 0)
 	drawInput(ti)
-	is.Equal(ti.text.Label, "foo") // gone when the IME clears it
+	is.Equal(ti.Text().Label, "foo") // gone when the IME clears it
 }
 
 // A secure input shows the composition as stars too, and keeps its text
@@ -122,15 +124,15 @@ func TestTextInput_IMEComposition(t *testing.T) {
 func TestTextInput_IMESecure(t *testing.T) {
 	is := is.New(t)
 
-	ti := placedInput(t, TextInputOpts.Secure(true))
+	ti := placedInput(t, widget.TextInputOpts.Secure(true))
 	ti.SetText("pw")
-	ti.cursorPosition = 1
+	ti.SetCursorPosition(1)
 	ti.Focus(true)
-	ti.compose("ab", 0)
+	ti.Compose("ab", 0)
 	drawInput(ti)
 
-	is.Equal(ti.text.Label, "****")
-	o := ti.imeSession()
+	is.Equal(ti.Text().Label, "****")
+	o := ti.ImeSession()
 	is.Equal(o.TextBeforeCaret+o.TextAfterCaret, "")
 }
 
@@ -139,7 +141,7 @@ func TestTextInput_IMESecure(t *testing.T) {
 func TestTextInput_IMEKeys(t *testing.T) {
 	is := is.New(t)
 
-	ti := newTextInput(t, TextInputOpts.IME())
+	ti := newTextInput(t, widget.TextInputOpts.IME())
 	ti.SetText("foo")
 	ti.Focus(true)
 	ime := stubIME(t)
@@ -147,12 +149,12 @@ func TestTextInput_IMEKeys(t *testing.T) {
 	typeChars(t, "x")
 
 	ime.handled = true
-	ti.Update(&UpdateObject{})
+	ti.Update(&widget.UpdateObject{})
 	is.Equal(ti.GetText(), "foo") // the IME took the key
 	is.Equal(ime.updates, 1)
 
 	ime.handled = false
-	ti.Update(&UpdateObject{})
+	ti.Update(&widget.UpdateObject{})
 	is.Equal(ti.GetText(), "fo")     // Backspace, and no "x"
 	is.Equal(ime.ends, []bool{true}) // committed first
 }
@@ -171,13 +173,13 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 	d := uitest.Use(t)
 	point(d, r.Min.X+1, r.Min.Y+r.Dy()/2, true) // a press in the input
 
-	ti.Update(&UpdateObject{})
+	ti.Update(&widget.UpdateObject{})
 	is.Equal(ime.ends, []bool{true}) // before the caret moved
-	is.Equal(ti.cursorPosition, 0)
+	is.Equal(ti.CursorPosition(), 0)
 
 	point(d, 0, 0, false)
 	ti.GetWidget().Disabled = true
-	ti.Update(&UpdateObject{})
+	ti.Update(&widget.UpdateObject{})
 	is.Equal(ime.updates, 1)                // not asked while disabled
 	is.Equal(ime.ends, []bool{true, false}) // canceled
 
@@ -192,8 +194,8 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 func TestTextInput_IMEEndByUser(t *testing.T) {
 	is := is.New(t)
 
-	ti := newTextInput(t, TextInputOpts.IME())
+	ti := newTextInput(t, widget.TextInputOpts.IME())
 	ti.Focus(true)
-	ti.composer.OnEndByUser()
+	ti.Composer().OnEndByUser()
 	is.True(!ti.IsFocused())
 }

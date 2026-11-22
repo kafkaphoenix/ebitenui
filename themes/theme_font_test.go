@@ -1,7 +1,9 @@
-package themes
+package themes_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/themes"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -19,8 +21,8 @@ func TestThemesShareTheirFont(t *testing.T) {
 		}
 		return f.Source
 	}
-	dark, light := source(GetBasicDarkTheme()), source(GetBasicLightTheme())
-	if dark != light || source(GetBasicDarkThemeWith(Rounded(4))) != dark {
+	dark, light := source(themes.GetBasicDarkTheme()), source(themes.GetBasicLightTheme())
+	if dark != light || source(themes.GetBasicDarkThemeWith(themes.Rounded(4))) != dark {
 		t.Error("the basic themes parse Go Regular each, want one shared source")
 	}
 }

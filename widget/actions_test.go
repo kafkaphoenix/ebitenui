@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -11,8 +13,8 @@ import (
 )
 
 // given returns actions giving acts.
-func given(acts ...Action) *Actions {
-	a := &Actions{}
+func given(acts ...widget.Action) *widget.Actions {
+	a := &widget.Actions{}
 	for _, act := range acts {
 		a.Give(act)
 	}
@@ -28,39 +30,39 @@ func label(e any) string { return e.(string) }
 func TestList_TakesActions(t *testing.T) {
 	is := is.New(t)
 
-	l := newList(t, ListOpts.Entries([]any{"a", "b", "c"}), ListOpts.EntryLabelFunc(label))
-	a := given(ActionDown)
-	l.Update(&UpdateObject{Actions: a})
-	is.True(a.Left(ActionDown)) // not focused
+	l := newList(t, widget.ListOpts.Entries([]any{"a", "b", "c"}), widget.ListOpts.EntryLabelFunc(label))
+	a := given(widget.ActionDown)
+	l.Update(&widget.UpdateObject{Actions: a})
+	is.True(a.Left(widget.ActionDown)) // not focused
 
 	l.Focus(true)
 	for i, s := range []struct {
-		act   Action
+		act   widget.Action
 		taken bool
 		at    int
 	}{
-		{ActionUp, false, 0}, // the first entry: left
-		{ActionDown, true, 1},
-		{ActionDown, true, 2},
-		{ActionDown, false, 2}, // the last: left
-		{ActionUp, true, 1},
+		{widget.ActionUp, false, 0}, // the first entry: left
+		{widget.ActionDown, true, 1},
+		{widget.ActionDown, true, 2},
+		{widget.ActionDown, false, 2}, // the last: left
+		{widget.ActionUp, true, 1},
 	} {
 		step := given(s.act)
-		l.Update(&UpdateObject{Actions: step})
-		is.Equal([]any{i, !step.Left(s.act), l.focusIndex}, []any{i, s.taken, s.at})
+		l.Update(&widget.UpdateObject{Actions: step})
+		is.Equal([]any{i, !step.Left(s.act), l.FocusIndex()}, []any{i, s.taken, s.at})
 	}
 
-	a = given(ActionActivate)
-	l.Update(&UpdateObject{Actions: a})
+	a = given(widget.ActionActivate)
+	l.Update(&widget.UpdateObject{Actions: a})
 	event.ExecuteDeferred()
-	is.True(!a.Left(ActionActivate))
+	is.True(!a.Left(widget.ActionActivate))
 	is.Equal(l.SelectedEntry(), "b")
 
-	off := newList(t, ListOpts.Entries([]any{"a", "b"}), ListOpts.EntryLabelFunc(label), ListOpts.DisableDefaultKeys(true))
+	off := newList(t, widget.ListOpts.Entries([]any{"a", "b"}), widget.ListOpts.EntryLabelFunc(label), widget.ListOpts.DisableDefaultKeys(true))
 	off.Focus(true)
-	a = given(ActionDown, ActionActivate)
-	off.Update(&UpdateObject{Actions: a})
-	is.True(a.Left(ActionDown) && a.Left(ActionActivate)) // default keys off
+	a = given(widget.ActionDown, widget.ActionActivate)
+	off.Update(&widget.UpdateObject{Actions: a})
+	is.True(a.Left(widget.ActionDown) && a.Left(widget.ActionActivate)) // default keys off
 }
 
 // A focused slider moves its handle a page with the two directions of its
@@ -70,21 +72,21 @@ func TestSlider_TakesActions(t *testing.T) {
 	is := is.New(t)
 
 	for _, c := range []struct {
-		dir               Direction
-		less, more, other Action
+		dir               widget.Direction
+		less, more, other widget.Action
 	}{
-		{DirectionHorizontal, ActionLeft, ActionRight, ActionUp},
-		{DirectionVertical, ActionUp, ActionDown, ActionRight},
+		{widget.DirectionHorizontal, widget.ActionLeft, widget.ActionRight, widget.ActionUp},
+		{widget.DirectionVertical, widget.ActionUp, widget.ActionDown, widget.ActionRight},
 	} {
-		s := newSlider(t, SliderOpts.Direction(c.dir), SliderOpts.MinMax(0, 20), SliderOpts.InitialCurrent(0),
-			SliderOpts.PageSizeFunc(func() int { return 10 }))
+		s := newSlider(t, widget.SliderOpts.Direction(c.dir), widget.SliderOpts.MinMax(0, 20), widget.SliderOpts.InitialCurrent(0),
+			widget.SliderOpts.PageSizeFunc(func() int { return 10 }))
 		a := given(c.more)
-		s.Update(&UpdateObject{Actions: a})
+		s.Update(&widget.UpdateObject{Actions: a})
 		is.True(a.Left(c.more)) // not focused
 
 		s.Focus(true)
 		for i, step := range []struct {
-			act     Action
+			act     widget.Action
 			taken   bool
 			current int
 		}{
@@ -95,21 +97,21 @@ func TestSlider_TakesActions(t *testing.T) {
 			{c.other, false, 10},
 		} {
 			a := given(step.act)
-			s.Update(&UpdateObject{Actions: a})
+			s.Update(&widget.UpdateObject{Actions: a})
 			is.Equal([]any{c.dir, i, !a.Left(step.act), s.Current}, []any{c.dir, i, step.taken, step.current}) // within its range before it draws
 		}
 	}
 
-	off := newSlider(t, SliderOpts.DisableDefaultKeys(true))
+	off := newSlider(t, widget.SliderOpts.DisableDefaultKeys(true))
 	off.Focus(true)
-	a := given(ActionRight)
-	off.Update(&UpdateObject{Actions: a})
-	is.True(a.Left(ActionRight))
+	a := given(widget.ActionRight)
+	off.Update(&widget.UpdateObject{Actions: a})
+	is.True(a.Left(widget.ActionRight))
 
-	early := NewSlider() // focused before its first layout
+	early := widget.NewSlider() // focused before its first layout
 	early.Focus(true)
-	early.Update(&UpdateObject{Actions: a})
-	is.True(a.Left(ActionRight))
+	early.Update(&widget.UpdateObject{Actions: a})
+	is.True(a.Left(widget.ActionRight))
 }
 
 // A focused list combo button opens with Activate. Open, its list takes Up,
@@ -119,42 +121,42 @@ func TestSlider_TakesActions(t *testing.T) {
 func TestListComboButton_TakesActions(t *testing.T) {
 	is := is.New(t)
 
-	l := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a", "b", "c"}), ListComboButtonOpts.EntryLabelFunc(label, label))
-	update := func(acts ...Action) *Actions { // drawn without validating, which closes it
+	l := newListComboButton(t, widget.ListComboButtonOpts.Entries([]any{"a", "b", "c"}), widget.ListComboButtonOpts.EntryLabelFunc(label, label))
+	update := func(acts ...widget.Action) *widget.Actions { // drawn without validating, which closes it
 		a := given(acts...)
-		l.Update(&UpdateObject{Actions: a})
+		l.Update(&widget.UpdateObject{Actions: a})
 		l.Render(ebiten.NewImage(1, 1))
 		event.ExecuteDeferred()
 		return a
 	}
-	a := update(ActionActivate)
-	is.True(a.Left(ActionActivate) && !l.ContentVisible()) // not focused
+	a := update(widget.ActionActivate)
+	is.True(a.Left(widget.ActionActivate) && !l.ContentVisible()) // not focused
 
 	l.Focus(true)
-	a = update(ActionDown)
-	is.True(a.Left(ActionDown) && !l.ContentVisible()) // closed: left
+	a = update(widget.ActionDown)
+	is.True(a.Left(widget.ActionDown) && !l.ContentVisible()) // closed: left
 
-	a = update(ActionActivate)
-	is.True(!a.Left(ActionActivate) && l.ContentVisible()) // opens
+	a = update(widget.ActionActivate)
+	is.True(!a.Left(widget.ActionActivate) && l.ContentVisible()) // opens
 
 	for i := range 3 { // to the last entry, and once more
-		a = update(ActionDown)
-		is.Equal([]any{i, a.Left(ActionDown)}, []any{i, false})
+		a = update(widget.ActionDown)
+		is.Equal([]any{i, a.Left(widget.ActionDown)}, []any{i, false})
 	}
-	a = update(ActionLeft)
-	is.True(!a.Left(ActionLeft)) // open: no direction leaves it
+	a = update(widget.ActionLeft)
+	is.True(!a.Left(widget.ActionLeft)) // open: no direction leaves it
 
-	a = update(ActionActivate)
-	is.True(!a.Left(ActionActivate))
+	a = update(widget.ActionActivate)
+	is.True(!a.Left(widget.ActionActivate))
 	is.Equal(l.SelectedEntry(), "c")
 	is.True(!l.ContentVisible()) // selected and closed
 
-	a = update(ActionBack)
-	is.True(a.Left(ActionBack)) // closed: Back is the UI's
-	update(ActionActivate)
-	a = update(ActionBack)
-	is.True(!a.Left(ActionBack) && !l.ContentVisible()) // open: Back closes it
-	is.Equal(l.SelectedEntry(), "c")                    // choosing nothing
+	a = update(widget.ActionBack)
+	is.True(a.Left(widget.ActionBack)) // closed: Back is the UI's
+	update(widget.ActionActivate)
+	a = update(widget.ActionBack)
+	is.True(!a.Left(widget.ActionBack) && !l.ContentVisible()) // open: Back closes it
+	is.Equal(l.SelectedEntry(), "c")                           // choosing nothing
 
 	d := uitest.Use(t)
 	d.Keys[ebiten.KeyArrowDown] = true
@@ -166,10 +168,10 @@ func TestListComboButton_TakesActions(t *testing.T) {
 		l.SetContentVisible(false)
 	}
 
-	off := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label),
-		ListComboButtonOpts.DisableDefaultKeys(true))
+	off := newListComboButton(t, widget.ListComboButtonOpts.Entries([]any{"a"}), widget.ListComboButtonOpts.EntryLabelFunc(label, label),
+		widget.ListComboButtonOpts.DisableDefaultKeys(true))
 	off.Focus(true)
-	a = given(ActionActivate)
-	off.Update(&UpdateObject{Actions: a})
-	is.True(a.Left(ActionActivate) && !off.ContentVisible()) // default keys off
+	a = given(widget.ActionActivate)
+	off.Update(&widget.UpdateObject{Actions: a})
+	is.True(a.Left(widget.ActionActivate) && !off.ContentVisible()) // default keys off
 }

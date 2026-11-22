@@ -47,6 +47,8 @@ Testing
 ------
 Package `uitest` plays a user on an interface in tests: it stands in for the mouse, the keyboard, the gamepads and the touch screen, and runs the interface frame by frame, so a test presses where a player would. Each test starts as a new window does, with nothing hovered and no input layers, whatever the test before it left.
 
+The library's own tests are external packages (`package widget_test`); what they reach inside a package is in its `export_test.go`.
+
 ```go
 ui := &ebitenui.UI{Container: root}
 drv := uitest.New(t, 640, 480, ui.Update, ui.Draw)

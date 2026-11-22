@@ -1,9 +1,11 @@
-package widget
+package widget_test
 
 import (
 	"image"
 	"testing"
 	"time"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/uitest"
@@ -11,16 +13,16 @@ import (
 )
 
 // holdKey holds key down over n updates of a text input, as frames do.
-func holdKey(ti *TextInput, d *uitest.Devices, key ebiten.Key, n int) {
+func holdKey(ti *widget.TextInput, d *uitest.Devices, key ebiten.Key, n int) {
 	d.Keys[key] = true
 	for range n {
 		input.Update()
-		ti.Update(&UpdateObject{})
+		ti.Update(&widget.UpdateObject{})
 		input.AfterUpdate()
 	}
 	d.Keys[key] = false
 	input.Update()
-	ti.Update(&UpdateObject{})
+	ti.Update(&widget.UpdateObject{})
 	input.AfterUpdate()
 }
 
@@ -30,7 +32,7 @@ func holdKey(ti *TextInput, d *uitest.Devices, key ebiten.Key, n int) {
 // again starts over.
 func TestTextInput_HeldKeyRepeatsInUpdates(t *testing.T) {
 	for name, tc := range map[string]struct {
-		opts    []TextInputOpt
+		opts    []widget.TextInputOpt
 		updates int
 		want    string
 	}{
@@ -38,7 +40,7 @@ func TestTextInput_HeldKeyRepeatsInUpdates(t *testing.T) {
 		"held to the delay":    {nil, 18, "abcdefghijk"},
 		"past the delay":       {nil, 19, "abcdefghij"},
 		"three intervals more": {nil, 25, "abcdefg"},
-		"a slower interval":    {[]TextInputOpt{TextInputOpts.RepeatInterval(100 * time.Millisecond)}, 31, "abcdefgh"},
+		"a slower interval":    {[]widget.TextInputOpt{widget.TextInputOpts.RepeatInterval(100 * time.Millisecond)}, 31, "abcdefgh"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			d := uitest.Use(t)
@@ -69,7 +71,7 @@ func TestTextInput_IdleUpdateAllocatesNothing(t *testing.T) {
 		ti.Focus(focused)
 		n := testing.AllocsPerRun(100, func() {
 			input.Update()
-			ti.Update(&UpdateObject{})
+			ti.Update(&widget.UpdateObject{})
 			input.AfterUpdate()
 		})
 		if n != 0 {

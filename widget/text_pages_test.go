@@ -1,4 +1,4 @@
-package widget
+package widget_test
 
 import (
 	img "image"
@@ -6,62 +6,56 @@ import (
 	"runtime/debug"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/widget"
+
 	"github.com/matryer/is"
 )
-
-// emptyTextPages gives a test a pool of text pages of its own.
-func emptyTextPages(t *testing.T) {
-	t.Helper()
-	pages, kept := textPages.pages, textPages.kept
-	textPages.pages, textPages.kept = nil, nil
-	t.Cleanup(func() { textPages.pages, textPages.kept = pages, kept })
-}
 
 // Slots of one height share a shelf left to right, a pixel apart; a taller
 // one opens a shelf below, and a full shelf sends a slot to a new one.
 func TestTextPage_Shelves(t *testing.T) {
 	is := is.New(t)
 
-	p := &textPage{}
-	a := p.alloc(300, 14)
-	b := p.alloc(300, 14)
-	tall := p.alloc(300, 30)
-	is.Equal(a.rect, img.Rect(0, 0, 300, 14))
-	is.Equal(b.rect, img.Rect(301, 0, 601, 14))   // beside a, past the gap
-	is.Equal(tall.rect, img.Rect(0, 16, 300, 46)) // below the 16 px shelf
+	p := &widget.TextPage{}
+	a := p.Alloc(300, 14)
+	b := p.Alloc(300, 14)
+	tall := p.Alloc(300, 30)
+	is.Equal(a.Rect(), img.Rect(0, 0, 300, 14))
+	is.Equal(b.Rect(), img.Rect(301, 0, 601, 14))   // beside a, past the gap
+	is.Equal(tall.Rect(), img.Rect(0, 16, 300, 46)) // below the 16 px shelf
 
-	c := p.alloc(300, 14)
-	d := p.alloc(300, 14)                       // the 14 px shelf holds three
-	is.Equal(c.rect, img.Rect(602, 0, 902, 14)) // third on the shelf
-	is.Equal(d.rect, img.Rect(0, 48, 300, 62))  // a new shelf below the 32 px one
-	is.Equal(p.used, 5)
+	c := p.Alloc(300, 14)
+	d := p.Alloc(300, 14)                         // the 14 px shelf holds three
+	is.Equal(c.Rect(), img.Rect(602, 0, 902, 14)) // third on the shelf
+	is.Equal(d.Rect(), img.Rect(0, 48, 300, 62))  // a new shelf below the 32 px one
+	is.Equal(p.Used(), 5)
 }
 
 // Of the shelves that fit a slot, the least tall takes it.
 func TestTextPage_TightestShelf(t *testing.T) {
 	is := is.New(t)
 
-	p := &textPage{}
-	p.alloc(500, 38)                          // a 40 px shelf
-	is.Equal(p.alloc(600, 30).rect.Min.Y, 40) // too wide for it: a 32 px shelf below
-	is.Equal(p.alloc(300, 30).rect.Min.Y, 40) // both fit; the 32 px one wins
-	is.Equal(p.alloc(300, 30).rect.Min.Y, 0)  // the 32 px one is full
+	p := &widget.TextPage{}
+	p.Alloc(500, 38)                            // a 40 px shelf
+	is.Equal(p.Alloc(600, 30).Rect().Min.Y, 40) // too wide for it: a 32 px shelf below
+	is.Equal(p.Alloc(300, 30).Rect().Min.Y, 40) // both fit; the 32 px one wins
+	is.Equal(p.Alloc(300, 30).Rect().Min.Y, 0)  // the 32 px one is full
 }
 
 // A full page still gives a short slot room on a taller shelf.
 func TestTextPage_AnyShelfWhenFull(t *testing.T) {
 	is := is.New(t)
 
-	p := &textPage{}
-	first := p.alloc(textPageSize-1, 250)
+	p := &widget.TextPage{}
+	first := p.Alloc(widget.TextPageSize-1, 250)
 	for range 3 {
-		p.alloc(textPageSize-1, 250) // four 256 px shelves fill the page
+		p.Alloc(widget.TextPageSize-1, 250) // four 256 px shelves fill the page
 	}
-	is.True(p.alloc(100, 14) == nil)
-	p.free(first)
-	s := p.alloc(100, 14)
+	is.True(p.Alloc(100, 14) == nil)
+	p.Free(first)
+	s := p.Alloc(100, 14)
 	is.True(s != nil)
-	is.Equal(s.rect.Min.Y, 0) // on the emptied top shelf
+	is.Equal(s.Rect().Min.Y, 0) // on the emptied top shelf
 }
 
 // A freed slot's room goes to the next slot that fits, joined with free room
@@ -70,69 +64,69 @@ func TestTextPage_AnyShelfWhenFull(t *testing.T) {
 func TestTextPage_Free(t *testing.T) {
 	is := is.New(t)
 
-	p := &textPage{}
-	p.alloc(300, 14)
-	b := p.alloc(300, 14)
-	c := p.alloc(300, 14)
-	p.free(b)
-	again := p.alloc(300, 14)
-	is.Equal(again.rect, b.rect) // b's room again
+	p := &widget.TextPage{}
+	p.Alloc(300, 14)
+	b := p.Alloc(300, 14)
+	c := p.Alloc(300, 14)
+	p.Free(b)
+	again := p.Alloc(300, 14)
+	is.Equal(again.Rect(), b.Rect()) // b's room again
 
-	p.free(again)
-	p.free(c)                                                   // joins the room on both sides
-	is.Equal(p.alloc(722, 14).rect, img.Rect(301, 0, 1023, 14)) // b's, c's and the rest
-	is.Equal(p.used, 2)
+	p.Free(again)
+	p.Free(c)                                                     // joins the room on both sides
+	is.Equal(p.Alloc(722, 14).Rect(), img.Rect(301, 0, 1023, 14)) // b's, c's and the rest
+	is.Equal(p.Used(), 2)
 
-	low := p.alloc(300, 40)
-	is.Equal(low.rect.Min.Y, 16)
-	p.free(low)
-	is.Equal(len(p.shelves), 1)               // the empty bottom shelf went
-	is.Equal(p.alloc(300, 60).rect.Min.Y, 16) // its rows serve a taller slot
+	low := p.Alloc(300, 40)
+	is.Equal(low.Rect().Min.Y, 16)
+	p.Free(low)
+	is.Equal(len(p.Shelves()), 1)               // the empty bottom shelf went
+	is.Equal(p.Alloc(300, 60).Rect().Min.Y, 16) // its rows serve a taller slot
 }
 
 // Slots too tall or too wide for a page aren't given; a full page sends
 // slots to a new page, and a page left empty beyond the first is released.
 func TestTextPages_Pool(t *testing.T) {
 	is := is.New(t)
-	emptyTextPages(t)
+	widget.EmptyTextPages(t)
 
-	is.True(allocTextSlot(100, textPageMaxSlot+1) == nil) // too tall
-	is.True(allocTextSlot(textPageSize, 14) == nil)       // too wide with its gap
+	is.True(widget.AllocTextSlot(100, widget.TextPageMaxSlot+1) == nil) // too tall
+	is.True(widget.AllocTextSlot(widget.TextPageSize, 14) == nil)       // too wide with its gap
 
-	perPage := textPageSize / (textPageMaxSlot + 8) // 264 px shelves
-	slots := make([]*textSlot, 0, perPage)
+	perPage := widget.TextPageSize / (widget.TextPageMaxSlot + 8) // 264 px shelves
+	slots := make([]*widget.TextSlot, 0, perPage)
 	for range perPage {
-		slots = append(slots, allocTextSlot(textPageSize-1, textPageMaxSlot))
+		slots = append(slots, widget.AllocTextSlot(widget.TextPageSize-1, widget.TextPageMaxSlot))
 	}
-	is.Equal(len(textPages.pages), 1)
-	extra := allocTextSlot(textPageSize-1, textPageMaxSlot)
-	is.Equal(len(textPages.pages), 2) // the first page is full
-	is.True(extra.page != slots[0].page)
+	is.Equal(widget.TextPageCount(), 1)
+	extra := widget.AllocTextSlot(widget.TextPageSize-1, widget.TextPageMaxSlot)
+	is.Equal(widget.TextPageCount(), 2) // the first page is full
+	is.True(extra.Page() != slots[0].Page())
 
-	freeTextSlot(extra)
-	is.Equal(len(textPages.pages), 1) // released
+	widget.FreeTextSlot(extra)
+	is.Equal(widget.TextPageCount(), 1) // released
 	for _, s := range slots {
-		freeTextSlot(s)
+		widget.FreeTextSlot(s)
 	}
-	is.Equal(len(textPages.pages), 1) // the first page stays
+	is.Equal(widget.TextPageCount(), 1) // the first page stays
 }
 
 // Between collections the cache doesn't go over its slots: the slot of a
 // text already gone is freed by the first sweep after a collection, not
 // before. Automatic collections are off, so only the test's count.
 func TestTextPages_SweepOnlyAfterACollection(t *testing.T) {
-	emptyTextPages(t)
+	widget.EmptyTextPages(t)
 	defer debug.SetGCPercent(debug.SetGCPercent(-1))
-	sweepTextSlots()
-	s := allocTextSlot(10, 10)
-	textPages.kept = append(textPages.kept, s) // its text already gone: a zero weak pointer
-	sweepTextSlots()
-	if s.freed {
+	widget.SweepTextSlots()
+	s := widget.AllocTextSlot(10, 10)
+	widget.KeepTextSlot(s) // its text already gone: a zero weak pointer
+	widget.SweepTextSlots()
+	if s.Freed() {
 		t.Fatal("a slot was freed with no collection since the last sweep")
 	}
 	runtime.GC()
-	sweepTextSlots()
-	if !s.freed {
+	widget.SweepTextSlots()
+	if !s.Freed() {
 		t.Error("the slot of a text gone wasn't freed after a collection")
 	}
 }

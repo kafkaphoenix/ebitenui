@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -33,10 +35,10 @@ func TestFlipBook_SetPage_AlwaysRenderSingleWidget(t *testing.T) {
 	is.Equal(order, expectedOrder)
 }
 
-func newFlipBook(t *testing.T, opts ...FlipBookOpt) *FlipBook {
+func newFlipBook(t *testing.T, opts ...widget.FlipBookOpt) *widget.FlipBook {
 	t.Helper()
 
-	f := NewFlipBook(opts...)
+	f := widget.NewFlipBook(opts...)
 	event.ExecuteDeferred()
 	render(f, t)
 	return f

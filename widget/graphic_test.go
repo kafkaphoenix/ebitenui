@@ -1,7 +1,9 @@
-package widget
+package widget_test
 
 import (
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -11,7 +13,7 @@ func TestGraphic_PreferredSize(t *testing.T) {
 	is := is.New(t)
 
 	i := newImageEmptySize(47, 11, t)
-	g := newGraphic(t, GraphicOpts.Image(i))
+	g := newGraphic(t, widget.GraphicOpts.Image(i))
 	w, h := g.PreferredSize()
 	is.Equal(w, i.Bounds().Dx())
 	is.Equal(h, i.Bounds().Dy())
@@ -23,23 +25,23 @@ func TestGraphic_DrawsItsImage(t *testing.T) {
 	is := is.New(t)
 
 	idle, disabled, single := newImageEmptySize(2, 2, t), newImageEmptySize(2, 2, t), newImageEmptySize(3, 3, t)
-	g := newGraphic(t, GraphicOpts.Images(&GraphicImage{Idle: idle, Disabled: disabled}))
-	is.Equal(g.image(), idle)
+	g := newGraphic(t, widget.GraphicOpts.Images(&widget.GraphicImage{Idle: idle, Disabled: disabled}))
+	is.Equal(g.ImageForTest(), idle)
 	g.GetWidget().Disabled = true
-	is.Equal(g.image(), disabled)
+	is.Equal(g.ImageForTest(), disabled)
 
 	g.Image = single
-	is.Equal(g.image(), single)
-	is.Equal(testing.AllocsPerRun(10, func() { g.image() }), 0.0)
+	is.Equal(g.ImageForTest(), single)
+	is.Equal(testing.AllocsPerRun(10, func() { g.ImageForTest() }), 0.0)
 	render(g, t)
 	g.Image = nil
-	is.Equal(g.image(), disabled) // its images again
+	is.Equal(g.ImageForTest(), disabled) // its images again
 }
 
-func newGraphic(t *testing.T, opts ...GraphicOpt) *Graphic {
+func newGraphic(t *testing.T, opts ...widget.GraphicOpt) *widget.Graphic {
 	t.Helper()
 
-	g := NewGraphic(opts...)
+	g := widget.NewGraphic(opts...)
 	event.ExecuteDeferred()
 	render(g, t)
 	return g

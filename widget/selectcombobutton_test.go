@@ -1,8 +1,10 @@
-package widget
+package widget_test
 
 import (
 	"image/color"
 	"testing"
+
+	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -11,11 +13,11 @@ import (
 func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
 	is := is.New(t)
 
-	var eventArgs *SelectComboButtonEntrySelectedEventArgs
+	var eventArgs *widget.SelectComboButtonEntrySelectedEventArgs
 	numEvents := 0
 
 	b := newSelectComboButton(t,
-		SelectComboButtonOpts.EntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
+		widget.SelectComboButtonOpts.EntrySelectedHandler(func(args *widget.SelectComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -68,27 +70,27 @@ func TestSelectComboButton_ContentVisible_Programmatic(t *testing.T) {
 	is.True(!b.ContentVisible())
 }
 
-func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectComboButton {
+func newSelectComboButton(t *testing.T, opts ...widget.SelectComboButtonOpt) *widget.SelectComboButton {
 	t.Helper()
 
-	b := NewSelectComboButton(append(opts,
-		SelectComboButtonOpts.ComboButtonOpts(
-			ComboButtonOpts.ButtonOpts(
-				ButtonOpts.Image(&ButtonImage{
+	b := widget.NewSelectComboButton(append(opts,
+		widget.SelectComboButtonOpts.ComboButtonOpts(
+			widget.ComboButtonOpts.ButtonOpts(
+				widget.ButtonOpts.Image(&widget.ButtonImage{
 					Idle:    newNineSliceEmpty(t),
 					Pressed: newNineSliceEmpty(t),
 				}),
-				ButtonOpts.TextAndImage("", loadFont(t), &GraphicImage{
+				widget.ButtonOpts.TextAndImage("", loadFont(t), &widget.GraphicImage{
 					Idle:     newImageEmpty(t),
 					Disabled: newImageEmpty(t),
-				}, &ButtonTextColor{
+				}, &widget.ButtonTextColor{
 					Idle:     color.Transparent,
 					Disabled: color.Transparent,
 				}),
 			),
-			ComboButtonOpts.Content(newButton(t)),
+			widget.ComboButtonOpts.Content(newButton(t)),
 		),
-		SelectComboButtonOpts.EntryLabelFunc(func(e any) string {
+		widget.SelectComboButtonOpts.EntryLabelFunc(func(e any) string {
 			result, _ := e.(string)
 			return "label " + result
 		}),
