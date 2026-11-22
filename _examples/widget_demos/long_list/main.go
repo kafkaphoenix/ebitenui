@@ -28,7 +28,9 @@ func main() {
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{StretchHorizontal: true, StretchVertical: true}))),
 		widget.ListOpts.Entries(entries),
 		// Each row a line of its entry's label, in the theme's list look. For
-		// rows of any widget, EntryWidgetFunc makes an entry's.
+		// rows of any widget, of one height and recycled as these are,
+		// EntryRows makes and binds them; for widgets of their own heights,
+		// EntryWidgetFunc makes each entry's.
 		widget.ListOpts.EntryLabelFunc(func(e any) string { return fmt.Sprintf("Entry %d", e) }),
 		// Dragging the rows, with a mouse or a finger, scrolls them too.
 		widget.ListOpts.DragToScroll(),
