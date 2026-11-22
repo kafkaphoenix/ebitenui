@@ -120,19 +120,18 @@ func TestList_UpdateEntry(t *testing.T) {
 		}),
 	)
 
-	oldButton := list.buttons[1]
 	entry := entries[1].(*listEntry)
 
-	is.Equal(list.buttons[1].Text().Label, "second")
+	is.Equal(shownLabel(list, 1), "second")
 
+	screen := ebiten.NewImage(200, 300)
 	entry.label = "updated"
-
-	is.Equal(list.buttons[1].Text().Label, "second")
+	list.Render(screen)
+	is.Equal(shownLabel(list, 1), "second") // a row shows what its entry was as it was bound
 
 	list.UpdateEntry(entry)
-
-	is.True(list.buttons[1] != oldButton)
-	is.Equal(list.buttons[1].Text().Label, "updated")
+	list.Render(screen)
+	is.Equal(shownLabel(list, 1), "updated")
 }
 
 func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
@@ -184,12 +183,12 @@ func TestList_EntrySelectedEvent_User(t *testing.T) {
 			numEvents++
 		}))
 
-	leftMouseButtonClick(list.buttons[1], t)
+	clickListEntry(t, list, 1)
 
 	is.Equal(eventArgs.Entry, entries[1])
 	is.Equal(list.SelectedEntry(), entries[1])
 
-	leftMouseButtonClick(list.buttons[1], t)
+	clickListEntry(t, list, 1)
 
 	is.Equal(numEvents, 1)
 }
@@ -217,12 +216,12 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 			numEvents++
 		}))
 
-	leftMouseButtonClick(list.buttons[1], t)
+	clickListEntry(t, list, 1)
 
 	is.Equal(eventArgs.Entry, entries[1])
 	is.Equal(list.SelectedEntry(), entries[1])
 
-	leftMouseButtonClick(list.buttons[1], t)
+	clickListEntry(t, list, 1)
 
 	is.Equal(eventArgs.Entry, entries[1])
 	is.Equal(eventArgs.PreviousEntry, entries[1])
@@ -256,12 +255,12 @@ func TestList_Entries_SortedOnCreate(t *testing.T) {
 	is.Equal(list.Entries()[0], "first")
 	is.Equal(list.Entries()[1], "second")
 	is.Equal(list.Entries()[2], "third")
-	is.Equal(list.buttons[0].Text().Label, "first")
-	is.Equal(list.buttons[1].Text().Label, "second")
-	is.Equal(list.buttons[2].Text().Label, "third")
+	is.Equal(shownLabel(list, 0), "first")
+	is.Equal(shownLabel(list, 1), "second")
+	is.Equal(shownLabel(list, 2), "third")
 }
 
-func TestList_AddEntry_ResortsAndReusesButtons(t *testing.T) {
+func TestList_AddEntry_Resorts(t *testing.T) {
 	is := is.New(t)
 
 	list := newList(t,
@@ -274,22 +273,11 @@ func TestList_AddEntry_ResortsAndReusesButtons(t *testing.T) {
 		}),
 	)
 
-	button2 := list.buttons[0]
-	button4 := list.buttons[1]
-
 	list.AddEntry(3)
+	render(list, t)
 
-	is.Equal(list.Entries()[0], 2)
-	is.Equal(list.Entries()[1], 3)
-	is.Equal(list.Entries()[2], 4)
-	is.Equal(list.buttons[0], button2)
-	is.Equal(list.buttons[2], button4)
-	is.Equal(list.buttons[1].Text().Label, "3")
-
-	children := list.listContent.Children()
-	is.Equal(children[0], button2)
-	is.Equal(children[1], list.buttons[1])
-	is.Equal(children[2], button4)
+	is.Equal(list.Entries(), []any{2, 3, 4})
+	is.Equal([]string{shownLabel(list, 0), shownLabel(list, 1), shownLabel(list, 2)}, []string{"2", "3", "4"})
 }
 
 func newList(t *testing.T, opts ...ListOpt) *List {
@@ -321,13 +309,31 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 		}),
 	}...)...)
 
+	l.SetLocation(img.Rect(0, 0, 200, 300))
 	event.ExecuteDeferred()
 	render(l, t)
+	render(l, t) // the rows in view, laid out
 	return l
 }
 
-func listEntryButtons(l *List) []*Button {
-	return l.buttons
+// shownLabel returns the label entry i's row shows, "" when it isn't in
+// view.
+func shownLabel(l *List, i int) string {
+	for _, r := range l.rows.labels {
+		if r.entry == i {
+			return r.text.Label
+		}
+	}
+	return ""
+}
+
+// clickListEntry clicks the middle of entry i's row.
+func clickListEntry(t *testing.T, l *List, i int) {
+	t.Helper()
+	top, bottom := l.rows.rowSpan(i)
+	w := l.rows.widget
+	w.MouseButtonClickedEvent.Fire(&MouseButtonClickedEventArgs{Widget: w, Button: ebiten.MouseButtonLeft, OffsetY: (top + bottom) / 2})
+	event.ExecuteDeferred()
 }
 
 // Entries can be widgets, built per entry, with neither a label function nor
@@ -358,12 +364,13 @@ func TestList_EntryWidgets(t *testing.T) {
 	event.ExecuteDeferred()
 	render(l, t)
 
-	buttons := listEntryButtons(l)
-	is.Equal(len(buttons), 2)
-	is.True(!widgets["b"].GetWidget().Rect.Empty() && widgets["b"].GetWidget().Rect.In(buttons[1].GetWidget().Rect)) // inside its button
+	is.Equal(len(built), 2)
+	is.True(!widgets["b"].GetWidget().Rect.Empty() && widgets["b"].GetWidget().Rect.In(l.rows.rowRect(1))) // inside its row
 
-	leftMouseButtonClick(buttons[1], t)
+	clickListEntry(t, l, 1)
 	is.Equal(selected, "b") // selected by clicking
+	clickListEntry(t, l, 0)
+	is.Equal(selected, "a") // the entry clicked, row by row
 
 	l.UpdateEntry("b")
 	is.Equal(built["b"], 2) // built again
@@ -407,8 +414,8 @@ func TestList_EntryImages(t *testing.T) {
 		ListOpts.EntryLabelFunc(func(e any) string { return e.(string) }))
 	isEntryImages(is, l, images)
 	l.SetSelectedEntry("b")
-	is.True(listEntryButtons(l)[1].computedParams.Image.Idle == images.Selected)   // the selected entry
-	is.True(listEntryButtons(l)[0].computedParams.Image.Idle == images.Unselected) // the others
+	is.True(l.rows.background(1) == images.Selected)   // the selected entry
+	is.True(l.rows.background(0) == images.Unselected) // the others
 
 	focused := color.NRGBA{1, 2, 3, 255}
 	partial := newList(t, ListOpts.EntryImage(&ListEntryImage{Selected: images.Selected}), ListOpts.Entries([]any{"a"}),
@@ -515,7 +522,7 @@ func TestList_WideEntriesScroll(t *testing.T) {
 		l.Update(&UpdateObject{Actions: given(ActionDown)}) // to an entry below the view
 	}
 	frames(30)
-	view, focused := sc.ViewRect(), listEntryButtons(l)[6].GetWidget().Rect
+	view, focused := sc.ViewRect(), l.rows.rowRect(6)
 	is.True(view.Max.Y-focused.Max.Y <= 1 && focused.Max.Y <= view.Max.Y) // as little as shows it: its end at the view's
 	is.Equal(focused.Min.X, view.Min.X)                                   // its start
 	top, left := sc.ScrollTop, sc.ScrollLeft
@@ -533,7 +540,7 @@ func TestList_WideEntriesScroll(t *testing.T) {
 		l.Update(&UpdateObject{Actions: given(ActionUp)}) // to the first entry, above the view
 	}
 	frames(30)
-	view, first := sc.ViewRect(), listEntryButtons(l)[0].GetWidget().Rect
+	view, first := sc.ViewRect(), l.rows.rowRect(0)
 	is.Equal([]int{first.Min.Y, first.Min.X}, []int{view.Min.Y, view.Min.X}) // its start, at the view's
 }
 
@@ -563,4 +570,45 @@ func TestList_SelectFocusLetsTheWheelScroll(t *testing.T) {
 	frames(5)
 	is.True(sc.ScrollTop > 0)        // still down
 	is.Equal(l.SelectedEntry(), "0") // the focused entry, selected
+}
+
+// The rows show what the entries are: duplicates are dropped, entries set
+// anew show at once and grow the content, asking the window to lay out
+// again, and a scroll binds the rows
+// coming into view to their entries.
+func TestList_RowsFollowTheEntries(t *testing.T) {
+	is := is.New(t)
+
+	l := newList(t, ListOpts.Entries([]any{"a", "b", "a"}), ListOpts.EntryLabelFunc(label))
+	is.Equal(l.Entries(), []any{"a", "b"})
+	screen := ebiten.NewImage(200, 300)
+	frames := func() {
+		for range 2 {
+			l.Render(screen)
+		}
+	}
+
+	entries := make([]any, 60)
+	for i := range entries {
+		entries[i] = "entry " + strconv.Itoa(i)
+	}
+	h := l.scrollContainer.ContentRect().Dy()
+	for range 3 { // the first frames bind rows, and the rows grew wider: done
+		l.Update(&UpdateObject{})
+		frames()
+	}
+	still := &UpdateObject{}
+	l.Update(still)
+	is.True(!still.RelayoutRequested) // nothing changed
+	l.SetEntries(entries)
+	upd := &UpdateObject{}
+	l.Update(upd)
+	is.True(upd.RelayoutRequested) // so a window sized by the list follows
+	frames()
+	is.Equal(shownLabel(l, 0), "entry 0")
+	is.True(l.scrollContainer.ContentRect().Dy() > h) // grown
+
+	l.setScrollTop(1)
+	frames()
+	is.Equal(shownLabel(l, 59), "entry 59")
 }
