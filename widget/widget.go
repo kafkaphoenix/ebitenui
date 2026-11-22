@@ -73,6 +73,11 @@ type Widget struct {
 	// while the cursor is inside the widget's Rect.
 	MouseButtonClickedEvent *event.Event
 
+	// MouseButtonDoubleClickedEvent fires an event with
+	// *MouseButtonDoubleClickedEventArgs on the second of two clicks of a
+	// button close in time and place (DoubleClick).
+	MouseButtonDoubleClickedEvent *event.Event
+
 	// ScrolledEvent fires an event with *ScrolledEventArgs when the mouse wheel is scrolled while
 	// the cursor is inside the widget's Rect.
 	ScrolledEvent *event.Event
@@ -116,6 +121,8 @@ type Widget struct {
 	longPressButton             ebiten.MouseButton
 	longPressDuration           int
 	longPressCurrent            int
+	firstClick                  firstClick // a click a second may make a double click of
+	pressedByTouch              bool       // whether the left button's press on it is a touch
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -396,21 +403,22 @@ var deferredRenders []RenderFunc
 // NewWidget constructs a new Widget configured with opts.
 func NewWidget(opts ...WidgetOpt) *Widget {
 	w := &Widget{
-		CursorEnterEvent:            &event.Event{},
-		CursorMoveEvent:             &event.Event{},
-		CursorExitEvent:             &event.Event{},
-		MouseButtonPressedEvent:     &event.Event{},
-		MouseButtonLongPressedEvent: &event.Event{},
-		MouseButtonReleasedEvent:    &event.Event{},
-		MouseButtonClickedEvent:     &event.Event{},
-		ScrolledEvent:               &event.Event{},
-		FocusEvent:                  &event.Event{},
-		ContextMenuEvent:            &event.Event{},
-		ToolTipEvent:                &event.Event{},
-		DragAndDropEvent:            &event.Event{},
-		ContextMenuCloseMode:        WindowCloseClick,
-		longPressDuration:           ebiten.TPS() / 2,
-		longPressButton:             -1,
+		CursorEnterEvent:              &event.Event{},
+		CursorMoveEvent:               &event.Event{},
+		CursorExitEvent:               &event.Event{},
+		MouseButtonPressedEvent:       &event.Event{},
+		MouseButtonLongPressedEvent:   &event.Event{},
+		MouseButtonReleasedEvent:      &event.Event{},
+		MouseButtonClickedEvent:       &event.Event{},
+		MouseButtonDoubleClickedEvent: &event.Event{},
+		ScrolledEvent:                 &event.Event{},
+		FocusEvent:                    &event.Event{},
+		ContextMenuEvent:              &event.Event{},
+		ToolTipEvent:                  &event.Event{},
+		DragAndDropEvent:              &event.Event{},
+		ContextMenuCloseMode:          WindowCloseClick,
+		longPressDuration:             ebiten.TPS() / 2,
+		longPressButton:               -1,
 	}
 
 	for _, o := range opts {
@@ -718,6 +726,7 @@ func (w *Widget) fireEvents() {
 	p := image.Point{x, y}
 	layer := w.EffectiveInputLayer()
 	inside := w.In(x, y)
+	w.ageFirstClick(inside)
 	if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 		entered := inside && layer.ActiveFor(x, y, input.LayerEventTypeAny)
 		if entered != w.lastUpdateCursorEntered {
@@ -800,6 +809,7 @@ func (w *Widget) fireEvents() {
 				OffsetX: off.X,
 				OffsetY: off.Y,
 			})
+			w.clicked(ebiten.MouseButtonRight, p, false)
 		}
 		w.lastUpdateMouseRightPressed = false
 		w.mouseRightPressedInside = false
@@ -813,6 +823,7 @@ func (w *Widget) fireEvents() {
 		if inside {
 			w.mouseLeftPressedInside = inside
 			w.pressedAt = pressCancels
+			w.pressedByTouch = input.TouchCount() > 0
 
 			if w.focusable != nil && !w.Disabled {
 				w.focusable.Focus(true)
@@ -848,6 +859,7 @@ func (w *Widget) fireEvents() {
 				OffsetX: off.X,
 				OffsetY: off.Y,
 			})
+			w.clicked(ebiten.MouseButtonLeft, p, w.pressedByTouch)
 		}
 		w.mouseLeftPressedInside = false
 		w.lastUpdateMouseLeftPressed = false
