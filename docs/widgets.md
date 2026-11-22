@@ -141,6 +141,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 
 - **`ProgressBar`** shows progress that is known, such as a download's percentage. Demo: `progressbar`.
 - **`Loading`** shows that something is loading for an unknown time: a bar with a sweeping band, or a spinner, with optional tips under it. Demo: `loading`.
+- **`Checklist`** shows things to do, each with a mark for its state: pending, done or failed. Use it for tasks, a mission's objectives or a tutorial's steps. The game sets each item's state as it happens, and the player ticks the items that are tickable. Done items fade and can be struck through, an item can show a count such as "3/5", and a title line can show the progress in your words. In sequential mode the current step is highlighted, and the steps after it fade, or stay hidden until it is reached. Demo: `checklist`.
 
 ## Your own drawing
 

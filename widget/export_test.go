@@ -219,3 +219,29 @@ func UseIME(update func(*textinput.Composer) (bool, error), end func(*textinput.
 
 // Handle returns the slider's handle.
 func (x *Slider) Handle() *Button { return x.handle }
+
+func (x *Checklist) ComputedParams() *ChecklistParams { return &x.computedParams }
+func (x *Checklist) RowRect(i int) image2.Rectangle   { x.layout(); return x.rowRect(i) }
+func (x *Checklist) RowShown(i int) bool              { x.layout(); return x.rows[i].h > 0 }
+func (x *Checklist) Label(i int) *Text                { return x.rows[i].label }
+func (x *Checklist) Detail(i int) *Text               { return x.rows[i].detail }
+func (x *Checklist) TitleText() *Text                 { return x.titleText }
+func (x *Checklist) ProgressText() *Text              { return x.progressText }
+func (x *Checklist) Background(i int) *image.NineSlice {
+	return x.background(i)
+}
+func (x *Checklist) MarkOf(i int) *ebiten.Image { return x.mark(x.items[i].State) }
+func (x *Checklist) DrawnMarks() ChecklistMarks { return x.marks }
+func (x *Checklist) FocusedRow() int            { return x.focused }
+
+// Strikes returns the lines drawn through item i's label.
+func (x *Checklist) Strikes(i int) []image2.Rectangle {
+	if !x.strike || x.items[i].State != ChecklistDone {
+		return nil
+	}
+	var s []image2.Rectangle
+	for k := range x.rows[i].label.measurements.processedLineWidths {
+		s = append(s, x.strikeRect(i, k))
+	}
+	return s
+}

@@ -27,6 +27,7 @@ type Theme struct {
 	CarouselTheme        *CarouselParams
 	SearchBarTheme       *SearchBarParams
 	TableTheme           *TableParams
+	ChecklistTheme       *ChecklistParams
 }
 
 /*
