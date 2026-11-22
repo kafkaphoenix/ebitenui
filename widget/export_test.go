@@ -85,6 +85,9 @@ func (x *OnScreenKeyboard) Container() *themedPanel                     { return
 func (x *OnScreenKeyboard) Letters() []*Button                          { return x.letters }
 func (x *OnScreenKeyboard) Preview() *Text                              { return x.preview }
 func (x *Panel) EffectShaderOp() *ebiten.DrawRectShaderOptions          { return &x.effectShaderOp }
+func (x *SearchBar) ClearButton() *Button                               { return x.clear }
+func (x *SearchBar) ComputedParams() *SearchBarParams                   { return &x.computedParams }
+func (x *SearchBar) Icon() *Graphic                                     { return x.icon }
 func (x *ScrollContainer) Image() *ScrollContainerImage                 { return x.image }
 func (x *SelectComboButton) Button() *ComboButton                       { return x.button }
 func (x *TabBook) BtnContainer() *Container                             { return x.btnContainer }

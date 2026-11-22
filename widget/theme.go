@@ -25,6 +25,7 @@ type Theme struct {
 	ListComboButtonTheme *ListComboButtonParams
 	LoadingTheme         *LoadingParams
 	CarouselTheme        *CarouselParams
+	SearchBarTheme       *SearchBarParams
 }
 
 /*
