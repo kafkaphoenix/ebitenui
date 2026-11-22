@@ -1,0 +1,55 @@
+name: Lint
+
+# The go.mod files' tidiness, golangci-lint and the vulnerability scan, on
+# every push to master and every pull request: quick, so always. Locally:
+# task lint.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            _examples/go.sum
+            tools/go.sum
+
+      # Ebitengine's GLFW is built with cgo on Linux, against X11 and
+      # OpenGL's headers; the linter type-checks it.
+      - name: Install Ebitengine's system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libc6-dev libgl1-mesa-dev libxcursor-dev libxi-dev \
+            libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config
+
+      - name: Check the go.mod files are tidy
+        run: |
+          go mod tidy
+          (cd _examples && go mod tidy)
+          (cd tools && go mod tidy)
+          git diff --exit-code -- go.mod go.sum _examples/go.mod _examples/go.sum tools/go.mod tools/go.sum
+
+      - name: Lint
+        run: go tool -modfile=tools/go.mod golangci-lint run ./...
+
+      - name: Vulnerability scan
+        run: go tool -modfile=tools/go.mod govulncheck ./...

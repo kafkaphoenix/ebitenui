@@ -1,7 +1,11 @@
 version: "2"
 
-# As strict as project-astra's, with the library's own linters (decorder,
-# dupl, forcetypeassert, goconst, godot, nilerr, predeclared, wrapcheck).
+# Strict: the standard linters with govet's every check, and copyloopvar,
+# decorder, dupl, durationcheck, errorlint, exhaustive, forcetypeassert,
+# gochecknoinits, gocognit, goconst, gocritic, godot, gosec, iface,
+# inamedparam, misspell, nilerr, nolintlint, perfsprint, prealloc,
+# predeclared, reassign, revive, unconvert, unparam, usestdlibvars,
+# whitespace and wrapcheck.
 # The exclusions say why each is there; the last ones list what was over
 # gocognit's limit or duplicated when they were set, so new code meets
 # both, and each goes as its code is reworked.

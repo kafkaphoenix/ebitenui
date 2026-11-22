@@ -1,0 +1,87 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# Two jobs in parallel: linux (the tests in a random order, then the
+# examples) and windows (the build and the tests), on every push to
+# master, and on a pull request only when asked, to spare CI minutes: add
+# the label "test" to the pull request (they run again on each push while
+# the label stays), or run this workflow on the branch from the Actions
+# tab. Lint (lint.yml) runs on every pull request. Go comes from
+# go.mod; its modules and builds are cached by setup-go, keyed by the three
+# go.sum files. The library and its tests start no goroutines and arm no
+# timers, so the race detector has nothing to look at: task test runs it
+# locally all the same.
+
+jobs:
+  linux:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            _examples/go.sum
+            tools/go.sum
+
+      # Xvfb and Mesa's software OpenGL give the tests a display and a GPU.
+      - name: Install Ebitengine's system packages and a virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libc6-dev libgl1-mesa-dev libxcursor-dev libxi-dev \
+            libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config \
+            xvfb libgl1-mesa-dri
+
+      # Package globals (the input layers, the hovered flag) make tests
+      # depend on their order when one leaves state behind: a random order
+      # finds that.
+      - name: Test in a random order
+        run: xvfb-run -a go test -count=1 -shuffle=on ./...
+
+      - name: Vet and build the examples, for the desktop and the browser
+        working-directory: _examples
+        run: |
+          go vet ./...
+          go build ./...
+          GOOS=js GOARCH=wasm go build ./...
+
+  windows:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test')
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            _examples/go.sum
+            tools/go.sum
+
+      - name: Build
+        run: go build ./...
+
+      # Windows runners have a desktop, so the tests draw as on a
+      # developer's machine.
+      - name: Test in a random order
+        run: go test -count=1 -shuffle=on ./...

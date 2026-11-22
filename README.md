@@ -31,7 +31,7 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 
 Quick Start
 ------
-Ebiten UI is written in Go 1.26, which is available at [https://go.dev/](https://go.dev/).
+Ebiten UI is written in Go 1.27, which is available at [https://go.dev/](https://go.dev/).
 
 There are Ebiten UI examples in the `_examples/` folder, a module of its own that uses the library beside it, so what only the examples need stays out of the library's go.mod.
 
@@ -63,7 +63,7 @@ The tools are pinned in `tools/go.mod`, a module of their own, and run through [
 * `go tool -modfile=tools/go.mod task --list` lists the tasks.
 * `... task ci` runs what CI checks: lint, every test shuffled and with the race detector, the examples built for the desktop and the browser, and the vulnerability scan.
 
-The library supports Go 1.26 and later; its `toolchain` line has those working on it use the Go the tools need.
+CI lints every pull request and push; the tests run on every push to master, and on a pull request when it has the label `test` or when the Tests workflow is run by hand.
 
 Used By
 ------
