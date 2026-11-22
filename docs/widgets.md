@@ -112,6 +112,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Typing
 
 - **`TextInput`** is a line of text the player types. It supports selecting with the mouse, Shift and a double click, a placeholder, checking what is typed, hidden text for passwords, and the platform's input method for languages like Chinese or Japanese. With `Multiline` it takes several lines. Demos: `textinput`, `cut_copy_paste`.
+- **`SearchBar`** is a field to search with: a magnifier, the text, and a button to clear it. It tells you the search once the player pauses typing, so a list or a table filters once per search, and Back clears it. Demo: `table`.
 - **`OnScreenKeyboard`** is a keyboard of buttons for typing with a gamepad on a platform without a keyboard of its own; the interface opens it for a focused text input. Demo: `gamepad_navigation`.
 
 ## Lists and choosers
