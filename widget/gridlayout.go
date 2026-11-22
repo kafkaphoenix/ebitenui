@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched.
+// GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched or weighted.
 //
 // Widget.LayoutData of widgets being layouted by GridLayout need to be of type GridLayoutData.
 type GridLayout struct {
@@ -15,6 +15,8 @@ type GridLayout struct {
 	rowSpacing    int
 	columnStretch []bool
 	rowStretch    []bool
+	columnWeights []float64
+	rowWeights    []float64
 
 	defaultColumnStretch bool
 	defaultRowStretch    bool
@@ -80,8 +82,15 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 }
 
 func (g *GridLayout) validate() {
-	if g.columns == 0 {
-		panic("GridLayout: columns is required.")
+	if g.columns <= 0 {
+		panic("GridLayout: columns must be positive.")
+	}
+	for _, weights := range [][]float64{g.columnWeights, g.rowWeights} {
+		for _, weight := range weights {
+			if weight < 0 || math.IsNaN(weight) || math.IsInf(weight, 0) {
+				panic("GridLayout: weights must be finite and non-negative.")
+			}
+		}
 	}
 }
 
@@ -117,6 +126,22 @@ func (o GridLayoutOptions) Stretch(c []bool, r []bool) GridLayoutOpt {
 	}
 }
 
+// Weights configures relative column and row sizes. Positive weights divide the
+// available space proportionally, after padding, spacing, and fixed cells are
+// deducted. For example, []float64{20, 50, 30} gives three columns 20%, 50%, and
+// 30% of that space. Weights need not sum to 100.
+//
+// A zero weight keeps the preferred size. Supplied weights override Stretch and
+// DefaultStretch for those indices. Unspecified columns and rows use their
+// stretch settings (stretched cells have weight 1). Pass nil to leave an axis
+// governed entirely by its stretch settings. PreferredSize is unaffected.
+func (o GridLayoutOptions) Weights(c []float64, r []float64) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.columnWeights = append([]float64(nil), c...)
+		g.rowWeights = append([]float64(nil), r...)
+	}
+}
+
 // DefaultStretch will set the stretch value to the columns/rows that are
 // extra not defined on the main Stretch.
 func (o GridLayoutOptions) DefaultStretch(c bool, r bool) GridLayoutOpt {
@@ -140,8 +165,8 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
 	defer g.keep(colWidths, rowHeights)
-	stretch(colWidths, rect.Dx()-g.columnSpacing*(len(colWidths)-1), g.columnStretched)
-	stretch(rowHeights, rect.Dy()-g.rowSpacing*(len(rowHeights)-1), g.rowStretched)
+	stretch(colWidths, rect.Dx()-g.columnSpacing*(len(colWidths)-1), g.columnWeights, g.columnStretched)
+	stretch(rowHeights, rect.Dy()-g.rowSpacing*(len(rowHeights)-1), g.rowWeights, g.rowStretched)
 
 	c, r := 0, 0
 	x, y := 0, 0
@@ -172,34 +197,56 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	}
 }
 
-// stretch sets the stretched sizes to share what is left of space after the
-// sizes that are not stretched, the first stretched size taking what does
-// not divide evenly.
-func stretch(sizes []int, space int, stretched func(int) bool) {
-	n := 0
+// stretch sets the weighted sizes to share what is left of space after the
+// sizes that are not, none below 0, in proportion to their weights, the
+// first weighted size taking what does not divide evenly.
+func stretch(sizes []int, space int, weights []float64, stretched func(int) bool) {
+	first, top := -1, 0.0
 	for i, size := range sizes {
-		if stretched(i) {
-			n++
+		if w := cellWeight(i, weights, stretched); w > 0 {
+			if first < 0 {
+				first = i
+			}
+			top = math.Max(top, w)
 		} else {
 			space -= size
 		}
 	}
-	if n == 0 {
+	if first < 0 {
 		return
 	}
+	space = max(space, 0)
 
-	each := int(math.Floor(float64(space) / float64(n)))
-	first := true
+	// The weights over the largest, so that large finite weights don't sum
+	// to infinity.
+	total := 0.0
 	for i := range sizes {
-		if !stretched(i) {
-			continue
-		}
-		sizes[i] = each
-		if first {
-			sizes[i] += space - each*n
-			first = false
+		total += cellWeight(i, weights, stretched) / top
+	}
+	left := space
+	for i := range sizes {
+		w := cellWeight(i, weights, stretched)
+		switch {
+		case w/top > 0:
+			sizes[i] = int(math.Floor(float64(space) * (w / top / total)))
+			left -= sizes[i]
+		case w > 0: // so small beside the largest that it comes to nothing
+			sizes[i] = 0
 		}
 	}
+	sizes[first] += left
+}
+
+// cellWeight returns column or row i's weight: the one given, or 1 when it
+// is stretched without one, and 0 when it keeps its preferred size.
+func cellWeight(i int, weights []float64, stretched func(int) bool) float64 {
+	switch {
+	case i < len(weights):
+		return weights[i]
+	case stretched(i):
+		return 1
+	}
+	return 0
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
