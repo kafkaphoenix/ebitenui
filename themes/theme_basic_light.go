@@ -210,6 +210,16 @@ func newBasicLightTheme(s shape) *widget.Theme {
 			FillImage:  s.upTo(smallRadius).box(color.NRGBA{77, 77, 77, 255}, color.NRGBA{77, 77, 77, 255}, 1),
 			Color:      color.Black,
 		},
+		CarouselTheme: &widget.CarouselParams{
+			ArrowImage: &widget.ButtonImage{
+				Idle:     s.upTo(smallRadius).box(color.NRGBA{255, 255, 255, 128}, color.NRGBA{255, 255, 255, 128}, 0),
+				Hover:    s.upTo(smallRadius).box(color.NRGBA{255, 255, 255, 176}, color.NRGBA{255, 255, 255, 176}, 0),
+				Pressed:  s.upTo(smallRadius).box(color.NRGBA{255, 255, 255, 224}, color.NRGBA{255, 255, 255, 224}, 0),
+				Disabled: s.upTo(smallRadius).box(color.NRGBA{0, 0, 0, 0}, color.NRGBA{0, 0, 0, 0}, 0),
+			},
+			ArrowColor: color.NRGBA{51, 51, 51, 255},
+			DotColor:   color.NRGBA{77, 77, 77, 255},
+		},
 		SliderTheme: &widget.SliderParams{
 			TrackPadding:    widget.NewInsetsSimple(2),
 			FixedHandleSize: new(6),
