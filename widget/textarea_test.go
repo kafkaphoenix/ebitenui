@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/matryer/is"
 )
 
 // A text area starts at the top of its text, and the left of it: its
@@ -87,4 +88,49 @@ func TestTextAreaPlacesItsParts(t *testing.T) {
 	if r := a.VSlider().GetWidget().Rect; r.Empty() {
 		t.Errorf("the slider is at %v: not placed", r)
 	}
+}
+
+// newLog returns a text area keeping at most lines lines.
+func newLog(t *testing.T, lines int, opts ...widget.TextAreaOpt) *widget.TextArea {
+	t.Helper()
+	a := widget.NewTextArea(append([]widget.TextAreaOpt{
+		widget.TextAreaOpts.ScrollContainerImage(&widget.ScrollContainerImage{Idle: newNineSliceEmpty(t), Mask: newNineSliceEmpty(t)}),
+		widget.TextAreaOpts.SliderParams(&widget.SliderParams{TrackImage: &widget.SliderTrackImage{}, HandleImage: &widget.ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}}),
+		widget.TextAreaOpts.FontFace(loadFont(t)),
+		widget.TextAreaOpts.FontColor(color.White),
+		widget.TextAreaOpts.MaxLines(lines),
+	}, opts...)...)
+	a.Validate()
+	return a
+}
+
+// A text area with MaxLines keeps that many lines, as a log or a console
+// does: the oldest go as text is appended or set, those at the end as it
+// is prepended, newest first. A newline at the end closes the last line
+// rather than starting another.
+func TestTextArea_MaxLines(t *testing.T) {
+	is := is.New(t)
+
+	log := newLog(t, 3)
+	for _, l := range []string{"a\n", "b\n", "c\n"} {
+		log.AppendText(l)
+	}
+	is.Equal(log.GetText(), "a\nb\nc\n") // three lines, all kept
+	log.AppendText("d\n")
+	is.Equal(log.GetText(), "b\nc\nd\n")
+	log.AppendText("e\nf")
+	is.Equal(log.GetText(), "d\ne\nf")
+
+	log.SetText("1\n2\n3\n4\n5")
+	is.Equal(log.GetText(), "3\n4\n5")
+
+	log.SetText("b\nc\nd\n")
+	log.PrependText("a\n")
+	is.Equal(log.GetText(), "a\nb\nc\n") // newest first: the last went
+
+	is.Equal(newLog(t, 2, widget.TextAreaOpts.Text("x\ny\nz")).GetText(), "y\nz") // from the start
+
+	all := newLog(t, 0)
+	all.SetText("1\n2\n3\n4\n5")
+	is.Equal(all.GetText(), "1\n2\n3\n4\n5") // 0 keeps all
 }

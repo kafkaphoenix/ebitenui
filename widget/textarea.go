@@ -4,6 +4,7 @@ import (
 	img "image"
 	"image/color"
 	"math"
+	"strings"
 
 	"github.com/ebitenui/ebitenui/input"
 
@@ -32,6 +33,7 @@ type TextArea struct {
 
 	processBBCode        bool
 	initialText          string
+	maxLines             int // the most lines kept, 0 for all
 	verticalScrollMode   ScrollMode
 	horizontalScrollMode ScrollMode
 	showHorizontalSlider bool
@@ -329,6 +331,19 @@ func (o TextAreaOptions) Text(initialText string) TextAreaOpt {
 	}
 }
 
+// MaxLines keeps at most n lines of text, as a log or a console does:
+// setting or appending text drops the oldest lines, at the start;
+// prepending, newest first, drops those at the end. A newline at the end
+// closes the last line rather than starting another. A text area keeps
+// its whole text otherwise, measured again at every change, which a log
+// growing for a whole game would pay more for each line. With BBCode, a
+// tag opened on a dropped line no longer reaches the lines kept.
+func (o TextAreaOptions) MaxLines(n int) TextAreaOpt {
+	return func(t *TextArea) {
+		t.maxLines = n
+	}
+}
+
 // This option tells the textarea object to process BBCodes.
 //
 // Currently the system supports the following BBCodes:
@@ -471,7 +486,7 @@ func (t *TextArea) createWidget() {
 		}, t.containerOpts...,
 		)...)
 
-	t.text = NewText(TextOpts.TextLabel(t.initialText))
+	t.text = NewText(TextOpts.TextLabel(lastLines(t.initialText, t.maxLines)))
 }
 
 func (t *TextArea) initWidget() {
@@ -620,7 +635,7 @@ func (t *TextArea) initWidget() {
 
 func (t *TextArea) PrependText(value string) {
 	t.init.Do()
-	t.SetText(value + t.text.Label)
+	t.SetText(firstLines(value+t.text.Label, t.maxLines))
 }
 
 func (t *TextArea) AppendText(value string) {
@@ -630,7 +645,7 @@ func (t *TextArea) AppendText(value string) {
 
 func (t *TextArea) SetText(value string) {
 	t.init.Do()
-	t.text.Label = value
+	t.text.Label = lastLines(value, t.maxLines)
 
 	if t.showHorizontalSlider && t.hSlider != nil {
 		scrollTo(t.hSlider, t.horizontalScrollMode)
@@ -638,6 +653,37 @@ func (t *TextArea) SetText(value string) {
 	if t.showVerticalSlider && t.vSlider != nil {
 		scrollTo(t.vSlider, t.verticalScrollMode)
 	}
+}
+
+// lastLines returns s's last n lines, or all of s for n 0; a newline at
+// the end closes the last line.
+func lastLines(s string, n int) string {
+	if n <= 0 {
+		return s
+	}
+	extra := strings.Count(strings.TrimSuffix(s, "\n"), "\n") + 1 - n
+	i := 0
+	for range extra {
+		i += strings.IndexByte(s[i:], '\n') + 1
+	}
+	return s[i:]
+}
+
+// firstLines returns s's first n lines, each with its newline, or all of
+// s for n 0.
+func firstLines(s string, n int) string {
+	if n <= 0 {
+		return s
+	}
+	i := 0
+	for range n {
+		j := strings.IndexByte(s[i:], '\n')
+		if j < 0 {
+			return s
+		}
+		i += j + 1
+	}
+	return s[:i]
 }
 
 // scrollTo moves a slider to its start or end as the mode asks on a change
