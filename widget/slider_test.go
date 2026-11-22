@@ -27,6 +27,17 @@ func TestSlider_Current_Initial(t *testing.T) {
 	is.Equal(eventArgs.Current, 10)
 }
 
+// A slider starts at its Min, or where InitialCurrent puts it, whichever
+// option comes first.
+func TestSlider_StartsAtItsMin(t *testing.T) {
+	is := is.New(t)
+
+	is.Equal(newSlider(t, widget.SliderOpts.MinMax(0, 10)).Current, 0)
+	is.Equal(newSlider(t, widget.SliderOpts.MinMax(-5, 10)).Current, -5)
+	is.Equal(newSlider(t, widget.SliderOpts.InitialCurrent(4), widget.SliderOpts.MinMax(0, 10)).Current, 4)
+	is.Equal(newSlider(t, widget.SliderOpts.MinMax(0, 10), widget.SliderOpts.InitialCurrent(4)).Current, 4)
+}
+
 func newSlider(t *testing.T, opts ...widget.SliderOpt) *widget.Slider {
 	s := widget.NewSlider(append(opts, widget.SliderOpts.Images(&widget.SliderTrackImage{
 		Idle: newNineSliceEmpty(t),

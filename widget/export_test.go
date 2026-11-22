@@ -78,6 +78,7 @@ func (x *Text) Cache() *textCache                                       { return
 func (x *Text) ComputedParams() *TextParams                             { return &x.computedParams }
 func (x *Text) Glyphs() []text.Glyph                                    { return x.glyphs }
 func (x *Text) Measurements() *textMeasurements                         { return &x.measurements }
+func (x *TextArea) HSlider() *Slider                                    { return x.hSlider }
 func (x *TextArea) ScrollContainer() *ScrollContainer                   { return x.scrollContainer }
 func (x *TextArea) VSlider() *Slider                                    { return x.vSlider }
 func (x *TextInput) CaretRect() image2.Rectangle                        { return x.caretRect }

@@ -777,7 +777,6 @@ func (l *List) initWidget() {
 		l.vSlider = NewSlider(append(sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionVertical),
 			SliderOpts.MinMax(0, 0), // the span, set as the list draws
-			SliderOpts.InitialCurrent(0),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				l.scrollContainer.ScrollTop = 0
