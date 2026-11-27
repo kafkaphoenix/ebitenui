@@ -157,8 +157,11 @@ func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add Prefe
 	}
 }
 
+// closeWidget detaches w, removed from its container: it gives back what
+// it draws through (see releaseBuffers).
 func closeWidget(w *Widget) {
 	w.parent = nil
+	releaseBuffers(w.self)
 }
 
 func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {

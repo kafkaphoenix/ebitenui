@@ -521,6 +521,9 @@ func (u *UI) removeWindow(w *widget.Window) {
 			break
 		}
 	}
+	if windowIdx != -1 {
+		w.ReleaseBuffers() // gone from the screen: what its widgets draw through goes back
+	}
 	if windowIdx != -1 && !w.Ephemeral {
 		u.closeEphemeralWindows(windowIdx)
 	}

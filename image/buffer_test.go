@@ -101,3 +101,28 @@ func TestMaskedRenderBuffer_DrawInMovingArea(t *testing.T) {
 	draw(img.Rect(650, 500, 850, 650))
 	is.Equal(m.RenderIn().Bounds(), img.Rect(586, 436, 800, 600)) // the margin stops at the screen's edge
 }
+
+// Release gives a buffer's images back, those of DrawIn and of Draw; a
+// draw after makes them anew.
+func TestMaskedRenderBuffer_Release(t *testing.T) {
+	is := is.New(t)
+
+	screen := ebiten.NewImage(200, 200)
+	nothing := func(*ebiten.Image) {}
+	m, whole := eimage.NewMaskedRenderBuffer(), eimage.NewMaskedRenderBuffer()
+	is.True(!m.Allocated()) // nothing drawn yet
+	m.DrawIn(screen, img.Rect(10, 10, 60, 60), nothing, nothing)
+	whole.Draw(screen, nothing, nothing)
+	is.True(m.Allocated() && whole.Allocated())
+
+	m.Release()
+	whole.Release()
+	is.True(!m.Allocated() && !whole.Allocated())
+	is.True(m.RenderIn() == nil && m.MaskedIn() == nil)
+	m.Release() // nothing left: nothing happens
+
+	m.DrawIn(screen, img.Rect(10, 10, 60, 60), nothing, nothing)
+	is.True(m.RenderIn() != nil && m.MaskedIn() != nil) // anew
+	whole.Draw(screen, nothing, nothing)
+	is.True(whole.Allocated())
+}

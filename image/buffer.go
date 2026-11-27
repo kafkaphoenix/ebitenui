@@ -8,6 +8,8 @@ import (
 
 // BufferedImage is a wrapper for an Ebiten Image that helps with caching the Image.
 // As long as Width and Height stay the same, no new Image will be created.
+// The image is a texture of its own, outside Ebitengine's atlases, so one
+// made anew gives the old one's memory back.
 type BufferedImage struct {
 	Width  int
 	Height int
@@ -15,7 +17,10 @@ type BufferedImage struct {
 	image *ebiten.Image
 }
 
-// MaskedRenderBuffer is a helper to draw images using a mask.
+// MaskedRenderBuffer is a helper to draw images using a mask. Its images
+// are textures of their own, outside Ebitengine's atlases, kept from one
+// draw to the next and given back by Release, as the widget drawing through
+// it stops showing.
 type MaskedRenderBuffer struct {
 	renderBuf *BufferedImage
 	maskedBuf *BufferedImage
@@ -23,6 +28,32 @@ type MaskedRenderBuffer struct {
 	// For DrawIn: images covering the masked area, in screen coordinates.
 	renderIn, maskedIn *ebiten.Image
 	op                 ebiten.DrawImageOptions
+}
+
+// Release gives the buffer's images back; a draw after makes them anew.
+func (m *MaskedRenderBuffer) Release() {
+	deallocate(&m.renderIn)
+	deallocate(&m.maskedIn)
+	if m.renderBuf != nil {
+		deallocate(&m.renderBuf.image)
+	}
+	if m.maskedBuf != nil {
+		deallocate(&m.maskedBuf.image)
+	}
+}
+
+// Allocated reports whether the buffer holds images: from a draw until
+// Release. Each draw makes its two images together, and Release frees them
+// together.
+func (m *MaskedRenderBuffer) Allocated() bool {
+	return m.renderIn != nil || m.renderBuf != nil && m.renderBuf.image != nil
+}
+
+func deallocate(i **ebiten.Image) {
+	if *i != nil {
+		(*i).Deallocate()
+		*i = nil
+	}
 }
 
 // coveringMargin is how far, in pixels, an image covering an area reaches
@@ -44,7 +75,7 @@ func (b *BufferedImage) Image() *ebiten.Image {
 		if b.image != nil {
 			b.image.Deallocate()
 		}
-		b.image = ebiten.NewImage(b.Width, b.Height)
+		b.image = ebiten.NewImageWithOptions(img.Rect(0, 0, b.Width, b.Height), &ebiten.NewImageOptions{Unmanaged: true})
 	}
 
 	return b.image
@@ -110,7 +141,8 @@ func (m *MaskedRenderBuffer) DrawIn(screen *ebiten.Image, rect img.Rectangle, d 
 // *i covering rect while rect lies inside it (Ebitengine keeps one sub-image
 // per area, so an area that stays gets the same one), else part of a new
 // image, exactly rect the first time and reaching coveringMargin past it,
-// within screen, once rect has moved.
+// within screen, once rect has moved. The image is a texture of its own: on
+// an atlas, images made anew would grow pages that stay grown.
 func imageCovering(i **ebiten.Image, rect, screen img.Rectangle) *ebiten.Image {
 	if *i == nil || !rect.In((*i).Bounds()) {
 		margin := 0
@@ -118,7 +150,7 @@ func imageCovering(i **ebiten.Image, rect, screen img.Rectangle) *ebiten.Image {
 			margin = coveringMargin
 			(*i).Deallocate()
 		}
-		*i = ebiten.NewImageWithOptions(rect.Inset(-margin).Intersect(screen), nil)
+		*i = ebiten.NewImageWithOptions(rect.Inset(-margin).Intersect(screen), &ebiten.NewImageOptions{Unmanaged: true})
 	}
 	part, ok := (*i).SubImage(rect).(*ebiten.Image)
 	if !ok {
