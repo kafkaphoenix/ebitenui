@@ -65,7 +65,7 @@ ui := &ebitenui.UI{Container: root, PrimaryTheme: theme}
 
 - `themes.GetBasicDarkTheme()` and `GetBasicLightTheme()` give the two basic themes.
 - `GetBasicDarkThemeWith(themes.Rounded(6), themes.Borders(2))` gives them with rounded corners and borders.
-- `GetBasicSystemTheme()` follows the system's light or dark mode. It is shared across the program, so change a copy from the functions above rather than it.
+- To follow the system's light or dark mode, give the UI both themes: `ui.DarkTheme` and `ui.LightTheme`. It switches its `PrimaryTheme` between them as the mode changes, checking twice a second.
 - A theme can also be written from nothing, as a `&widget.Theme{...}` with the parts your interface uses.
 
 Change a theme before building the interface. To switch themes later, such as from a settings menu, set `UI.PrimaryTheme` to a different theme; the interface takes it on its next update. Windows take the interface's theme unless given their own. One widget can have a theme of its own with `GetWidget().SetTheme(theme)`.
