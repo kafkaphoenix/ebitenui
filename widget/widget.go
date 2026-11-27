@@ -692,6 +692,7 @@ func (w *Widget) SetVisibility(v Visibility) {
 	if w.visibility != v {
 		w.visibility = v
 		w.relayoutParent = true
+		releaseBuffers(w.self) // hidden, it isn't drawn; shown, it was hidden and holds none
 	}
 }
 

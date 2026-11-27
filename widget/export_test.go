@@ -89,6 +89,7 @@ func (x *SearchBar) ClearButton() *Button                             { return x
 func (x *SearchBar) ComputedParams() *SearchBarParams                 { return &x.computedParams }
 func (x *SearchBar) Icon() *Graphic                                   { return x.icon }
 func (x *ScrollContainer) Image() *ScrollContainerImage               { return x.image }
+func (x *ScrollContainer) RenderBuffer() *image.MaskedRenderBuffer    { return x.renderBuf }
 func (x *SelectComboButton) Button() *ComboButton                     { return x.button }
 func (x *Table) CellText(i, col int) string {
 	r := x.list.rows
@@ -123,6 +124,7 @@ func (x *TextArea) HSlider() *Slider                                    { return
 func (x *TextArea) ScrollContainer() *ScrollContainer                   { return x.scrollContainer }
 func (x *TextArea) VSlider() *Slider                                    { return x.vSlider }
 func (x *TextInput) CaretRect() image2.Rectangle                        { return x.caretRect }
+func (x *TextInput) RenderBuffer() *image.MaskedRenderBuffer            { return x.renderBuf }
 func (x *TextInput) CommitIME(a0 string, a1 bool, a2 string, a3 string) { x.commitIME(a0, a1, a2, a3) }
 func (x *TextInput) Compose(a0 string, a1 int)                          { x.compose(a0, a1) }
 func (x *TextInput) Composer() *textinput.Composer                      { return &x.composer }
