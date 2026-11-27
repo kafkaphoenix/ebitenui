@@ -12,7 +12,6 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/ebitenui/ebitenui/event"
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -434,8 +433,8 @@ func TestList_EntryImages(t *testing.T) {
 	partial.DefinedParams().EntryColor = &colors
 	partial.Validate()
 	is.True(partial.ComputedParams().EntrySelectedColor().Idle == images.Selected)
-	is.True(partial.ComputedParams().EntrySelectedColor().Hover == image.NewNineSliceColor(focused)) // its color
-	is.True(partial.ComputedParams().EntryUnselectedColor().Idle == image.NewNineSliceColor(color.Transparent))
+	is.Equal(partial.ComputedParams().EntrySelectedColor().Hover.FillColor(), color.Color(focused)) // its color
+	is.Equal(partial.ComputedParams().EntryUnselectedColor().Idle.FillColor(), color.Transparent)
 }
 
 // A theme's entry images reach a list given neither colors nor images, and
@@ -476,8 +475,8 @@ func TestList_EntryImagesFromTheTheme(t *testing.T) {
 	c.DefinedParams().List.EntryImage, c.DefinedParams().List.EntryColor = nil, &givenColors
 	l.Validate()
 	c.Validate()
-	is.True(l.ComputedParams().EntrySelectedColor().Idle == image.NewNineSliceColor(selected)) // the colors given
-	is.True(c.List().ComputedParams().EntrySelectedColor().Idle == image.NewNineSliceColor(selected))
+	is.Equal(l.ComputedParams().EntrySelectedColor().Idle.FillColor(), color.Color(selected)) // the colors given
+	is.Equal(c.List().ComputedParams().EntrySelectedColor().Idle.FillColor(), color.Color(selected))
 }
 
 // With SlidersWhenNeeded, the vertical slider shows only while the entries
