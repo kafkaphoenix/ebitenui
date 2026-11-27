@@ -194,10 +194,10 @@ func TestOnScreenKeyboard_Layouts(t *testing.T) {
 		rows  []string
 		extra string
 	}{
-		"QWERTY":  {widget.KeyboardQWERTY, ""},
-		"AZERTY":  {widget.KeyboardAZERTY, "éèêàçù"},
-		"QWERTZ":  {widget.KeyboardQWERTZ, "üöäß"},
-		"Spanish": {widget.KeyboardSpanish, "ñáéíóúü¿¡"},
+		"QWERTY":  {widget.KeyboardQWERTY(), ""},
+		"AZERTY":  {widget.KeyboardAZERTY(), "éèêàçù"},
+		"QWERTZ":  {widget.KeyboardQWERTZ(), "üöäß"},
+		"Spanish": {widget.KeyboardSpanish(), "ñáéíóúü¿¡"},
 	} {
 		seen := map[rune]bool{}
 		for _, row := range l.rows {
@@ -212,4 +212,19 @@ func TestOnScreenKeyboard_Layouts(t *testing.T) {
 	}
 	is.Equal(key(t, newKeyboard(t), "q").TextLabel(), "q") // QWERTY by default
 	is.Equal(len(widget.NewOnScreenKeyboard().Letters()), 26)
+}
+
+// Each call gives a layout of its own: a caller changing its rows changes
+// no other caller's, nor the keyboards made after.
+func TestOnScreenKeyboard_LayoutsAreCopies(t *testing.T) {
+	is := is.New(t)
+
+	for _, layout := range []func() []string{widget.KeyboardQWERTY, widget.KeyboardAZERTY, widget.KeyboardQWERTZ, widget.KeyboardSpanish} {
+		mine := layout()
+		mine[1] = "changed"
+		is.True(layout()[1] != "changed")
+	}
+	rows := widget.KeyboardQWERTY()
+	rows[1] = "zyx"
+	is.Equal(key(t, newKeyboard(t), "q").TextLabel(), "q") // the default untouched
 }
