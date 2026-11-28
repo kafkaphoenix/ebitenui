@@ -583,7 +583,7 @@ func (t *TextInput) Update(updObj *UpdateObject) {
 	if t.text != nil {
 		t.text.Update(updObj)
 	}
-	if t.caret != nil {
+	if t.caret != nil && t.focused { // drawn only while focused, and reset as the focus comes
 		t.caret.Update(updObj)
 	}
 }
