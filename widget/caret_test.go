@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/internal/changes"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -40,5 +41,28 @@ func TestCaret_BlinksInUpdates(t *testing.T) {
 	}
 	if n := testing.AllocsPerRun(100, func() { c.Update(&widget.UpdateObject{}) }); n != 0 {
 		t.Errorf("an update of the caret allocated %v times, want 0", n)
+	}
+}
+
+// A text input blinks its caret only while it has the focus, when the
+// caret shows: unfocused, as a hidden search field, it tells UI.Changed of
+// nothing, so a game skipping still frames stays still. Focused, it blinks
+// again at once.
+func TestTextInput_CaretBlinksOnlyFocused(t *testing.T) {
+	ti := newTextInput(t)
+	from := changes.Count()
+	for range 120 {
+		ti.Update(&widget.UpdateObject{})
+	}
+	if n := changes.Count() - from; n != 0 {
+		t.Errorf("unfocused for two seconds, the input marked %d changes, want none", n)
+	}
+	ti.Focus(true)
+	from = changes.Count()
+	for range 60 {
+		ti.Update(&widget.UpdateObject{})
+	}
+	if changes.Count() == from {
+		t.Error("focused for a second, the caret never blinked")
 	}
 }
