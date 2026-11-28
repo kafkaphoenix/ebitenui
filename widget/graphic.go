@@ -101,6 +101,8 @@ func (o GraphicOptions) Images(i *GraphicImage) GraphicOpt {
 	}
 }
 
+// GIF shows an animated GIF, each frame for its delay, counted in updates.
+// It pauses while the graphic is hidden.
 func (o GraphicOptions) GIF(gif *gif.GIF) GraphicOpt {
 	return func(g *Graphic) {
 		g.gif = gif
@@ -195,7 +197,7 @@ func (g *Graphic) Update(updObj *UpdateObject) {
 
 	// A GIF's frame shows for its delay, in hundredths of a second, counted
 	// in updates.
-	if g.gif != nil {
+	if g.gif != nil && g.widget.IsVisible() { // paused while hidden
 		g.gifUpdates++
 		if g.gifUpdates >= updatesIn(time.Duration(g.gif.Delay[g.gifCurrentImage])*10*time.Millisecond) {
 			g.gifUpdates = 0

@@ -37,7 +37,7 @@ type LoadingParams struct {
 //
 // It counts its animation in updates, at Ebitengine's TPS, and tells
 // UI.Changed only as what it draws changes: the band moving a pixel, the
-// spinner turning a dot, the next tip.
+// spinner turning a dot, the next tip. It pauses while hidden.
 type Loading struct {
 	definedParams  LoadingParams
 	computedParams LoadingParams
@@ -316,10 +316,13 @@ func (l *Loading) tipIndex() int {
 }
 
 // Update moves the animation an update on, telling UI.Changed as what it
-// draws changes.
+// draws changes; hidden, it moves nothing.
 func (l *Loading) Update(updObj *UpdateObject) {
 	l.init.Do()
 	l.widget.Update(updObj)
+	if !l.widget.IsVisible() { // paused while hidden
+		return
+	}
 	step, band, tip := l.step(), l.bandX(), 0
 	if l.tip != nil {
 		tip = l.tipIndex()
