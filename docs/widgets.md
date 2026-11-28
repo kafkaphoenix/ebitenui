@@ -125,6 +125,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Pages and scrolling
 
 - **`ScrollContainer`** shows content bigger than its space, scrolled with sliders, the wheel or by dragging. Demo: `scrollcontainer`.
+- **`ScrollPane`** is a scroll container with its scrollbar: the bar shows only while the content is taller than the view, which can be capped in height, and a widget inside given the focus is scrolled into view. Use it for a settings page or any column of controls that may not fit.
 - **`FlipBook`** shows one page of several at a time; the game switches between them. Demo: `flipbook`.
 - **`TabBook`** shows pages behind a row of tabs. Demo: `tabbook`.
 - **`Carousel`** shows one page at a time with arrows, dots and swipes to move between them, sliding each new page in. It can loop and move on by itself, like a loading screen. In steps mode, each page opens only once the game marks the steps before it as done, like a tutorial. Demo: `carousel`.
