@@ -16,6 +16,7 @@ type NineSlice struct {
 	widths      [3]int
 	heights     [3]int
 	transparent bool
+	fill        color.Color // the color NewNineSliceColor fills with
 
 	init  sync.Once
 	tiles [9]*ebiten.Image
@@ -40,10 +41,6 @@ func NewBorder(borderTop int, borderRight int, borderBottom int, borderLeft int,
 // A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
 // This is usually used to translate the image.
 type DrawImageOptionsFunc func(opts *ebiten.DrawImageOptions)
-
-var colorImages map[color.Color]*ebiten.Image = map[color.Color]*ebiten.Image{}
-
-var colorNineSlices = map[color.Color]*NineSlice{}
 
 // NewNineSlice constructs a new NineSlice from i, having columns widths w and row heights h.
 func NewNineSlice(i *ebiten.Image, w [3]int, h [3]int) *NineSlice {
@@ -80,31 +77,26 @@ func NewNineSliceBorder(image *ebiten.Image, borderWidthHeight int) *NineSlice {
 	return NewNineSliceSimple(image, borderWidthHeight, image.Bounds().Dx()-borderWidthHeight*2)
 }
 
-// NewNineSliceColor constructs a new NineSlice that when drawn fills with color c.
+// NewNineSliceColor constructs a new NineSlice that when drawn fills with
+// color c. Each call makes one of its own, for the caller to keep.
 func NewNineSliceColor(c color.Color) *NineSlice {
 	if c == nil {
 		return &NineSlice{transparent: true}
 	}
-
-	if n, ok := colorNineSlices[c]; ok {
-		return n
-	}
-
-	var n *NineSlice
 	if _, _, _, a := c.RGBA(); a == 0 {
-		n = &NineSlice{
-			transparent: true,
-		}
-	} else {
-		n = &NineSlice{
-			image:   NewImageColor(c),
-			widths:  [3]int{0, 1, 0},
-			heights: [3]int{0, 1, 0},
-		}
+		return &NineSlice{transparent: true, fill: c}
 	}
-	colorNineSlices[c] = n
-	return n
+	return &NineSlice{
+		image:   NewImageColor(c),
+		widths:  [3]int{0, 1, 0},
+		heights: [3]int{0, 1, 0},
+		fill:    c,
+	}
 }
+
+// FillColor returns the color a nine-slice from NewNineSliceColor fills
+// with, or nil for any other nine-slice.
+func (n *NineSlice) FillColor() color.Color { return n.fill }
 
 // NewBorderedNineSliceColor constructs a new NineSlice that when drawn fills with color c and has a border with
 // the specified color and width.
@@ -176,13 +168,8 @@ func NewAdvancedNineSliceImage(img *ebiten.Image, border Border) *NineSlice {
 
 // NewImageColor constructs a new Image that when drawn fills with color c.
 func NewImageColor(c color.Color) *ebiten.Image {
-	if i, ok := colorImages[c]; ok {
-		return i
-	}
-
 	i := ebiten.NewImage(1, 1)
 	i.Fill(c)
-	colorImages[c] = i
 	return i
 }
 

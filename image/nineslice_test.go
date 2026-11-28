@@ -45,6 +45,22 @@ func Test_NewNineSliceColor(t *testing.T) {
 	is.Equal(n.Transparent(), true)
 }
 
+// Each call makes the caller a nine-slice and an image of its own, kept by
+// no one else, so two interfaces asking for the same color share nothing.
+func TestNewNineSliceColor_OwnEach(t *testing.T) {
+	is := is.New(t)
+
+	red := color.NRGBA{255, 0, 0, 255}
+	a, b := eimage.NewNineSliceColor(red), eimage.NewNineSliceColor(red)
+	is.True(a != b)
+	first, second := eimage.NewImageColor(red), eimage.NewImageColor(red)
+	is.True(first != second)
+	is.Equal(a.FillColor(), color.Color(red))                                            // what it fills with
+	is.Equal(eimage.NewNineSliceColor(color.Transparent).FillColor(), color.Transparent) // transparent too
+	is.True(eimage.NewNineSliceColor(nil).FillColor() == nil)
+	is.True(eimage.NewFixedNineSlice(ebiten.NewImage(2, 2)).FillColor() == nil) // not a color's
+}
+
 func Test_NewNineSliceBorder(t *testing.T) {
 	is := is.New(t)
 
