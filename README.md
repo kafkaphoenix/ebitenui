@@ -49,7 +49,7 @@ Testing
 ------
 Package `uitest` plays a user on an interface in tests: it stands in for the mouse, the keyboard, the gamepads and the touch screen, and runs the interface frame by frame, so a test presses where a player would. Each test starts as a new window does, with nothing hovered and no input layers, whatever the test before it left.
 
-The library's own tests are external packages (`package widget_test`); what they reach inside a package is in its `export_test.go`.
+The library's own tests are external packages (`package widget_test`); what they reach inside a package is in its `export_test.go`. Tests that read drawn pixels back need Ebitengine's game loop and a display: they sit in `internal/gputest`, which runs them inside the loop, built with the `gpu` tag (`go test -tags gpu ./internal/gputest/`).
 
 ```go
 ui := &ebitenui.UI{Container: root}
