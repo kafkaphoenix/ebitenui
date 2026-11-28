@@ -643,7 +643,7 @@ func dragAndDropPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	dnd := widget.NewDragAndDrop(
-		widget.DragAndDropOpts.ContentsCreater(&dragContents{
+		widget.DragAndDropOpts.ContentsCreator(&dragContents{
 			res: res,
 		}),
 	)
