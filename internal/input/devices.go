@@ -135,6 +135,16 @@ func (handler *DefaultInternalHandler) updatePair() {
 	handler.pair, handler.pairIDs, handler.paired = at, ids, true
 }
 
+// TouchCenter returns the midpoint of the first two fingers, in the
+// interface's pixels, and whether two are down.
+func (handler *DefaultInternalHandler) TouchCenter() (x, y float64, ok bool) {
+	if !handler.paired {
+		return 0, 0, false
+	}
+	p := handler.pair
+	return float64(p[0].X+p[1].X) / 2, float64(p[0].Y+p[1].Y) / 2, true
+}
+
 func spread(p [2]image.Point) float64 {
 	return math.Hypot(float64(p[1].X-p[0].X), float64(p[1].Y-p[0].Y))
 }

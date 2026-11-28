@@ -136,3 +136,29 @@ func TestTouchPinchAndPan(t *testing.T) {
 		input.AfterUpdate()
 	}
 }
+
+// The center of a pinch is the midpoint of the first two fingers, in the
+// interface's pixels, while two are down; with one finger or none there is
+// no center.
+func TestTouchCenter(t *testing.T) {
+	is := is.New(t)
+
+	d := uitest.Use(t)
+	for i, s := range []struct {
+		fingers []image.Point
+		x, y    float64
+		ok      bool
+	}{
+		{nil, 0, 0, false},
+		{[]image.Point{{10, 20}}, 0, 0, false},
+		{[]image.Point{{10, 20}, {110, 60}}, 60, 40, true},
+		{[]image.Point{{0, 0}, {31, 0}}, 15.5, 0, true},
+		{[]image.Point{{31, 0}}, 0, 0, false}, // one lifts
+	} {
+		d.Touches = s.fingers
+		input.Update()
+		x, y, ok := input.TouchCenter()
+		is.Equal([]any{i, x, y, ok}, []any{i, s.x, s.y, s.ok})
+		input.AfterUpdate()
+	}
+}
