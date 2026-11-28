@@ -166,6 +166,7 @@ func (x *textCache) Renders() int                                       { return
 func (x *textCache) Slot() *textSlot                                    { return x.slot }
 func (x *textCache) TooLarge() bool                                     { return x.tooLarge }
 func (x *textMeasurements) BoundingBoxWidth() float64                   { return x.boundingBoxWidth }
+func (x *textMeasurements) Label() string                               { return x.label }
 func (x *textMeasurements) LineHeight() float64                         { return x.lineHeight }
 func (x *textMeasurements) ProcessedLineGlyphs() [][]text.Glyph         { return x.processedLineGlyphs }
 func (x *textMeasurements) ProcessedLineTexts() []string                { return x.processedLineTexts }
