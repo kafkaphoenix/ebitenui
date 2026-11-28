@@ -40,7 +40,8 @@ type CarouselParams struct {
 // mode reach a page only once the game marks the steps before it done.
 //
 // It counts its slides and its waits in updates, at Ebitengine's TPS, and
-// tells UI.Changed of each move and each update of a slide.
+// tells UI.Changed of each move and each update of a slide. It pauses
+// while hidden: no slide, no move on by itself.
 type Carousel struct {
 	definedParams  CarouselParams
 	computedParams CarouselParams
@@ -485,7 +486,7 @@ func (c *Carousel) PlaceChildren() {
 func (c *Carousel) Update(updObj *UpdateObject) {
 	c.init.Do()
 	c.widget.Update(updObj)
-	if len(c.pages) == 0 {
+	if len(c.pages) == 0 || !c.widget.IsVisible() { // paused while hidden
 		return
 	}
 	if c.prev != nil {
