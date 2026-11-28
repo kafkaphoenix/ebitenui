@@ -49,7 +49,10 @@ type Window struct {
 	MinSize    *image.Point
 	MaxSize    *image.Point
 	Dynamic    bool
-	DrawLayer  int
+	// Centered keeps the window in the middle of the screen (see
+	// WindowOpts.Centered).
+	Centered  bool
+	DrawLayer int
 	// Used to indicate this window should close if other windows close.
 	Ephemeral bool
 
@@ -188,6 +191,16 @@ func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 func (o WindowOptions) Dynamic() WindowOpt {
 	return func(w *Window) {
 		w.Dynamic = true
+	}
+}
+
+// Centered keeps the window in the middle of the screen it is drawn on: at
+// its size, or its contents' preferred size when it has none, placed again
+// whenever its size or the screen's changes, and left in place otherwise.
+// Dragging it does not move it.
+func (o WindowOptions) Centered() WindowOpt {
+	return func(w *Window) {
+		w.Centered = true
 	}
 }
 
@@ -413,7 +426,24 @@ func (w *Window) Render(screen *ebiten.Image) {
 	}
 
 	w.fitContents()
+	w.center(screen.Bounds())
 	w.container.Render(screen)
+}
+
+// center places a centered window in the middle of screen when it isn't
+// there: at its size, or its contents' preferred size when it has none.
+func (w *Window) center(screen image.Rectangle) {
+	if !w.Centered {
+		return
+	}
+	r := w.placeRect()
+	if r.Empty() {
+		x, y := w.container.PreferredSize()
+		r = image.Rect(0, 0, x, y)
+	}
+	if at := screen.Min.Add(screen.Size().Sub(r.Size()).Div(2)); r.Min != at {
+		w.SetLocation(r.Add(at.Sub(r.Min)))
+	}
 }
 
 // fitContents sizes a dynamic window that can't be resized to its

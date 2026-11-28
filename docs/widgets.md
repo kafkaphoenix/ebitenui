@@ -131,7 +131,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 
 ## Windows and popups
 
-- **`Window`** shows content over the interface. It can block what is under it, have a title bar, be dragged and resized, close on a click outside, and fade in and out. Demo: `window`.
+- **`Window`** shows content over the interface. It can block what is under it, have a title bar, be dragged and resized, close on a click outside, fade in and out, and keep itself in the middle of the screen as its size or the screen's changes. Demo: `window`.
 - **`Dialog`** is a window asking the player to choose, such as an alert or a yes/no question. Demo: `dialog`.
 - **Context menus** open on a widget with a right click, a long press, the context-menu key or a gamepad's Menu button. Demo: `contextmenu`.
 - **`ToolTip`** shows content while the pointer rests on a widget, or on a long press with a finger. Demo: `tooltips`.
