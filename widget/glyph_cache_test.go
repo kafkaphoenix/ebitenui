@@ -2,8 +2,8 @@ package widget_test
 
 import (
 	"bytes"
-	"fmt"
 	"slices"
+	"strconv"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/widget"
@@ -74,7 +74,7 @@ func TestGlyphCache_Limit(t *testing.T) {
 	for _, tc := range []struct{ limit, keeps int }{{0, 256}, {3, 3}} {
 		c := widget.GlyphCache{Limit: tc.limit}
 		for i := range tc.keeps {
-			c.Measure(fmt.Sprint(i), face, 0)
+			c.Measure(strconv.Itoa(i), face, 0)
 			c.Measure("0", face, 0)
 		}
 		is.Equal(c.Len(), tc.keeps) // full
