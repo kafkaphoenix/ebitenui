@@ -146,6 +146,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Your own drawing
 
 - **`Canvas`** is a widget your game draws into, such as a minimap or a chart. It is laid out like any widget, what you draw stays inside it, and its events tell you where the pointer is. Demo: `canvas`.
+- **`GlyphCache`** draws and measures text as `text.Draw` and `text.Measure` do, from glyphs laid out the first time each text is drawn: labels drawn every frame, on a canvas or the screen, are not shaped again and allocate nothing.
 
 ## What every widget has
 
