@@ -8,7 +8,6 @@ import (
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 
@@ -117,25 +116,17 @@ func TestThemes_Borders(t *testing.T) {
 	}
 }
 
-// The system theme with options is the same theme for the same mode and
-// options, so setting it every frame re-validates nothing; without options
-// it is the unshaped one.
-func TestThemes_SystemShaped(t *testing.T) {
+// The dark and the light themes take the same shape, each in its own
+// colors, as a UI's DarkTheme and LightTheme following the system's mode.
+func TestThemes_ShapedForEachMode(t *testing.T) {
 	is := is.New(t)
 
-	opts := []themes.ThemeOpt{themes.Rounded(6)}
-	first, again := themes.GetBasicSystemThemeWith(opts...), themes.GetBasicSystemThemeWith(opts...)
-	is.True(first == again)
-	first, again = themes.GetBasicSystemThemeWith(themes.Rounded(6)), themes.GetBasicSystemThemeWith(themes.Rounded(6))
-	is.True(first == again) // the same options, given anew
-	is.True(themes.GetBasicSystemThemeWith(themes.Rounded(6)) != themes.GetBasicSystemThemeWith(themes.Rounded(7)))
-	is.True(themes.GetBasicSystemThemeWith() == themes.GetBasicSystemTheme())
-
-	rounded := themes.NewShape([]themes.ThemeOpt{themes.Rounded(6)})
-	dark, light := themes.ShapedThemeFor(ebiten.ColorModeDark, rounded), themes.ShapedThemeFor(ebiten.ColorModeLight, rounded)
-	is.True(dark != light)
+	dark, light := themes.GetBasicDarkThemeWith(themes.Rounded(6)), themes.GetBasicLightThemeWith(themes.Rounded(6))
 	is.True(dark.DefaultTextColor != light.DefaultTextColor) // each its mode's
 	is.Equal(corners(dark.ButtonTheme.Image.Idle), [2]int{12, 12})
+	is.Equal(corners(light.ButtonTheme.Image.Idle), [2]int{12, 12})
+	first, second := themes.GetBasicDarkTheme(), themes.GetBasicDarkTheme()
+	is.True(first != second) // a theme of its own each call
 }
 
 // Each entry state's rounded background is a fill of that state's color.

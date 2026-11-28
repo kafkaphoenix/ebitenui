@@ -96,6 +96,16 @@ type UI struct {
 	PrimaryTheme  *widget.Theme
 	previousTheme *widget.Theme
 
+	// DarkTheme and LightTheme, when either is set, make the UI follow the
+	// system's color mode: PrimaryTheme becomes DarkTheme while the system
+	// is dark, LightTheme while it is light or doesn't say, or the one
+	// given when only one is. The UI reads the mode as it starts and then
+	// every half second. The themes are the caller's own, so changing one
+	// changes no other UI.
+	DarkTheme, LightTheme *widget.Theme
+	colorMode             func() ebiten.ColorMode // the system's, or a test's
+	modeIn                int                     // updates until the mode is read again
+
 	focusedWidget      widget.Focuser
 	focusedWindow      *widget.Window
 	focusedWindowIndex int
@@ -135,6 +145,7 @@ func (u *UI) Update() {
 	internalinput.InputHandler.SetScreenTransform(u.ScreenTransform)
 	input.Update()
 	defer input.AfterUpdate()
+	u.followColorMode()
 
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		for _, removeHandler := range u.previousRemoveHandlerFuncs {
@@ -293,6 +304,28 @@ func (u *UI) render(screen *ebiten.Image) {
 	for ; index < len(u.windows); index++ {
 		u.windows[index].Render(screen)
 	}
+}
+
+// followColorMode sets PrimaryTheme to DarkTheme or LightTheme by the
+// system's color mode, read every half second, when either is set.
+func (u *UI) followColorMode() {
+	if u.DarkTheme == nil && u.LightTheme == nil {
+		return
+	}
+	if u.modeIn > 0 {
+		u.modeIn--
+		return
+	}
+	u.modeIn = max(1, ebiten.TPS()/2) - 1
+	mode := ebiten.SystemColorMode
+	if u.colorMode != nil {
+		mode = u.colorMode
+	}
+	th := u.LightTheme
+	if th == nil || u.DarkTheme != nil && mode() == ebiten.ColorModeDark {
+		th = u.DarkTheme
+	}
+	u.PrimaryTheme = th
 }
 
 func (u *UI) setTheme() {
