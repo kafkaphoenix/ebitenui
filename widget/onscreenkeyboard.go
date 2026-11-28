@@ -7,18 +7,29 @@ import (
 
 // Character rows of common layouts for OnScreenKeyboardOpts.Rows, a key a
 // character, lower case. A row of its own holds what a layout reaches with
-// dead keys or AltGr on a real keyboard.
-var (
-	// KeyboardQWERTY is English's layout, the keyboard's own.
-	KeyboardQWERTY = []string{"1234567890", "qwertyuiop", "asdfghjkl'", "zxcvbnm,.-"}
-	// KeyboardAZERTY is French's layout, with its accented letters.
-	KeyboardAZERTY = []string{"1234567890", "azertyuiop", "qsdfghjklm", "wxcvbn,.'-", "éèêàçù"}
-	// KeyboardQWERTZ is German's layout, with its umlauts and ß.
-	KeyboardQWERTZ = []string{"1234567890", "qwertzuiopü", "asdfghjklöä", "yxcvbnm,.-ß"}
-	// KeyboardSpanish is Spanish's layout, with ñ, its accented vowels and its
-	// opening marks.
-	KeyboardSpanish = []string{"1234567890", "qwertyuiop", "asdfghjklñ", "zxcvbnm,.-", "áéíóúü¿¡'"}
-)
+// dead keys or AltGr on a real keyboard. Each call returns rows of its own,
+// which the caller may change.
+
+// KeyboardQWERTY returns English's layout, the keyboard's own.
+func KeyboardQWERTY() []string {
+	return []string{"1234567890", "qwertyuiop", "asdfghjkl'", "zxcvbnm,.-"}
+}
+
+// KeyboardAZERTY returns French's layout, with its accented letters.
+func KeyboardAZERTY() []string {
+	return []string{"1234567890", "azertyuiop", "qsdfghjklm", "wxcvbn,.'-", "éèêàçù"}
+}
+
+// KeyboardQWERTZ returns German's layout, with its umlauts and ß.
+func KeyboardQWERTZ() []string {
+	return []string{"1234567890", "qwertzuiopü", "asdfghjklöä", "yxcvbnm,.-ß"}
+}
+
+// KeyboardSpanish returns Spanish's layout, with ñ, its accented vowels and
+// its opening marks.
+func KeyboardSpanish() []string {
+	return []string{"1234567890", "qwertyuiop", "asdfghjklñ", "zxcvbnm,.-", "áéíóúü¿¡'"}
+}
 
 // OnScreenKeyboard is a keyboard of buttons that types into a TextInput, for
 // a gamepad on a platform that shows no keyboard of its own. Its keys take
@@ -97,7 +108,7 @@ func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 	// stretches them across the keyboard's width.
 	cfg := onScreenKeyboardConfig{
 		keyOpts: []ButtonOpt{ButtonOpts.TextPadding(&Insets{Left: 8, Right: 8, Top: 6, Bottom: 6})},
-		rows:    KeyboardQWERTY,
+		rows:    KeyboardQWERTY(),
 	}
 	for _, o := range opts {
 		o(&cfg)
