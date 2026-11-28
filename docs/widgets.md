@@ -96,7 +96,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 
 ## Text and images
 
-- **`Text`** shows text in a face and a color, wrapped at a width if you give one. It can show colored words and clickable links written in BBCode, and a shadow. With `widget.SetTextCache(true)`, texts are drawn from images of themselves, which is faster for text that rarely changes. Demos: `label`, `text_cache`.
+- **`Text`** shows text in a face and a color, wrapped at a width if you give one. It can show colored words and clickable links written in BBCode, and a shadow. With `widget.SetTextCache(true)`, texts are drawn from images of themselves, which is faster for text that rarely changes. A label your game rebuilds each frame, such as a clock or a readout, can be built in a byte buffer you keep and set with `SetLabelBytes`, which makes a new string only when the text changes. Demos: `label`, `text_cache`.
 - **`Label`** is a text with its own color for when it is disabled, as buttons and check boxes use. Demo: `label`.
 - **`Graphic`** shows an image, a stretchable nine-slice, an animated GIF, or an image for each state (idle, hovered, pressed, disabled). Demos: `graphic_gif`, `imagebutton`.
 - **`TextArea`** shows text too long for its space, scrolled with sliders, the wheel or by dragging. With `MaxLines` it keeps only its last lines, like a log. Demo: `textarea`.

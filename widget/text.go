@@ -367,6 +367,16 @@ func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
 	}
 }
 
+// SetLabelBytes sets the label to the text in b, making a new string only
+// when it differs from the label: a label built in a buffer the game keeps
+// and rebuilds each frame, as a readout, allocates only when what it shows
+// changes. b is not kept.
+func (t *Text) SetLabelBytes(b []byte) {
+	if string(b) != t.Label { // compared without a copy
+		t.Label = string(b)
+	}
+}
+
 func (t *Text) SetColor(color color.Color) {
 	t.definedParams.Color = color
 	t.computedParams.Color = color
