@@ -129,10 +129,10 @@ type UI struct {
 // themselves since the last call: a text input's caret blinking, a
 // tooltip showing or going, a GIF's next frame, a window's transition, a
 // list gliding on after a drag, a loading indicator's band moving, spinner
-// turning or next tip, a carousel's slide, a canvas marked changed
-// (Canvas.MarkChanged). A game that draws only frames that show
-// something new draws then; what its own code changes and the player's
-// input it knows itself.
+// turning or next tip, a carousel's slide, a toast fading or going, a
+// canvas marked changed (Canvas.MarkChanged). A game that draws only
+// frames that show something new draws then; what its own code changes
+// and the player's input it knows itself.
 func (u *UI) Changed() bool {
 	c := changes.Count()
 	changed := c != u.changes

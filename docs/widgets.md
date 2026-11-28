@@ -135,6 +135,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 - **`Dialog`** is a window asking the player to choose, such as an alert or a yes/no question. Demo: `dialog`.
 - **Context menus** open on a widget with a right click, a long press, the context-menu key or a gamepad's Menu button. Demo: `contextmenu`.
 - **`ToolTip`** shows content while the pointer rests on a widget, or on a long press with a finger. Demo: `tooltips`.
+- **`Toast`** shows a short message for a few seconds, such as a game saved or a gamepad plugged in, fading in and out if you like. A new message takes the place of the one showing.
 - **`DragAndDrop`** lets the player drag something from one widget and drop it on another. Demo: `draganddrop`.
 
 ## Progress
