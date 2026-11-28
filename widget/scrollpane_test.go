@@ -25,15 +25,15 @@ func paneRows(n int) (*widget.Container, []*widget.Button) {
 	return column, rows
 }
 
-// showPane shows a pane over content, its view at most maxHeight tall, in
+// showPane shows a pane over content, its view at most 200 pixels tall, in
 // the dark theme on a 640 by 480 screen, with more options, and draws two
 // frames of it.
-func showPane(t *testing.T, content widget.PreferredSizeLocateableWidget, maxHeight int, opts ...widget.ScrollPaneOpt) (*widget.ScrollPane, *uitest.Driver) {
+func showPane(t *testing.T, content widget.PreferredSizeLocateableWidget, opts ...widget.ScrollPaneOpt) (*widget.ScrollPane, *uitest.Driver) {
 	t.Helper()
 	t.Cleanup(func() { widget.SetUITheme(nil) })
 	pane := widget.NewScrollPane(append([]widget.ScrollPaneOpt{
 		widget.ScrollPaneOpts.Content(content),
-		widget.ScrollPaneOpts.MaxHeight(maxHeight),
+		widget.ScrollPaneOpts.MaxHeight(200),
 		widget.ScrollPaneOpts.Spacing(6),
 		widget.ScrollPaneOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
 			Idle: eimage.NewNineSliceColor(color.Transparent),
@@ -54,9 +54,9 @@ func showPane(t *testing.T, content widget.PreferredSizeLocateableWidget, maxHei
 func TestScrollPane_ShowsTheScrollbarWhileNeeded(t *testing.T) {
 	is := is.New(t)
 	long, _ := paneRows(30)
-	tall, _ := showPane(t, long, 200)
+	tall, _ := showPane(t, long)
 	short, _ := paneRows(5)
-	fits, _ := showPane(t, short, 200)
+	fits, _ := showPane(t, short)
 
 	is.Equal(tall.View().ViewRect().Dy(), 200)                                         // the view at the cap
 	is.True(tall.Scrollbar().GetWidget().IsVisible())                                  // the scrollbar shown
@@ -70,7 +70,7 @@ func TestScrollPane_ShowsTheScrollbarWhileNeeded(t *testing.T) {
 func TestScrollPane_StretchesTheContent(t *testing.T) {
 	is := is.New(t)
 	long, _ := paneRows(30)
-	pane, _ := showPane(t, long, 200, widget.ScrollPaneOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
+	pane, _ := showPane(t, long, widget.ScrollPaneOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
 		widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true}),
 	)))
 	view := pane.View().ViewRect()
@@ -85,7 +85,7 @@ func TestScrollPane_StretchesTheContent(t *testing.T) {
 func TestScrollPane_WheelAndScrollbar(t *testing.T) {
 	is := is.New(t)
 	long, rows := paneRows(30)
-	pane, drv := showPane(t, long, 200)
+	pane, drv := showPane(t, long)
 	view := pane.View().ViewRect()
 
 	drv.Cursor = view.Min.Add(view.Size().Div(2))
@@ -115,7 +115,7 @@ func TestScrollPane_WheelAndScrollbar(t *testing.T) {
 func TestScrollPane_FollowsTheFocus(t *testing.T) {
 	is := is.New(t)
 	long, rows := paneRows(30)
-	pane, drv := showPane(t, long, 200)
+	pane, drv := showPane(t, long)
 
 	rows[20].Focus(true)
 	drv.Frames(2)
@@ -130,7 +130,7 @@ func TestScrollPane_FollowsTheFocus(t *testing.T) {
 	is.Equal(pane.View().ScrollTop, 0.0) // left at the top
 
 	other, others := paneRows(30)
-	atTop, drv := showPane(t, other, 200, widget.ScrollPaneOpts.FocusAt(0))
+	atTop, drv := showPane(t, other, widget.ScrollPaneOpts.FocusAt(0))
 	others[20].Focus(true)
 	drv.Frames(2)
 	is.Equal(others[20].GetWidget().Rect.Min.Y, atTop.View().ViewRect().Min.Y) // at the top
@@ -142,7 +142,7 @@ func TestScrollPane_FollowsTheFocus(t *testing.T) {
 func TestScrollPane_FitsAgain(t *testing.T) {
 	is := is.New(t)
 	long, rows := paneRows(30)
-	pane, drv := showPane(t, long, 200)
+	pane, drv := showPane(t, long)
 	pane.SetMaxHeight(300)
 	drv.Frames(2)
 	is.Equal(pane.View().ViewRect().Dy(), 300) // the new cap
