@@ -20,7 +20,7 @@ type game struct {
 	ui *ebitenui.UI
 }
 
-// This object satisfies the interface DragContentsCreater
+// This object satisfies the interface DragContentsCreator
 type dndWidget struct {
 	dndObj         *widget.Container
 	text           *widget.Text
@@ -115,7 +115,7 @@ func main() {
 			widget.WidgetOpts.EnableDragAndDrop(
 				widget.NewDragAndDrop(
 					//The object which will create/update the dragged element. Required.
-					widget.DragAndDropOpts.ContentsCreater(&dndWidget{}),
+					widget.DragAndDropOpts.ContentsCreator(&dndWidget{}),
 					//How many pixels the user must drag their cursor before the drag begins.
 					//This is an optional parameter that defaults to 15 pixels
 					widget.DragAndDropOpts.MinDragStartDistance(15),

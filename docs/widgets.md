@@ -96,7 +96,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 
 ## Text and images
 
-- **`Text`** shows text in a face and a color, wrapped at a width if you give one. It can show colored words and clickable links written in BBCode, and a shadow. With `widget.SetTextCache(true)`, texts are drawn from images of themselves, which is faster for text that rarely changes. Demos: `label`, `text_cache`.
+- **`Text`** shows text in a face and a color, wrapped at a width if you give one. It can show colored words and clickable links written in BBCode, and a shadow. With `widget.SetTextCache(true)`, texts are drawn from images of themselves, which is faster for text that rarely changes. A label your game rebuilds each frame, such as a clock or a readout, can be built in a byte buffer you keep and set with `SetLabelBytes`, which makes a new string only when the text changes. Demos: `label`, `text_cache`.
 - **`Label`** is a text with its own color for when it is disabled, as buttons and check boxes use. Demo: `label`.
 - **`Graphic`** shows an image, a stretchable nine-slice, an animated GIF, or an image for each state (idle, hovered, pressed, disabled). Demos: `graphic_gif`, `imagebutton`.
 - **`TextArea`** shows text too long for its space, scrolled with sliders, the wheel or by dragging. With `MaxLines` it keeps only its last lines, like a log. Demo: `textarea`.
@@ -125,6 +125,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Pages and scrolling
 
 - **`ScrollContainer`** shows content bigger than its space, scrolled with sliders, the wheel or by dragging. Demo: `scrollcontainer`.
+- **`ScrollPane`** is a scroll container with its scrollbar: the bar shows only while the content is taller than the view, which can be capped in height, and a widget inside given the focus is scrolled into view. Use it for a settings page or any column of controls that may not fit.
 - **`FlipBook`** shows one page of several at a time; the game switches between them. Demo: `flipbook`.
 - **`TabBook`** shows pages behind a row of tabs. Demo: `tabbook`.
 - **`Carousel`** shows one page at a time with arrows, dots and swipes to move between them, sliding each new page in. It can loop and move on by itself, like a loading screen. In steps mode, each page opens only once the game marks the steps before it as done, like a tutorial. Demo: `carousel`.
@@ -135,6 +136,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 - **`Dialog`** is a window asking the player to choose, such as an alert or a yes/no question. Demo: `dialog`.
 - **Context menus** open on a widget with a right click, a long press, the context-menu key or a gamepad's Menu button. Demo: `contextmenu`.
 - **`ToolTip`** shows content while the pointer rests on a widget, or on a long press with a finger. Demo: `tooltips`.
+- **`Toast`** shows a short message for a few seconds, such as a game saved or a gamepad plugged in, fading in and out if you like. A new message takes the place of the one showing.
 - **`DragAndDrop`** lets the player drag something from one widget and drop it on another. Demo: `draganddrop`.
 
 ## Progress
@@ -146,6 +148,7 @@ A container's layout decides where its widgets go. Each widget can say how it wa
 ## Your own drawing
 
 - **`Canvas`** is a widget your game draws into, such as a minimap or a chart. It is laid out like any widget, what you draw stays inside it, and its events tell you where the pointer is. Demo: `canvas`.
+- **`GlyphCache`** draws and measures text as `text.Draw` and `text.Measure` do, from glyphs laid out the first time each text is drawn: labels drawn every frame, on a canvas or the screen, are not shaped again and allocate nothing.
 
 ## What every widget has
 

@@ -166,6 +166,7 @@ func (x *textCache) Renders() int                                       { return
 func (x *textCache) Slot() *textSlot                                    { return x.slot }
 func (x *textCache) TooLarge() bool                                     { return x.tooLarge }
 func (x *textMeasurements) BoundingBoxWidth() float64                   { return x.boundingBoxWidth }
+func (x *textMeasurements) Label() string                               { return x.label }
 func (x *textMeasurements) LineHeight() float64                         { return x.lineHeight }
 func (x *textMeasurements) ProcessedLineGlyphs() [][]text.Glyph         { return x.processedLineGlyphs }
 func (x *textMeasurements) ProcessedLineTexts() []string                { return x.processedLineTexts }
@@ -247,3 +248,11 @@ func (x *Checklist) Strikes(i int) []image2.Rectangle {
 	}
 	return s
 }
+
+// Glyphs returns a text's glyphs as the cache lays it out.
+func (x *GlyphCache) Glyphs(s string, face text.Face, layout text.LayoutOptions) []text.Glyph {
+	return x.text(s, face, layout).glyphs
+}
+
+// Len returns how many texts the cache holds laid out.
+func (x *GlyphCache) Len() int { return len(x.texts) }
