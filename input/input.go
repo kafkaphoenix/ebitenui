@@ -232,6 +232,12 @@ func TouchPinch() float64 {
 	return internalinput.InputHandler.TouchPinch
 }
 
+// TouchCenter returns the midpoint of the first two fingers on the screen,
+// in pixels, which a pinch zooms about, and whether two fingers are down.
+func TouchCenter() (x, y float64, ok bool) {
+	return internalinput.InputHandler.TouchCenter()
+}
+
 // TouchPan returns how far the midpoint of the first two fingers on the
 // screen moved since the last update, in pixels; nothing unless the same
 // two fingers were down then too.
